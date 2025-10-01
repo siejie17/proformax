@@ -27,7 +27,7 @@ const HomeScreen = () => {
         return "User";
     };
 
-    const getProfilePicSource = (profilePic) => {
+    const getProfilePicSource = (profilePic = null) => {
         if (profilePic) {
             return { uri: `data:image/jpeg;base64,${profilePic}` };
         }

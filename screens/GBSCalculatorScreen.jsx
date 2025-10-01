@@ -43,6 +43,29 @@ const GBSCalculatorScreen = ({ navigation }) => {
         },
     };
 
+    const RNCStructures = [
+        "Single Storey (R.C.) Building",
+        "2-4 Storey (R.C.) Building (Flat Roof)",
+        "2-4 Storey (R.C.) Building (Pitched Roof)",
+        "5 Storey and Above (R.C.) Building (For Accommodation)"
+    ];
+
+    const NRNCBaseStructures = [
+        "5 Storey and Above (R.C.) Building (For Office)",
+        "Timber Building",
+        "Timber Piling",
+        "R.C. Piling"
+    ];
+
+    const NRNCSpecialCases = {
+        Sarawak: [...NRNCBaseStructures, "Single Storey Steel (Building)"],
+        Sabah: [
+            ...NRNCBaseStructures,
+            "Single Storey Steel (Building)",
+            "Single Storey Steel (Tower Only)"
+        ]
+    };
+
     const ratingScaleMapping = {
         "Platinum (86 - 100)": "Platinum",
         "Gold (76 - 85)": "Gold",
@@ -54,6 +77,7 @@ const GBSCalculatorScreen = ({ navigation }) => {
     const [selectedBuildingType, setSelectedBuildingType] = useState(null);
     const [selectedCategory, setSelectedCategory] = useState(null);
     const [categories, setCategories] = useState([]);
+    const [structures, setStructures] = useState([]);
 
     // Generate array of years: current year + next 10 years
     const currentYear = new Date().getFullYear();
@@ -70,6 +94,7 @@ const GBSCalculatorScreen = ({ navigation }) => {
     const [projectBudget, setProjectBudget] = useState(0.00);
     const [selectedState, setSelectedState] = useState(null);
     const [selectedRegion, setSelectedRegion] = useState(null);
+    const [selectedStructure, setSelectedStructure] = useState(null);
     const [selectedCertifiedRatingScale, setSelectedCertifiedRatingScale] = useState(null);
 
     const [buildingSizeDisplay, setBuildingSizeDisplay] = useState('');
@@ -83,6 +108,7 @@ const GBSCalculatorScreen = ({ navigation }) => {
     const stateBottomSheetRef = useRef(null);
     const regionBottomSheetRef = useRef(null);
     const ratingScaleBottomSheetRef = useRef(null);
+    const structureBottomSheetRef = useRef(null);
 
     const snapPoints = useMemo(() => ['25%'], []);
 
@@ -109,6 +135,25 @@ const GBSCalculatorScreen = ({ navigation }) => {
             setCategories([]);
         }
     }, [selectedBuildingType]);
+
+    useEffect(() => {
+        if (selectedBuildingType && selectedState) {
+            if (selectedBuildingType === "Residential New Construction (RNC)") {
+                setSelectedStructure(null);
+                setStructures(RNCStructures);
+            } else if (selectedBuildingType === "Non-Residential New Construction (NRNC)") {
+                setSelectedStructure(null);
+                if (selectedState === "Sabah" || selectedState === "Sarawak") {
+                    setStructures(NRNCSpecialCases[selectedState]);
+                } else {
+                    setStructures(NRNCBaseStructures);
+                }
+            }
+        } else {
+            setSelectedStructure(null);
+            setStructures([]);
+        }
+    }, [selectedBuildingType, selectedState]);
 
     const handleBuildingTypePress = useCallback(() => {
         setActiveSheet('buildingType');
@@ -160,6 +205,16 @@ const GBSCalculatorScreen = ({ navigation }) => {
         regionBottomSheetRef.current?.close();
     }, []);
 
+    const handleStructurePress = useCallback(() => {
+        setActiveSheet('structure');
+        structureBottomSheetRef.current?.snapToIndex(1);
+    }, []);
+
+    const handleStructureSelect = useCallback((structure) => {
+        setSelectedStructure(structure);
+        structureBottomSheetRef.current?.close();
+    }, []);
+
     const handleRatingPress = useCallback(() => {
         setActiveSheet('ratingScale');
         ratingScaleBottomSheetRef.current?.snapToIndex(1);
@@ -176,6 +231,35 @@ const GBSCalculatorScreen = ({ navigation }) => {
         }
     }, []);
 
+    const closeActiveBottomSheet = useCallback(() => {
+        if (activeSheet) {
+            switch (activeSheet) {
+                case 'buildingType':
+                    buildingTypeBottomSheetRef.current?.close();
+                    break;
+                case 'category':
+                    categoryBottomSheetRef.current?.close();
+                    break;
+                case 'year':
+                    yearBottomSheetRef.current?.close();
+                    break;
+                case 'state':
+                    stateBottomSheetRef.current?.close();
+                    break;
+                case 'region':
+                    regionBottomSheetRef.current?.close();
+                    break;
+                case 'structure':
+                    structureBottomSheetRef.current?.close();
+                    break;
+                case 'ratingScale':
+                    ratingScaleBottomSheetRef.current?.close();
+                    break;
+            }
+            setActiveSheet(null);
+        }
+    }, [activeSheet]);
+
     const renderBottomSheet = (ref, data, selectedValue, onSelect, title) => (
         <BottomSheet
             ref={ref}
@@ -184,7 +268,6 @@ const GBSCalculatorScreen = ({ navigation }) => {
             onChange={handleSheetChanges}
             enablePanDownToClose
             enableOverDrag={false}
-            // enableContentPanningGesture={false}
             backgroundStyle={{ backgroundColor: '#ffffff' }}
             handleIndicatorStyle={{ backgroundColor: '#D1D5DB' }}
         >
@@ -290,6 +373,24 @@ const GBSCalculatorScreen = ({ navigation }) => {
         setProjectBudget(parseFloat(formatted)); // store decimal in state
     };
 
+    const handleFormSubmit = () => {
+        // Validate required fields
+        if (!selectedBuildingType || !selectedCategory || !selectedYear || !buildingSize || !projectBudget || !selectedState || !selectedCertifiedRatingScale) {
+            alert("Please fill in all required fields.");
+            return;
+        }
+
+        const formData = {
+            buildingType: selectedBuildingType,
+            category: selectedCategory,
+            year: selectedYear,
+            buildingSize: buildingSize,
+            projectBudget: projectBudget,
+            state: selectedState === "Sabah" || selectedState === "Sarawak" ? selectedRegion : selectedState,
+            certifiedRatingScale: selectedCertifiedRatingScale,
+        };
+    }
+
     return (
         <SafeAreaView className="flex-1 bg-gray-100">
             <StatusBar barStyle="dark-content" backgroundColor="#F9FAFB" />
@@ -318,6 +419,7 @@ const GBSCalculatorScreen = ({ navigation }) => {
                                 value={selectedBuildingType}
                                 placeholder="Select Building Type"
                                 showChevron={true}
+                                disabled={activeSheet && activeSheet !== 'buildingType'}
                                 onPress={handleBuildingTypePress}
                             />
 
@@ -326,7 +428,7 @@ const GBSCalculatorScreen = ({ navigation }) => {
                                 value={selectedCategory}
                                 placeholder={selectedBuildingType ? "Select Building Category" : "Please Select Building Type First"}
                                 showChevron={true}
-                                disabled={!selectedBuildingType}
+                                disabled={!selectedBuildingType || (activeSheet && activeSheet !== 'category')}
                                 onPress={handleCategoryPress}
                             />
 
@@ -335,6 +437,7 @@ const GBSCalculatorScreen = ({ navigation }) => {
                                 value={formatWithThousandSeparator(buildingSizeDisplay)}
                                 placeholder="Enter Project/Building Size"
                                 onChangeText={(text) => handleNumericInput(text, setBuildingSize, setBuildingSizeDisplay, false)}
+                                onFocus={closeActiveBottomSheet}
                                 keyboardType="decimal-pad"
                                 inputMode="decimal"
                             />
@@ -344,6 +447,7 @@ const GBSCalculatorScreen = ({ navigation }) => {
                                 value={formatCurrency(projectBudgetDisplay)}
                                 placeholder="Enter Project/Building Budget"
                                 onChangeText={handleCurrencyInput}
+                                onFocus={closeActiveBottomSheet}
                                 keyboardType="numeric"
                                 inputMode="numeric"
                             />
@@ -353,6 +457,7 @@ const GBSCalculatorScreen = ({ navigation }) => {
                                 value={selectedYear}
                                 placeholder="Select Year of Proposed Project"
                                 showChevron={true}
+                                disabled={activeSheet && activeSheet !== 'year'}
                                 onPress={handleYearPress}
                             />
 
@@ -361,6 +466,7 @@ const GBSCalculatorScreen = ({ navigation }) => {
                                 value={selectedState}
                                 placeholder="Select State"
                                 showChevron={true}
+                                disabled={activeSheet && activeSheet !== 'state'}
                                 onPress={handleStatePress}
                             />
 
@@ -370,15 +476,26 @@ const GBSCalculatorScreen = ({ navigation }) => {
                                     value={selectedRegion}
                                     placeholder="Select Region"
                                     showChevron={true}
+                                    disabled={activeSheet && activeSheet !== 'region'}
                                     onPress={handleRegionPress}
                                 />
                             )}
+
+                            <FormInputField
+                                label="Structure"
+                                value={selectedStructure}
+                                placeholder={!selectedBuildingType || !selectedState ? "Please Select Building Type and State First" : "Select Structure"}
+                                showChevron={true}
+                                disabled={!selectedBuildingType || !selectedState || (activeSheet && activeSheet !== 'structure')}
+                                onPress={handleStructurePress}
+                            />
 
                             <FormInputField
                                 label="Target Certified Rating Scale"
                                 value={ratingScaleMapping[selectedCertifiedRatingScale]}
                                 placeholder="Select Target Certified Rating Scale"
                                 showChevron={true}
+                                disabled={activeSheet && activeSheet !== 'ratingScale'}
                                 onPress={handleRatingPress}
                             />
                         </View>
@@ -389,9 +506,7 @@ const GBSCalculatorScreen = ({ navigation }) => {
                         <TouchableOpacity
                             className="bg-green-600 rounded-full py-4 items-center"
                             activeOpacity={0.8}
-                            onPress={() => {
-                                console.log('Form submitted:', formData);
-                            }}
+                            onPress={handleFormSubmit}
                         >
                             <Text className="text-white text-base font-semibold">Submit</Text>
                         </TouchableOpacity>
@@ -431,6 +546,13 @@ const GBSCalculatorScreen = ({ navigation }) => {
                         selectedRegion,
                         handleRegionSelect,
                         "Region"
+                    )}
+                    {renderBottomSheet(
+                        structureBottomSheetRef,
+                        structures,
+                        selectedStructure,
+                        handleStructureSelect,
+                        "Structure"
                     )}
                     {renderBottomSheet(
                         ratingScaleBottomSheetRef,

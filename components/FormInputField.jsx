@@ -1,7 +1,7 @@
 import { View, Text, TextInput, TouchableOpacity } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 
-const FormInputField = ({ label, value, placeholder, onChangeText, showChevron = false, onPress, disabled = false, required = true, ...props }) => {
+const FormInputField = ({ label, value, placeholder, onChangeText, showChevron = false, onPress, disabled = false, required = true, onFocus, ...props }) => {
     return (
         <View className="mb-4">
             <View className="flex-row items-center px-4 mb-2">
@@ -17,8 +17,8 @@ const FormInputField = ({ label, value, placeholder, onChangeText, showChevron =
                     <TouchableOpacity
                         onPress={onPress}
                         disabled={disabled}
-                        className="flex-row items-center justify-between p-4 min-h-[52px]"
-                        activeOpacity={0.7}
+                        className={`flex-row items-center justify-between p-4 min-h-[52px] ${disabled ? 'opacity-50' : ''}`}
+                        activeOpacity={disabled ? 1 : 0.7}
                     >
                         <Text
                             className={`text-base ${value ? "text-gray-900" : "text-gray-400"
@@ -26,12 +26,13 @@ const FormInputField = ({ label, value, placeholder, onChangeText, showChevron =
                         >
                             {value || placeholder}
                         </Text>
-                        <Feather name="chevron-right" size={20} color="#9CA3AF" />
+                        <Feather name="chevron-right" size={20} color={disabled ? "#D1D5DB" : "#9CA3AF"} />
                     </TouchableOpacity>
                 ) : (
                     <TextInput
                         value={value}
                         onChangeText={onChangeText}
+                        onFocus={onFocus}
                         placeholder={placeholder}
                         className="p-4 text-gray-900 text-base min-h-[52px]"
                         placeholderTextColor="#9CA3AF"

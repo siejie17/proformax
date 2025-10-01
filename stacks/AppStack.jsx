@@ -3,6 +3,7 @@ import TabStack from './TabStack';
 import HistoryScreen from '../screens/HistoryScreen';
 import GBSCalculatorScreen from '../screens/GBSCalculatorScreen';
 import AboutScreen from '../screens/AboutScreen';
+import TeamScreen from '../screens/TeamScreen';
 
 const AppStack = () => {
     const Stack = createNativeStackNavigator();
@@ -13,6 +14,7 @@ const AppStack = () => {
             <Stack.Screen name="GBSCalculator" component={GBSCalculatorScreen} options={{ headerShown: false }} />
             <Stack.Screen name="History" component={HistoryScreen} options={{ headerShown: false }} />
             <Stack.Screen name="About" component={AboutScreen} options={{ headerShown: false }} />
+            <Stack.Screen name="Team" component={TeamScreen} options={{ headerShown: false }} />
         </Stack.Navigator>
     )
 }
