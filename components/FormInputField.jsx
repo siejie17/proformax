@@ -1,7 +1,8 @@
+import React from 'react';
 import { View, Text, TextInput, TouchableOpacity } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 
-const FormInputField = ({ label, value, placeholder, onChangeText, showChevron = false, onPress, disabled = false, required = true, onFocus, ...props }) => {
+const FormInputField = React.memo(({ label, value, placeholder, onChangeText, showChevron = false, onPress, disabled = false, required = true, onFocus, error = null, onDisabledPress, ...props }) => {
     return (
         <View className="mb-4">
             <View className="flex-row items-center px-4 mb-2">
@@ -15,8 +16,7 @@ const FormInputField = ({ label, value, placeholder, onChangeText, showChevron =
             <View className="bg-white mx-3 rounded-lg shadow-sm">
                 {showChevron ? (
                     <TouchableOpacity
-                        onPress={onPress}
-                        disabled={disabled}
+                        onPress={disabled ? onDisabledPress : onPress}
                         className={`flex-row items-center justify-between p-4 min-h-[52px] ${disabled ? 'opacity-50' : ''}`}
                         activeOpacity={disabled ? 1 : 0.7}
                     >
@@ -40,8 +40,9 @@ const FormInputField = ({ label, value, placeholder, onChangeText, showChevron =
                     />
                 )}
             </View>
+            {error && <Text className="text-red-500 text-sm mt-1 px-4">{error}</Text>}
         </View>
     )
-}
+});
 
 export default FormInputField;

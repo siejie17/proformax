@@ -1,5 +1,5 @@
 import { View, Text, ScrollView, StatusBar, TouchableOpacity, Image } from 'react-native';
-import { FontAwesome5 } from '@expo/vector-icons';
+import { FontAwesome5, Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 const TeamScreen = ({ navigation }) => {
@@ -61,8 +61,8 @@ const TeamScreen = ({ navigation }) => {
                     <Text className="text-gray-900 text-base font-semibold leading-6 mb-2">
                         {member.name}
                     </Text>
-                    <View className="bg-blue-50 rounded-lg px-3 py-1.5 self-start">
-                        <Text className="text-blue-700 text-xs font-medium">
+                    <View className="bg-green-50 rounded-lg px-3 py-1.5 self-start">
+                        <Text className="text-green-700 text-xs font-medium">
                             {member.role}
                         </Text>
                     </View>
@@ -76,10 +76,13 @@ const TeamScreen = ({ navigation }) => {
             <StatusBar barStyle="dark-content" backgroundColor="#F9FAFB" />
 
             {/* Header */}
-            <View className="bg-white border-b border-gray-100">
+            <View className="w-full border-b border-gray-200">
                 <View className="flex-row items-center px-4 py-3">
-                    <TouchableOpacity className="p-2 -ml-2" activeOpacity={0.7} onPress={() => navigation.goBack()}>
-                        <FontAwesome5 name="chevron-left" size={24} color="#374151" />
+                    <TouchableOpacity
+                        onPress={() => navigation.goBack()}
+                        className="size-10 mr-4 rounded-2xl items-center justify-center"
+                    >
+                        <Ionicons name="arrow-back" size={24} color="#374151" />
                     </TouchableOpacity>
                     <Text className="text-gray-900 text-lg font-semibold ml-2">Our Team</Text>
                 </View>
@@ -88,13 +91,13 @@ const TeamScreen = ({ navigation }) => {
             <ScrollView
                 className="flex-1"
                 showsVerticalScrollIndicator={false}
-                contentContainerStyle={{ paddingBottom: 32 }}
+                contentContainerStyle={{ paddingBottom: 16, paddingHorizontal: 4 }}
             >
                 {/* Header Section */}
                 <View className="px-5 pt-6 pb-4">
                     <View className="bg-white rounded-3xl p-6 shadow-sm items-center">
-                        <View className="w-16 h-16 bg-blue-50 rounded-full items-center justify-center mb-3">
-                            <FontAwesome5 name="users" size={28} color="#3B82F6" />
+                        <View className="w-16 h-16 bg-green-50 rounded-full items-center justify-center mb-3">
+                            <FontAwesome5 name="users" size={28} color="#15803D" />
                         </View>
                         <Text className="text-gray-900 text-xl font-bold mb-2">Meet Our Team</Text>
                         <Text className="text-gray-600 text-center text-sm leading-6">
@@ -118,10 +121,10 @@ const TeamScreen = ({ navigation }) => {
                 </View>
 
                 {/* Footer Note */}
-                <View className="px-5 pt-2">
-                    <View className="bg-green-50 rounded-2xl p-4">
+                <View className="px-5 pt-1">
+                    <View className="bg-green-50 rounded-2xl px-4 py-3">
                         <Text className="text-green-900 text-sm font-medium text-center leading-6">
-                            Together, we're building a sustainable future
+                            Together, we're building a sustainable future.
                         </Text>
                     </View>
                 </View>

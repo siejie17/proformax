@@ -1,7 +1,8 @@
+import React from 'react';
 import { Text, Pressable, View } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
-const SelectionItem = ({ item, selectedValue, onSelect }) => {
+const SelectionItem = React.memo(({ item, selectedValue, onSelect }) => {
     const isSelected = selectedValue === item;
 
     return (
@@ -22,6 +23,6 @@ const SelectionItem = ({ item, selectedValue, onSelect }) => {
             </View>
         </Pressable>
     )
-}
+});
 
 export default SelectionItem;
