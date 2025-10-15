@@ -4,12 +4,12 @@
     "slug": "ProFormaX",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/logo/proformax-logo.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "scheme": "myapp",
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/logo/proformax-logo.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -18,7 +18,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/logo/proformax-logo.png",
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true

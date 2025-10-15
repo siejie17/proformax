@@ -54,10 +54,11 @@ const ProfileScreen = () => {
                 <View className="pb-3">
                     <Text className="m-2 ml-3 text-[13px] font-medium uppercase text-[#A69F9F]">Account</Text>
 
-                    <View className="rounded-xl shadow shadow-black">
+                    <View className="rounded-xl shadow shadow-gray-500">
+                        <View className="p-3 bg-white rounded-xl">
                         <TouchableOpacity
                             onPress={() => navigation.navigate('Account')}
-                            className="p-3 bg-white rounded-xl items-center justify-start flex-row"
+                            className="items-center justify-start flex-row"
                         >
                             <Image
                                 alt="Profile Picture"
@@ -73,6 +74,7 @@ const ProfileScreen = () => {
 
                             <Ionicons name="chevron-forward" size={22} color="#BCBCBC" />
                         </TouchableOpacity>
+                        </View>
                     </View>
                 </View>
 

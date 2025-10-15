@@ -1,6 +1,5 @@
 import { View, Text, TouchableWithoutFeedback, Keyboard, TouchableOpacity, StatusBar, ScrollView, FlatList } from 'react-native';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import MessageModal from '../components/MessageModal';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import api from '../services/api';
@@ -9,6 +8,7 @@ import FormInputField from '../components/FormInputField';
 import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
 import SelectionItem from '../components/SelectionItem';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import LoadingIndicator from '../components/LoadingIndicator';
 
 const GBSCalculatorScreen = ({ navigation }) => {
     const locationMapping = {
@@ -92,6 +92,8 @@ const GBSCalculatorScreen = ({ navigation }) => {
     const [categories, setCategories] = useState([]);
     const [structures, setStructures] = useState([]);
 
+    const [loading, setLoading] = useState(false);
+
     // Generate array of years: current year + next 10 years
     const currentYear = new Date().getFullYear();
     const [yearList] = useState(() => {
@@ -141,10 +143,13 @@ const GBSCalculatorScreen = ({ navigation }) => {
     useEffect(() => {
         const fetchCategories = async () => {
             try {
+                setLoading(true);
                 const response = await api.get('/categories');
                 setBuildingTypes(response.data);
             } catch (error) {
                 console.error('Error fetching categories:', error);
+            } finally {
+                setLoading(false);
             }
         };
 
@@ -263,7 +268,7 @@ const GBSCalculatorScreen = ({ navigation }) => {
         setSelectedCertifiedRatingScale(rating);
         clearError('certifiedRatingScale');
         ratingScaleBottomSheetRef.current?.close();
-    }, []); 
+    }, []);
 
     const handleSheetChanges = useCallback((index) => {
         if (index === -1) {
@@ -285,7 +290,7 @@ const GBSCalculatorScreen = ({ navigation }) => {
                 ...prevErrors,
                 category: 'Please select a building type first'
             }));
-            
+
             // Clear error after 3 seconds
             setTimeout(() => {
                 setErrors(prevErrors => ({
@@ -305,13 +310,13 @@ const GBSCalculatorScreen = ({ navigation }) => {
         } else if (!selectedState) {
             errorMessage = 'Please select state first';
         }
-        
+
         if (errorMessage) {
             setErrors(prevErrors => ({
                 ...prevErrors,
                 structure: errorMessage
             }));
-            
+
             // Clear error after 3 seconds
             setTimeout(() => {
                 setErrors(prevErrors => ({
@@ -363,34 +368,40 @@ const GBSCalculatorScreen = ({ navigation }) => {
             handleIndicatorStyle={{ backgroundColor: '#D1D5DB' }}
         >
             <BottomSheetView className="flex-1">
-                <View className="px-4 py-3 border-b border-gray-200">
-                    <Text className="text-lg font-semibold text-gray-900 text-center">
-                        Select {title}
-                    </Text>
-                </View>
-                <FlatList
-                    data={data}
-                    keyExtractor={(item) => item}
-                    renderItem={({ item }) => (
-                        <SelectionItem
-                            item={item}
-                            selectedValue={selectedValue}
-                            onSelect={onSelect}
+                {loading ? (
+                    <LoadingIndicator />
+                ) : (
+                    <>
+                        <View className="px-4 py-3 border-b border-gray-200">
+                            <Text className="text-lg font-semibold text-gray-900 text-center">
+                                Select {title}
+                            </Text>
+                        </View>
+                        <FlatList
+                            data={data}
+                            keyExtractor={(item) => item}
+                            renderItem={({ item }) => (
+                                <SelectionItem
+                                    item={item}
+                                    selectedValue={selectedValue}
+                                    onSelect={onSelect}
+                                />
+                            )}
+                            showsVerticalScrollIndicator={false}
+                            bounces={true}
+                            removeClippedSubviews={true}
+                            windowSize={10}
+                            maxToRenderPerBatch={10}
+                            updateCellsBatchingPeriod={50}
+                            initialNumToRender={10}
+                            getItemLayout={(data, index) => ({
+                                length: 60, // Approximate item height
+                                offset: 60 * index,
+                                index,
+                            })}
                         />
-                    )}
-                    showsVerticalScrollIndicator={false}
-                    bounces={true}
-                    removeClippedSubviews={true}
-                    windowSize={10}
-                    maxToRenderPerBatch={10}
-                    updateCellsBatchingPeriod={50}
-                    initialNumToRender={10}
-                    getItemLayout={(data, index) => ({
-                        length: 60, // Approximate item height
-                        offset: 60 * index,
-                        index,
-                    })}
-                />
+                    </>
+                )}
             </BottomSheetView>
         </BottomSheet>
     ), [handleSheetChanges]);
@@ -413,7 +424,7 @@ const GBSCalculatorScreen = ({ navigation }) => {
         if (fieldName) {
             clearError(fieldName);
         }
-        
+
         // allow only digits and optionally a single decimal point
         let sanitized = text.replace(/[^0-9.]/g, "");
 
@@ -457,7 +468,7 @@ const GBSCalculatorScreen = ({ navigation }) => {
     const handleCurrencyInput = (text) => {
         // Clear error when user starts typing
         clearError('projectBudget');
-        
+
         // keep only digits
         let digits = text.replace(/[^0-9]/g, "");
 
@@ -551,20 +562,39 @@ const GBSCalculatorScreen = ({ navigation }) => {
         //     return;
         // }
 
-        const formData = {
-            buildingType: buildingTypes.find(type => type.building_type === selectedBuildingType)?.id,
-        //     category: buildingTypes.find(type => type.building_type === selectedBuildingType)?.categories.find(cat => cat.category === selectedCategory)?.id,
+        // const formData = {
+        //     buildingType: selectedBuildingType,
+        //     category: selectedCategory,
         //     year: selectedYear,
         //     buildingSize: buildingSize,
         //     projectBudget: projectBudget,
-        //     location: selectedState === "Sabah" || selectedState === "Sarawak" ? locationMapping[selectedState].regions[selectedRegion] : locationMapping[selectedState].code,
-        //     structure: structuresMapping[selectedStructure],
-        //     certifiedRatingScale: ratingScaleMapping[selectedCertifiedRatingScale],
-        };
+        //     state: selectedState,
+        //     region: selectedRegion || '',
+        //     structure: selectedStructure,
+        //     certifiedRatingScale: selectedCertifiedRatingScale,
+        //     costPreviewWay: "Detailed"
+        // };
 
-        // console.log("Form Data:", formData);
+        const formData = {
+            "buildingType": "Non-Residential New Construction (NRNC)",
+            "category": "Multi-purpose halls",
+            "year": 2026,
+            "buildingSize": 2500.75,
+            "projectBudget": 1200000.00,
+            "state": "Sarawak",
+            "region": "Miri",
+            "structure": "5 Storey and Above (R.C.) Building (For Office)",
+            "certifiedRatingScale": "Platinum (86 - 100)",
+            "costPreviewWay": "Detailed"
+        }
 
         navigation.navigate('Results', { formData });
+    }
+
+    if (loading) {
+        return (
+            <LoadingIndicator />
+        );
     }
 
     return (
@@ -588,7 +618,7 @@ const GBSCalculatorScreen = ({ navigation }) => {
                         </Text>
                     </View>
 
-                    <ScrollView 
+                    <ScrollView
                         className="flex-1 px-4"
                         showsVerticalScrollIndicator={false}
                         keyboardShouldPersistTaps="handled"

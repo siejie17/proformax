@@ -1,24 +1,19 @@
 import { Animated, View, Text, FlatList, TouchableOpacity, ScrollView, Keyboard, TouchableWithoutFeedback, TextInput, Dimensions, Pressable } from 'react-native'
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Checkbox from 'expo-checkbox';
 import { Ionicons } from '@expo/vector-icons';
-import { useRoute } from '@react-navigation/native';
 import InfoGuideModal from '../components/InfoGuideModal';
+import SkeletonLoader from '../components/SkeletonLoader';
+import * as Haptics from 'expo-haptics';
 
-const GreenElementsScreen = ({ route: ro, navigation, results, criteriaTotalMarks, setCriteriaTotalMarks = () => {} }) => {
-    const route = useRoute();
-    // Handle both direct route params and initialParams from TopTabsWrapper
-    const params = route.params || {};
-    const { cost, green_elements } = params;
-
-    const [criteria, setCriteria] = useState([]); // *
+const GreenElementsScreen = ({ greenElements, setGreenElements = () => {}, criteriaTotalMarks, setCriteriaTotalMarks = () => {}, criteriaMarks, setCriteriaMarks = () => {}, ...otherProps }) => {
+    const [criteria, setCriteria] = useState([]);
     const [currentCriteriaIndex, setCurrentCriteriaIndex] = useState(0);
     const [selectedCriterion, setSelectedCriterion] = useState(null);
-    const [checkedItems, setCheckedItems] = useState({}); //*
+    const [checkedItems, setCheckedItems] = useState({});
     const [loading, setLoading] = useState(false);
     const [customInputs, setCustomInputs] = useState({});
     const [customItems, setCustomItems] = useState({});
-    const [criteriaMarks, setCriteriaMarks] = useState({}); // Maps criterion name to earned marks
 
     const fadeAnim = useRef(new Animated.Value(0)).current;
     const slideAnim = useRef(new Animated.Value(50)).current;
@@ -43,6 +38,7 @@ const GreenElementsScreen = ({ route: ro, navigation, results, criteriaTotalMark
     }, [criteria, selectedCriterion]);
 
     const handleSectionPress = useCallback((criterion) => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         setSelectedCriterion(criterion.name);
 
         fadeAnim.setValue(0);
@@ -63,6 +59,9 @@ const GreenElementsScreen = ({ route: ro, navigation, results, criteriaTotalMark
     }, [fadeAnim, slideAnim]);
 
     const handleCheckboxToggle = useCallback((itemId, itemData = null) => {
+        // Add haptic feedback for checkbox interactions
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+        
         setCheckedItems(prev => {
             const wasChecked = prev[itemId];
             const newCheckedState = {
@@ -205,6 +204,9 @@ const GreenElementsScreen = ({ route: ro, navigation, results, criteriaTotalMark
 
     const addCustomItem = useCallback((itemId, text) => {
         if (!text.trim()) return;
+
+        // Success haptic for adding custom item
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
 
         const customItemId = `custom_${itemId}_${Date.now()}`;
         const newCustomItem = {
@@ -359,16 +361,31 @@ const GreenElementsScreen = ({ route: ro, navigation, results, criteriaTotalMark
     // Update criteriaTotalMarks whenever criteriaMarks changes
     useEffect(() => {
         if (setCriteriaTotalMarks && typeof setCriteriaTotalMarks === 'function') {
-            const totalMarks = Object.values(criteriaMarks).reduce((sum, marks) => sum + marks, 0);
-            setCriteriaTotalMarks(totalMarks);
+            const prevTotal = Object.values(criteriaMarks).reduce((sum, marks) => sum + marks, 0);
+            const newTotal = Object.values(criteriaMarks).reduce((sum, marks) => sum + marks, 0);
+            setCriteriaTotalMarks(newTotal);
+
+            // Celebration effect when criterion is completed
+            if (selectedCriterion && criteriaMarks[selectedCriterion]) {
+                const selectedCriterionData = criteria.find(c => c.name === selectedCriterion);
+                if (selectedCriterionData) {
+                    const earnedPoints = criteriaMarks[selectedCriterion];
+                    const minPoints = selectedCriterionData.min_marks || 0;
+                    
+                    // Check if just completed this criterion
+                    if (earnedPoints >= minPoints && earnedPoints > 0) {
+                        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                    }
+                }
+            }
         }
-    }, [criteriaMarks, setCriteriaTotalMarks]);
+    }, [criteriaMarks, setCriteriaTotalMarks, selectedCriterion, criteria]);
 
     useEffect(() => {
         setLoading(true);
 
-        if (green_elements && Array.isArray(green_elements) && green_elements.length > 0) {
-            const newSections = green_elements.map(item => {
+        if (greenElements && Array.isArray(greenElements) && greenElements.length > 0) {
+            const newSections = greenElements.map(item => {
                 let name;
 
                 if (typeof item === 'string') {
@@ -423,7 +440,7 @@ const GreenElementsScreen = ({ route: ro, navigation, results, criteriaTotalMark
         }
 
         setLoading(false);
-    }, [green_elements]);
+    }, [greenElements]);
 
     const renderSection = useCallback(({ item }) => {
         // Enhanced UX implementation - one card per swipe, fixed size, no overflow
@@ -439,16 +456,16 @@ const GreenElementsScreen = ({ route: ro, navigation, results, criteriaTotalMark
                     onPress={() => handleSectionPress(item)}
                     android_ripple={{ color: '#B7E4C7' }}
                 >
-                    <View 
+                    <Animated.View 
                         className={`py-4 px-5 rounded-3xl shadow-lg ${
                             isSelected ? 'bg-[#B7E4C7] elevation-6' : 'bg-[#F8FFF9] elevation-3'
-                        }`}
+                        } ${earnedPoints >= minPoints ? 'border-2 border-green-400' : ''}`}
                         style={{
                             minHeight: 90,
-                            shadowColor: '#000',
+                            shadowColor: earnedPoints >= minPoints ? '#22C55E' : '#000',
                             shadowOffset: { width: 0, height: 4 },
-                            shadowOpacity: isSelected ? 0.15 : 0.1,
-                            shadowRadius: isSelected ? 8 : 4,
+                            shadowOpacity: isSelected ? 0.15 : (earnedPoints >= minPoints ? 0.2 : 0.1),
+                            shadowRadius: isSelected ? 8 : (earnedPoints >= minPoints ? 6 : 4),
                             justifyContent: 'center', // Center content vertically
                         }}
                     >
@@ -466,10 +483,29 @@ const GreenElementsScreen = ({ route: ro, navigation, results, criteriaTotalMark
                             </Text>
                         </View>
                         
-                        {/* Progress Section */}
+                        {/* Enhanced Progress Section */}
                         <View className="items-center">
-                            <View className="flex-row items-center justify-center gap-2">
-                                <View 
+                            {/* Progress Bar */}
+                            <View className="w-full mb-3 px-2">
+                                <View className="bg-gray-200 h-2 rounded-full overflow-hidden">
+                                    <Animated.View
+                                        className={`h-full rounded-full ${
+                                            earnedPoints >= minPoints ? 'bg-[#52B788]' : 'bg-orange-400'
+                                        }`}
+                                        style={{
+                                            width: `${Math.min((earnedPoints / totalPoints) * 100, 100)}%`,
+                                        }}
+                                    />
+                                </View>
+                                {/* Progress percentage */}
+                                <Text className="text-xs text-gray-600 text-center mt-1">
+                                    {totalPoints > 0 ? Math.round((earnedPoints / totalPoints) * 100) : 0}% Complete
+                                </Text>
+                            </View>
+
+                            {/* Score Display */}
+                            <View className="flex-row items-center justify-center gap-2 mb-2">
+                                <Animated.View 
                                     className={`px-3 py-1.5 rounded-full ${
                                         earnedPoints >= minPoints ? 'bg-[#52B788]' : 'bg-red-500/70'
                                     }`}
@@ -479,12 +515,15 @@ const GreenElementsScreen = ({ route: ro, navigation, results, criteriaTotalMark
                                         shadowOffset: { width: 0, height: 1 },
                                         shadowOpacity: 0.1,
                                         shadowRadius: 2,
+                                        transform: [{
+                                            scale: earnedPoints >= minPoints ? 1.05 : 1
+                                        }]
                                     }}
                                 >
                                     <Text className="text-white text-sm font-bold text-center">
                                         {earnedPoints}
                                     </Text>
-                                </View>
+                                </Animated.View>
                                 <Text className="text-[#081C15] text-sm font-semibold">/</Text>
                                 <View 
                                     className="px-3 py-1.5 rounded-full bg-[#2D6A4F]"
@@ -502,14 +541,21 @@ const GreenElementsScreen = ({ route: ro, navigation, results, criteriaTotalMark
                                 </View>
                             </View>
                             
-                            {/* Progress indicator text */}
-                            <View className="mt-2">
-                                <Text className="text-[#081C15] text-xs font-medium opacity-70">
-                                    {earnedPoints >= minPoints ? 'Completed' : `You need at least ${minPoints} marks to proceed`}
+                            {/* Status Badge */}
+                            <View className={`px-3 py-1 rounded-full ${
+                                earnedPoints >= minPoints ? 'bg-green-100' : 'bg-orange-100'
+                            }`}>
+                                <Text className={`text-xs font-medium ${
+                                    earnedPoints >= minPoints ? 'text-green-700' : 'text-orange-700'
+                                }`}>
+                                    {earnedPoints >= minPoints ? 
+                                        '✓ Completed' : 
+                                        `Need ${minPoints - earnedPoints} more points`
+                                    }
                                 </Text>
                             </View>
                         </View>
-                    </View>
+                    </Animated.View>
                 </Pressable>
             </View>
         );
@@ -522,15 +568,18 @@ const GreenElementsScreen = ({ route: ro, navigation, results, criteriaTotalMark
             <View key={item.id} className="mb-3">
                 <View className="flex-row items-center py-4 px-6 bg-white rounded-xl shadow-md border border-gray-100">
                     {!hasSubitems && (
-                        <Checkbox
-                            value={checkedItems[item.id] || false}
-                            onValueChange={() => handleCheckboxToggle(item.id)}
-                            color={checkedItems[item.id] ? '#40916C' : undefined}
-                            className="mr-4"
-                            style={{
-                                transform: [{ scale: 1.1 }]
-                            }}
-                        />
+                        <Animated.View style={{
+                            transform: [{ 
+                                scale: checkedItems[item.id] ? 1.15 : 1.1 
+                            }]
+                        }}>
+                            <Checkbox
+                                value={checkedItems[item.id] || false}
+                                onValueChange={() => handleCheckboxToggle(item.id)}
+                                color={checkedItems[item.id] ? '#40916C' : undefined}
+                                className="mr-4"
+                            />
+                        </Animated.View>
                     )}
                     <TouchableOpacity
                         className="flex-1 mr-3"
@@ -546,14 +595,28 @@ const GreenElementsScreen = ({ route: ro, navigation, results, criteriaTotalMark
                     </TouchableOpacity>
                     <View className="flex-row items-center gap-2">
                         {item.marks && !hasSubitems && (
-                            <TouchableOpacity
-                                onPress={() => handleCheckboxToggle(item.id)}
-                                activeOpacity={0.7}
-                                className="bg-gradient-to-r from-[#D8F3DC] to-[#B7E4C7] px-3 py-1.5 rounded-full shadow-sm"
-                                style={{ minWidth: 50 }}
-                            >
-                                <Text className="text-[#1B4332] text-xs font-bold text-center">{item.marks} pts</Text>
-                            </TouchableOpacity>
+                            <Animated.View style={{
+                                transform: [{ 
+                                    scale: checkedItems[item.id] ? 1.1 : 1 
+                                }]
+                            }}>
+                                <TouchableOpacity
+                                    onPress={() => handleCheckboxToggle(item.id)}
+                                    activeOpacity={0.7}
+                                    className={`px-3 py-1.5 rounded-full shadow-sm ${
+                                        checkedItems[item.id] 
+                                            ? 'bg-gradient-to-r from-[#52B788] to-[#40916C]' 
+                                            : 'bg-gradient-to-r from-[#D8F3DC] to-[#B7E4C7]'
+                                    }`}
+                                    style={{ minWidth: 50 }}
+                                >
+                                    <Text className={`text-xs font-bold text-center ${
+                                        checkedItems[item.id] ? 'text-white' : 'text-[#1B4332]'
+                                    }`}>
+                                        {item.marks} pts
+                                    </Text>
+                                </TouchableOpacity>
+                            </Animated.View>
                         )}
                         <TouchableOpacity
                             onPress={() => handleInfoGuideOpen(item.info)}
@@ -703,9 +766,9 @@ const GreenElementsScreen = ({ route: ro, navigation, results, criteriaTotalMark
 
                     return (
                         <View key={index} className="mb-3">
-                            <View className="px-3 py-2 rounded-lg mb-2">
+                            <View className="px-2 py-2 rounded-lg mb-2">
                                 <Text className="text-gray-700 text-lg font-bold">
-                                    {subcriterion.name}
+                                    📍 {subcriterion.name}
                                 </Text>
                             </View>
                             {subcriterion.items.map(item => renderItem(item))}
@@ -717,35 +780,46 @@ const GreenElementsScreen = ({ route: ro, navigation, results, criteriaTotalMark
     }, [selectedCriterionData, renderItem]);
 
     if (loading) {
-        return (
-            <View className="flex-1 bg-gray-100 justify-center items-center">
-                <Text className="text-gray-600 text-base">Loading...</Text>
-            </View>
-        );
+        return <SkeletonLoader type="criteriaCards" />;
     }
 
     return (
         <View className="flex-1 bg-gray-100">
             {criteria.length === 0 && !loading ? (
                 <View className="flex-1 justify-center items-center px-6">
-                    <Text className="text-gray-600 text-lg font-semibold mb-2 text-center">
+                    {/* Empty State Icon */}
+                    <View className="w-24 h-24 bg-green-100 rounded-full items-center justify-center mb-6">
+                        <Ionicons name="leaf-outline" size={40} color="#52B788" />
+                    </View>
+                    
+                    <Text className="text-gray-900 text-xl font-bold mb-3 text-center">
                         No Green Elements Available
                     </Text>
-                    <Text className="text-gray-500 text-base text-center">
-                        There are no green building elements to display at this time.
+                    <Text className="text-gray-600 text-base text-center leading-6 mb-6">
+                        It looks like there are no green building elements to assess for this project configuration.
                     </Text>
+                    
+                    {/* Action suggestions */}
+                    <View className="bg-blue-50 p-4 rounded-xl w-full">
+                        <Text className="text-blue-800 text-sm font-medium mb-2">💡 Suggestions:</Text>
+                        <Text className="text-blue-700 text-sm leading-5">
+                            • Check your project settings{'\n'}
+                            • Verify building type selection{'\n'}
+                            • Contact support if this seems incorrect
+                        </Text>
+                    </View>
                 </View>
             ) : criteria.length !== 0 && (
                 <>
                     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
                         <View>
-                            <View className="px-4 pt-4">
+                            {/* <View className="px-4 pt-4">
                                 <Text className="text-gray-900 text-base font-semibold px-2">
                                     Criteria
                                 </Text>
-                            </View>
+                            </View> */}
 
-                            <View className="relative" style={{ height: 140 }}>
+                            <View className="relative" style={{ height: 180 }}>
                                 <FlatList
                                     ref={criteriaFlatListRef}
                                     horizontal

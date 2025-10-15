@@ -1,7 +1,7 @@
 import { View, Text, Modal, Image, TouchableOpacity, StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-const MessageModal = ({ isVisible, imgSource, title, description, onClose, buttonText }) => {
+const MessageModal = ({ isVisible, imgSource, title, description, subtitle, onClose, buttonText }) => {
     return (
         <Modal 
             visible={isVisible} 
@@ -20,7 +20,14 @@ const MessageModal = ({ isVisible, imgSource, title, description, onClose, butto
                         className="h-[150px] w-[150px] mb-4" 
                     />
                     <Text className="text-xl font-bold mb-3 text-center">{title}</Text>
-                    <Text className="text-gray-600 text-[16px] mb-7 text-center">{description}</Text>
+                    {subtitle ? (
+                        <View className="mb-6 px-2">
+                            <Text className="text-gray-700 text-sm leading-5 text-justify font-medium tracking-wide">
+                                {subtitle}
+                            </Text>
+                        </View>
+                    ) : null}
+                    {description ? <Text className="text-gray-600 text-[16px] mb-7 text-center">{description}</Text> : null}
                     <TouchableOpacity 
                         onPress={onClose} 
                         className="bg-green-500 rounded-lg py-4 px-6 w-full items-center"

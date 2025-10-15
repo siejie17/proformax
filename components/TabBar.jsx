@@ -2,7 +2,7 @@ import { View, Text, TouchableOpacity } from 'react-native';
 
 const TabBar = ({ state, descriptors, navigation }) => {
     return (
-        <View className="flex-row px-4 mb-2 rounded-2xl gap-x-2">
+        <View className="bg-white mx-4 mb-4 rounded-2xl p-1.5 flex-row gap-x-1.5 shadow-lg border border-slate-200">
             {state.routes.map((route, index) => {
                 const { options } = descriptors[route.key];
                 const label = options.tabBarLabel || options.title || route.name;
@@ -27,9 +27,9 @@ const TabBar = ({ state, descriptors, navigation }) => {
                         accessibilityRole='button'
                         accessibilityState={isFocused ? { selected: true } : {}}
                         accessibilityLabel={options.tabBarAccessibilityLabel}
-                        className={`flex-1 items-center justify-center py-3 rounded-xl relative ${isFocused ? 'bg-[#2D6A4F]' : 'bg-[#40916C]'}`}
+                        className={`flex-1 items-center justify-center py-3 rounded-xl relative ${isFocused ? 'bg-black' : 'bg-white'}`}
                     >
-                        <Text className={`text-sm font-medium ${isFocused ? 'text-white' : 'text-[#E8F5E9]'}`}>
+                        <Text className={`text-xs font-bold ${isFocused ? 'text-white' : 'text-slate-500'}`}>
                             {label}
                         </Text>
                         {isFocused && <View className="absolute bottom-0 h-3 rounded-sm bg-blue-600" />}
