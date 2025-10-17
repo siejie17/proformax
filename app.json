@@ -1,0 +1,31 @@
+{
+  "expo": {
+    "name": "ProFormaX",
+    "slug": "ProFormaX",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/logo/proformax-logo.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "scheme": "myapp",
+    "splash": {
+      "image": "./assets/logo/proformax-logo.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/logo/proformax-logo.png",
+        "backgroundColor": "#ffffff"
+      },
+      "edgeToEdgeEnabled": true
+    },
+    "web": {
+      "bundler": "metro",
+      "favicon": "./assets/favicon.png"
+    }
+  }
+}
