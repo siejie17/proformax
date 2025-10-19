@@ -1,11 +1,13 @@
-import { View, Text, TouchableOpacity, StatusBar, TextInput, KeyboardAvoidingView, Alert, ScrollView } from 'react-native'
-import React, { useState, useEffect, useContext } from 'react';
+import { View, Text, TouchableOpacity, StatusBar, KeyboardAvoidingView, Alert, ScrollView, Platform } from 'react-native';
+import { useState, useContext } from 'react';
 import { Ionicons } from '@expo/vector-icons';
-import { Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+
 import { updatePassword, updateUserField } from '../services/api';
+
 import FormInputField from '../components/FormInputField';
 import MessageModal from '../components/MessageModal';
+
 import { AuthContext } from '../contexts/AuthContext';
 
 const EditFieldScreen = ({ navigation, route }) => {

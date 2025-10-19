@@ -1,12 +1,14 @@
-import TopTabsWrapper from './TopTabsWrapper';
-import CostBreakdownScreen from '../screens/CostBreakdownScreen';
-import GreenElementsScreen from '../screens/GreenElementsScreen';
-import MessageModal from './MessageModal';
 import { useRoute } from '@react-navigation/native';
 import { useEffect, useState, useCallback } from 'react';
-import api from '../services/api';
+
 import ThreeDModelScreen from '../screens/ThreeDModelScreen';
+import CostBreakdownScreen from '../screens/CostBreakdownScreen';
+import GreenElementsScreen from '../screens/GreenElementsScreen';
 import LoadingIndicator from './LoadingIndicator';
+import TopTabsWrapper from './TopTabsWrapper';
+import MessageModal from './MessageModal';
+
+import api from '../services/api';
 
 const ResultsTopTabs = () => {
     const route = useRoute();
@@ -24,6 +26,10 @@ const ResultsTopTabs = () => {
         subtitle: '',
         imgSource: null
     });
+
+    const [checkedItems, setCheckedItems] = useState({});
+    const [checkedSubitems, setCheckedSubitems] = useState({});
+    const [customItems, setCustomItems] = useState({});
 
     const certifiedScaleRange = {
         'Platinum': [85, 100],
@@ -93,7 +99,7 @@ const ResultsTopTabs = () => {
     }, [mappedFormData, criteriaTotalMarks, certifiedScaleRange]);
 
     // Handle submit button press
-    const handleSubmit = useCallback(() => {
+    const handleSubmit = useCallback(async () => {
         const criteriaValidation = validateCriteria();
         const targetValidation = validateTargetCertification();
         
@@ -124,6 +130,18 @@ const ResultsTopTabs = () => {
         }
 
         // All validations passed
+        const checked_items = {
+            checkedItems: Object.keys(checkedItems).filter(key => checkedItems[key]),
+            checkedSubitems: Object.keys(checkedSubitems).filter(key => checkedSubitems[key]),
+            customItems: customItems,
+        }
+
+        const response = await api.post('/submit-assessment', {
+            costs: newProjectCosts,
+            form_data: mappedFormData,
+            checked_items: checked_items,
+        });
+
         setValidationModal({
             isVisible: true,
             title: 'Validation Successful!',
@@ -167,16 +185,6 @@ const ResultsTopTabs = () => {
         setCriteriaTotalMarks(total);
     }, [criteriaMarks]); // Runs every time criteriaMarks changes
 
-    // if (loading || !greenElements) {
-    //     return <LoadingIndicator />; // Or a loading spinner
-    // }
-
-    const handle3DButtonPress = useCallback(() => {
-        // Add your 3D functionality here
-        console.log('3D button pressed!');
-        // You can navigate to a 3D view, show a modal, or trigger any other functionality
-    }, []);
-
     return (
     <>
         {loading || !greenElements ? (
@@ -207,6 +215,12 @@ const ResultsTopTabs = () => {
                 criteriaMarks={criteriaMarks}
                 setCriteriaMarks={setCriteriaMarks}
                 mappedFormData={mappedFormData}
+                checkedItems={checkedItems}
+                setCheckedItems={setCheckedItems}
+                checkedSubitems={checkedSubitems}
+                setCheckedSubitems={setCheckedSubitems}
+                customItems={customItems}
+                setCustomItems={setCustomItems}
                 onSubmit={handleSubmit}
             />
         )}

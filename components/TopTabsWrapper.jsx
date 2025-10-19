@@ -1,8 +1,8 @@
 import { View, Text, StatusBar, TouchableOpacity } from 'react-native';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { SafeAreaView } from 'react-native-safe-area-context';
+
 import TabBar from './TabBar';
-import Button from './Button';
 
 const TopBar = createMaterialTopTabNavigator();
 
@@ -56,7 +56,7 @@ const TopTabsWrapper = ({ title, tabs, params, onSubmit, criteriaTotalMarks = 0,
 
     const isSubmitDisabled = Boolean(hasTargetRating && !targetMet);
     const pointsNeeded = isSubmitDisabled ? certifiedScaleRange[mappedFormData.certifiedRatingScale]?.[0] - criteriaTotalMarks : 0;
-    
+
     // Check if target is exceeded
     const targetExceeded = hasTargetRating && criteriaTotalMarks > certifiedScaleRange[mappedFormData.certifiedRatingScale]?.[1];
 
@@ -89,6 +89,7 @@ const TopTabsWrapper = ({ title, tabs, params, onSubmit, criteriaTotalMarks = 0,
                                 <tab.component
                                     {...params}
                                     {...props}
+                                    mappedFormData={mappedFormData}
                                 />
                             )}
                         </TopBar.Screen>
@@ -96,80 +97,94 @@ const TopTabsWrapper = ({ title, tabs, params, onSubmit, criteriaTotalMarks = 0,
                 </TopBar.Navigator>
             </View>
 
-            {/* Submit Button Section - Minimalist Redesign (Compact) */}
-            <View className="bg-white border-t rounded-tl-3xl rounded-tr-3xl border-gray-100">
-                <View className="px-6 py-3">
-                    {/* Score Display & Target Warning - Combined Row */}
-                    <View className="mb-2.5 flex-row gap-2">
-                        {/* Score Card */}
-                        <View className={`flex-1 p-3 rounded-xl border ${certificationColors.border} ${certificationColors.bg}`}>
-                            <Text className={`text-[10px] font-medium mb-1 ${certificationColors.text} opacity-80`}>
-                                GBI Score
-                            </Text>
-                            <View className="flex-row items-end justify-between">
-                                <Text className={`text-2xl font-bold ${certificationColors.text} leading-none`}>
-                                    {criteriaTotalMarks}
+            {/* Submit Button Section */}
+            <View className="bg-white border-t border-gray-200 shadow-lg rounded-t-3xl">
+                <View className="px-6 py-3 pt-4">
+                    {/* GBI Score Indicator - Compact */}
+                    <View className="px-1 mb-3 flex-row items-center justify-between">
+                        <Text className="text-gray-600 text-sm font-medium">GBI Score</Text>
+                        <View className="flex-row items-center gap-1.5">
+                            <View className="bg-gray-800 px-2.5 py-1 rounded-lg shadow-sm">
+                                <Text className="text-white text-[12px] font-bold">
+                                    {criteriaTotalMarks} pts
                                 </Text>
-                                <View className={`px-2.5 py-1 rounded-md ${certificationColors.badge}`}>
-                                    <Text className={`text-[10px] font-bold ${certificationColors.badgeText}`}>
-                                        {certificationLevel}
-                                    </Text>
-                                </View>
+                            </View>
+                            <View className={`px-2.5 py-1 rounded-lg shadow-sm border ${certificationColors.border} ${certificationColors.bg}`}>
+                                <Text className={`text-[12px] font-bold ${certificationColors.text}`}>
+                                    {certificationLevel}
+                                </Text>
                             </View>
                         </View>
-
-                        {/* Target Status Card */}
-                        {hasTargetRating && (
-                            <View className={`flex-1 p-3 rounded-xl border ${
-                                targetMet 
-                                    ? 'bg-emerald-50 border-emerald-200' 
-                                    : 'bg-amber-50 border-amber-200'
-                            }`}>
-                                <Text className={`text-[10px] font-semibold mb-1 ${
-                                    targetMet ? 'text-emerald-900' : 'text-amber-900'
-                                }`}>
-                                    Target Status
-                                </Text>
-                                <View className="flex-1 justify-center">
-                                    {targetMet ? (
-                                        <>
-                                            <Text className="text-emerald-800 text-xs font-bold leading-tight mb-0.5">
-                                                {targetExceeded ? '🎉 Exceeded!' : '✓ Achieved'}
-                                            </Text>
-                                            <Text className="text-emerald-600 text-[9px] leading-tight">
-                                                {mappedFormData.certifiedRatingScale} {targetExceeded ? 'surpassed' : 'reached'}
-                                            </Text>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Text className="text-amber-800 text-xs font-bold leading-tight mb-0.5">
-                                                +{pointsNeeded} pts needed
-                                            </Text>
-                                            <Text className="text-amber-600 text-[9px] leading-tight">
-                                                For {mappedFormData.certifiedRatingScale}
-                                            </Text>
-                                        </>
-                                    )}
-                                </View>
-                            </View>
-                        )}
                     </View>
 
-                    {/* Submit Button - Compact */}
+                    {/* Target Warning - Compact */}
+                    {hasTargetRating && !targetMet && (
+                        <View className="mb-2.5 px-3 py-2 bg-orange-50 rounded-xl border border-orange-200">
+                            <View className="flex-row items-center justify-between mb-0.5">
+                                <Text className="text-orange-800 text-[10px] font-semibold">
+                                    Target Not Met
+                                </Text>
+                                <Text className="text-orange-700 text-[10px] font-bold">
+                                    +{pointsNeeded} pts needed
+                                </Text>
+                            </View>
+                            <Text className="text-orange-600 text-[9px]">
+                                Target: {mappedFormData.certifiedRatingScale} • {certifiedScaleRange[mappedFormData.certifiedRatingScale]?.[0]}-{certifiedScaleRange[mappedFormData.certifiedRatingScale]?.[1]} pts
+                            </Text>
+                        </View>
+                    )}
+
+                    {/* Target Exceeded - Compact */}
+                    {hasTargetRating && targetExceeded && (
+                        <View className="mb-2.5 px-3 py-2 bg-emerald-50 rounded-xl border border-emerald-200">
+                            <View className="flex-row items-center justify-between">
+                                <View className="flex-row items-center flex-1">
+                                    <View className="w-4 h-4 bg-emerald-500 rounded-full items-center justify-center mr-2">
+                                        <Text className="text-white text-xs font-bold">✓</Text>
+                                    </View>
+                                    <Text className="text-emerald-700 text-[10px] font-semibold">
+                                        Target Exceeded! 🎉
+                                    </Text>
+                                </View>
+                                <Text className="text-emerald-600 text-[9px]">
+                                    {mappedFormData.certifiedRatingScale} surpassed
+                                </Text>
+                            </View>
+                        </View>
+                    )}
+
+                    {/* Target Met - Compact */}
+                    {hasTargetRating && targetMet && !targetExceeded && (
+                        <View className="mb-2.5 px-3 py-2 bg-emerald-50 rounded-xl border border-emerald-200">
+                            <View className="flex-row items-center justify-between">
+                                <View className="flex-row items-center flex-1">
+                                    <View className="w-4 h-4 bg-emerald-500 rounded-full items-center justify-center mr-2">
+                                        <Text className="text-white text-xs font-bold">✓</Text>
+                                    </View>
+                                    <Text className="text-emerald-700 text-[10px] font-semibold">
+                                        Target Achieved
+                                    </Text>
+                                </View>
+                                <Text className="text-emerald-600 text-[9px]">
+                                    {mappedFormData.certifiedRatingScale} reached
+                                </Text>
+                            </View>
+                        </View>
+                    )}
+
+                    {/* Submit Button */}
                     <TouchableOpacity
-                        className={`${
-                            isSubmitDisabled 
-                                ? 'bg-gray-200 border border-gray-300' 
-                                : 'bg-blue-600 border border-blue-700'
-                        } rounded-xl py-3 items-center active:opacity-80`}
-                        activeOpacity={1}
+                        className={`rounded-xl py-4 w-full items-center shadow-md ${isSubmitDisabled
+                                ? 'bg-gray-300'
+                                : 'bg-gray-800'
+                            }`}
+                        activeOpacity={0.8}
                         disabled={isSubmitDisabled}
                         onPress={onSubmit}
                     >
-                        <Text className={`${
-                            isSubmitDisabled ? 'text-gray-500' : 'text-white'
-                        } text-sm font-semibold`}>
-                            {isSubmitDisabled ? 'Cannot Submit' : 'Submit'}
+                        <Text className={`text-sm font-bold ${isSubmitDisabled ? 'text-gray-500' : 'text-white'
+                            }`}>
+                            {'Submit Assessment'}
                         </Text>
                     </TouchableOpacity>
                 </View>

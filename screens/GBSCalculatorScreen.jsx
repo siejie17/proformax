@@ -1,14 +1,16 @@
 import { View, Text, TouchableWithoutFeedback, Keyboard, TouchableOpacity, StatusBar, ScrollView, FlatList } from 'react-native';
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import api from '../services/api';
-import FormInputField from '../components/FormInputField';
 
 import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
-import SelectionItem from '../components/SelectionItem';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+
+import api from '../services/api';
+
+import FormInputField from '../components/FormInputField';
 import LoadingIndicator from '../components/LoadingIndicator';
+import SelectionItem from '../components/SelectionItem';
 
 const GBSCalculatorScreen = ({ navigation }) => {
     const locationMapping = {
@@ -607,7 +609,7 @@ const GBSCalculatorScreen = ({ navigation }) => {
             "category": "Multi-purpose halls",
             "year": 2026,
             "buildingSize": 2500.75,
-            "projectBudget": 1200000.00,
+            "projectBudget": 14300000.00,
             "state": "Sarawak",
             "region": "Miri",
             "structure": "5 Storey and Above (R.C.) Building (For Office)",

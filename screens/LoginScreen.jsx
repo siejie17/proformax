@@ -3,13 +3,16 @@ import { useRef, useState, useContext } from 'react';
 import { TextInput as PaperTextInput } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+import { AuthContext } from '../contexts/AuthContext';
+
 import TextInput from '../components/TextInput';
 import Title from '../components/Title';
 import Button from '../components/Button';
-import api from '../services/api';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { AuthContext } from '../contexts/AuthContext';
 import MessageModal from '../components/MessageModal';
+
+import api from '../services/api';
 
 const LoginScreen = () => {
     const { setIsLoggedIn } = useContext(AuthContext);

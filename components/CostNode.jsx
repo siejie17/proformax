@@ -2,15 +2,15 @@ import { View, Text, ScrollView, TextInput, TouchableOpacity, Animated, Alert } 
 import React, { useEffect, useRef, useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 
-const CostNode = ({ code, node, level = 0, onCostChange, path, onDelete, isDeleteMode }) => {
+const CostNode = ({ code, node, level = 0, onCostChange, path, onDelete, isDeleteMode, highlightedItem }) => {
     // Helper function to format number with thousands separators
     const formatWithCommas = (value) => {
         if (value === null || value === undefined || value === '') return '';
         const num = parseFloat(value);
         if (isNaN(num)) return '';
-        return num.toLocaleString('en-US', { 
-            minimumFractionDigits: 2, 
-            maximumFractionDigits: 2 
+        return num.toLocaleString('en-US', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
         });
     };
 
@@ -23,15 +23,15 @@ const CostNode = ({ code, node, level = 0, onCostChange, path, onDelete, isDelet
     const formatInputWithCommas = (value) => {
         const cleanValue = removeCommas(value);
         if (cleanValue === '') return '';
-        
+
         if (cleanValue.endsWith('.')) {
             const intPart = cleanValue.slice(0, -1);
             return intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '.';
         }
-        
+
         const parts = cleanValue.split('.');
         parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-        
+
         return parts.join('.');
     };
 
@@ -39,10 +39,12 @@ const CostNode = ({ code, node, level = 0, onCostChange, path, onDelete, isDelet
 
     const hasChildren = node.children && Object.keys(node.children).length > 0;
     const currentPath = path ? `${path}.${code}` : code;
+    const isHighlighted = highlightedItem === currentPath;
 
     const [isExpanded, setIsExpanded] = useState(level === 0);
     const animatedHeight = useRef(new Animated.Value(isExpanded ? 1 : 0)).current;
     const rotateAnimation = useRef(new Animated.Value(isExpanded ? 1 : 0)).current;
+    const highlightAnimation = useRef(new Animated.Value(0)).current;
 
     const toggleExpanded = () => {
         const toValue = isExpanded ? 0 : 1;
@@ -65,6 +67,50 @@ const CostNode = ({ code, node, level = 0, onCostChange, path, onDelete, isDelet
     const rotateInterpolate = rotateAnimation.interpolate({
         inputRange: [0, 1],
         outputRange: ['0deg', '90deg'],
+    });
+
+    // Highlight animation effect
+    React.useEffect(() => {
+        if (isHighlighted) {
+            // Blink 3 times
+            Animated.sequence([
+                Animated.timing(highlightAnimation, {
+                    toValue: 1,
+                    duration: 300,
+                    useNativeDriver: false,
+                }),
+                Animated.timing(highlightAnimation, {
+                    toValue: 0,
+                    duration: 300,
+                    useNativeDriver: false,
+                }),
+                Animated.timing(highlightAnimation, {
+                    toValue: 1,
+                    duration: 300,
+                    useNativeDriver: false,
+                }),
+                Animated.timing(highlightAnimation, {
+                    toValue: 0,
+                    duration: 300,
+                    useNativeDriver: false,
+                }),
+                Animated.timing(highlightAnimation, {
+                    toValue: 1,
+                    duration: 300,
+                    useNativeDriver: false,
+                }),
+                Animated.timing(highlightAnimation, {
+                    toValue: 0,
+                    duration: 300,
+                    useNativeDriver: false,
+                }),
+            ]).start();
+        }
+    }, [isHighlighted]);
+
+    const highlightBackgroundColor = highlightAnimation.interpolate({
+        inputRange: [0, 1],
+        outputRange: ['rgba(255, 255, 255, 1)', 'rgba(59, 130, 246, 0.2)'], // white to blue
     });
 
     // Handle delete with confirmation
@@ -136,7 +182,7 @@ const CostNode = ({ code, node, level = 0, onCostChange, path, onDelete, isDelet
                                     placeholderTextColor="#94a3b8"
                                 />
                             </View>
-                            
+
                             {/* Delete Button for top-level items without children */}
                             {isDeleteMode && (
                                 <TouchableOpacity
@@ -179,6 +225,7 @@ const CostNode = ({ code, node, level = 0, onCostChange, path, onDelete, isDelet
                                 onCostChange={onCostChange}
                                 onDelete={onDelete}
                                 isDeleteMode={isDeleteMode}
+                                highlightedItem={highlightedItem}
                             />
                         ))}
                     </Animated.View>
@@ -239,17 +286,23 @@ const CostNode = ({ code, node, level = 0, onCostChange, path, onDelete, isDelet
                                 onCostChange={onCostChange}
                                 onDelete={onDelete}
                                 isDeleteMode={isDeleteMode}
+                                highlightedItem={highlightedItem}
                             />
                         ))}
                     </Animated.View>
                 </>
             ) : (
                 // Regular table row for items without children (innermost items - can be deleted)
-                <View className={`px-5 py-3.5 flex-row items-center justify-between border-b border-slate-50 ${level > 1 ? 'pl-14 bg-slate-50/30' : 'bg-white'}`}>
+                <Animated.View
+                    className={`px-5 py-3.5 flex-row items-center justify-between border-b border-slate-50 ${level > 1 ? 'pl-14 bg-slate-50/30' : 'bg-white'}`}
+                    style={{
+                        backgroundColor: isHighlighted ? highlightBackgroundColor : undefined
+                    }}
+                >
                     <Text className={`flex-1 mr-3 leading-4 ${level > 1 ? 'text-slate-500 text-[10px]' : 'text-slate-600 text-[11px]'} font-medium`} numberOfLines={2}>
                         {code}. {node.description || 'No description'}
                     </Text>
-                    
+
                     <View className="flex-row items-center gap-2">
                         {/* Input Field */}
                         <View className="bg-white border-2 border-slate-200 rounded-xl px-3 py-2 min-w-[85px] shadow-sm">
@@ -281,7 +334,7 @@ const CostNode = ({ code, node, level = 0, onCostChange, path, onDelete, isDelet
                             </TouchableOpacity>
                         )}
                     </View>
-                </View>
+                </Animated.View>
             )}
         </View>
     );

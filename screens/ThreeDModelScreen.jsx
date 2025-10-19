@@ -1,8 +1,9 @@
-import { View, Text } from 'react-native';
-import React, { Suspense } from 'react';
-import Model from '../src/components/Model';
+import { View } from 'react-native';
+import { Suspense } from 'react';
 import { Canvas } from '@react-three/fiber/native';
 import useControls from 'r3f-native-orbitcontrols';
+
+import Model from '../src/components/Model';
 
 const ThreeDModelScreen = () => {
     const [OrbitControls, events] = useControls();

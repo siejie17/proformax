@@ -2,6 +2,7 @@ import { View, TouchableWithoutFeedback, KeyboardAvoidingView, Keyboard, Image, 
 import { useState } from 'react';
 import { TextInput as PaperTextInput } from 'react-native-paper';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useNavigation } from '@react-navigation/native';
 
 import api from '../services/api';
 
@@ -9,7 +10,6 @@ import BackButton from '../components/BackButton';
 import Title from '../components/Title';
 import TextInput from '../components/TextInput';
 import Button from '../components/Button';
-import { useNavigation } from '@react-navigation/native';
 import MessageModal from '../components/MessageModal';
 
 const RegisterScreen = () => {

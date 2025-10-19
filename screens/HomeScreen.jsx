@@ -1,4 +1,4 @@
-import React, { useEffect, useContext, useState } from 'react';
+import { useEffect, useContext, useState } from 'react';
 import {
     View,
     Text,
@@ -6,14 +6,14 @@ import {
     TouchableOpacity,
     StatusBar,
     Dimensions,
-    ScrollView,
     Animated,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { AuthContext } from '../contexts/AuthContext';
 import { useNavigation } from '@react-navigation/native';
 import * as Haptics from 'expo-haptics';
+
+import { AuthContext } from '../contexts/AuthContext';
 
 const { height: screenHeight } = Dimensions.get('window');
 

@@ -1,13 +1,12 @@
-import { View, Text, ScrollView, TouchableOpacity, Switch, StyleSheet } from 'react-native'
-import React, { useContext, useState } from 'react'
-import Button from '../components/Button';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import api from '../services/api';
+import { View, Text, ScrollView, TouchableOpacity, Switch, StyleSheet, Image } from 'react-native';
+import { useContext, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { AuthContext } from '../contexts/AuthContext';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+
+import api from '../services/api';
+
+import { AuthContext } from '../contexts/AuthContext';
 
 const ProfileScreen = () => {
     const [isLoading, setIsLoading] = useState(false);

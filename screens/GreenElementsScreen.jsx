@@ -1,19 +1,28 @@
-import { Animated, View, Text, FlatList, TouchableOpacity, ScrollView, Keyboard, TouchableWithoutFeedback, TextInput, Dimensions, Pressable } from 'react-native'
+import { Animated, View, Text, FlatList, TouchableOpacity, ScrollView, Keyboard, TouchableWithoutFeedback, TextInput, Dimensions, Pressable } from 'react-native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Checkbox from 'expo-checkbox';
+import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
+import {
+    configureReanimatedLogger,
+    ReanimatedLogLevel,
+} from 'react-native-reanimated';
+
 import InfoGuideModal from '../components/InfoGuideModal';
 import SkeletonLoader from '../components/SkeletonLoader';
-import * as Haptics from 'expo-haptics';
 
-const GreenElementsScreen = ({ greenElements, setGreenElements = () => {}, criteriaTotalMarks, setCriteriaTotalMarks = () => {}, criteriaMarks, setCriteriaMarks = () => {}, ...otherProps }) => {
+// This is the default configuration
+configureReanimatedLogger({
+    level: ReanimatedLogLevel.warn,
+    strict: false, // Reanimated runs in strict mode by default
+});
+
+const GreenElementsScreen = ({ greenElements, setGreenElements = () => { }, criteriaTotalMarks, setCriteriaTotalMarks = () => { }, criteriaMarks, setCriteriaMarks = () => { }, checkedItems, setCheckedItems, checkedSubitems, setCheckedSubitems, customItems, setCustomItems, ...otherProps }) => {
     const [criteria, setCriteria] = useState([]);
     const [currentCriteriaIndex, setCurrentCriteriaIndex] = useState(0);
     const [selectedCriterion, setSelectedCriterion] = useState(null);
-    const [checkedItems, setCheckedItems] = useState({});
     const [loading, setLoading] = useState(false);
     const [customInputs, setCustomInputs] = useState({});
-    const [customItems, setCustomItems] = useState({});
 
     const fadeAnim = useRef(new Animated.Value(0)).current;
     const slideAnim = useRef(new Animated.Value(50)).current;
@@ -22,6 +31,25 @@ const GreenElementsScreen = ({ greenElements, setGreenElements = () => {}, crite
 
     const [isInfoGuideVisible, setIsInfoGuideVisible] = useState(false);
     const [infoGuideText, setInfoGuideText] = useState('');
+
+    useEffect(() => {
+        const checkedGreenElements = Object.keys(checkedItems).filter(key => checkedItems[key]);
+
+        // console.log("Checked Green Elements:", checkedGreenElements);
+
+
+        const data = {
+            checkedItems: checkedItems,
+            customItems: customItems,
+            checkedCustomItems: Object.entries(customItems).reduce((acc, [parentId, items]) => {
+                acc[parentId] = items.filter(item => checkedItems[item.id]);
+                return acc;
+            }, {}),
+            checkedSubitems: checkedSubitems
+        };
+        console.log('=== Checked Data ===');
+        console.log(JSON.stringify(data, null, 2));
+    }, [checkedItems, customItems, checkedSubitems]);
 
     const SCREEN_WIDTH = Dimensions.get('window').width;
 
@@ -58,98 +86,65 @@ const GreenElementsScreen = ({ greenElements, setGreenElements = () => {}, crite
         ]).start();
     }, [fadeAnim, slideAnim]);
 
-    const handleCheckboxToggle = useCallback((itemId, itemData = null) => {
+    const handleCheckboxToggle = useCallback((itemId, itemData) => {
         // Add haptic feedback for checkbox interactions
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-        
-        setCheckedItems(prev => {
-            const wasChecked = prev[itemId];
-            const newCheckedState = {
-                ...prev,
-                [itemId]: !wasChecked
-            };
 
-            // Find the criterion this item belongs to
-            let targetCriterion = null;
-            let parentItem = null;
-            let isSubitem = false;
+        if (itemData == "subitems") {
+            // Use checkedSubitems for subitems checkbox state
+            setCheckedSubitems(prev => {
+                const wasChecked = prev[itemId];
+                const newCheckedState = {
+                    ...prev,
+                    [itemId]: !wasChecked
+                };
 
-            // Search through all criteria to find this item
-            for (const criterion of criteria) {
-                // Check direct items
-                if (criterion.items) {
-                    for (const item of criterion.items) {
-                        // ✅ Check subitems first
-                        if (item.subitems && item.subitems.find(sub => sub.id === itemId)) {
-                            targetCriterion = criterion.name;
-                            parentItem = item;
-                            isSubitem = true;
-                            break;
-                        }
+                // Find the criterion this item belongs to
+                let targetCriterion = null;
+                let maximumPoints = null;
+                let parentItem = null;
 
-                        // ✅ Then check if this item itself is the one toggled
-                        if (item.id === itemId) {
-                            targetCriterion = criterion.name;
-                            parentItem = item;
-                            break;
-                        }
-                    }
-
-                    if (targetCriterion) break;
-                }
-
-                // Check subcriteria items
-                if (criterion.subcriteria) {
-                    for (const subcriterion of criterion.subcriteria) {
-                        if (subcriterion.items) {
-                            const foundItem = subcriterion.items.find(item => item.id === itemId);
-                            if (foundItem) {
+                // Search through all criteria to find this item
+                for (const criterion of criteria) {
+                    // Check direct items
+                    if (criterion.items) {
+                        for (const item of criterion.items) {
+                            // Check if this subitem belongs to this item
+                            if (item.subitems && item.subitems.find(sub => sub.id === itemId)) {
                                 targetCriterion = criterion.name;
-                                parentItem = foundItem;
+                                maximumPoints = item.marks || null;
+                                parentItem = item;
                                 break;
                             }
+                        }
 
-                            // Check subitems
-                            for (const item of subcriterion.items) {
-                                if (item.subitems && item.subitems.find(sub => sub.id === itemId)) {
-                                    targetCriterion = criterion.name;
-                                    parentItem = item;
-                                    isSubitem = true;
-                                    break;
+                        if (targetCriterion) break;
+                    }
+
+                    // Check subcriteria items
+                    if (criterion.subcriteria) {
+                        for (const subcriterion of criterion.subcriteria) {
+                            if (subcriterion.items) {
+                                // Check subitems
+                                for (const item of subcriterion.items) {
+                                    if (item.subitems && item.subitems.find(sub => sub.id === itemId)) {
+                                        targetCriterion = criterion.name;
+                                        maximumPoints = item.marks || null;
+                                        parentItem = item;
+                                        break;
+                                    }
                                 }
                             }
                         }
                     }
-                }
 
-                if (targetCriterion) break;
-            }
-
-            // Also check custom items
-            if (!targetCriterion) {
-                for (const criterion of criteria) {
-                    const allItems = [
-                        ...(criterion.items || []),
-                        ...(criterion.subcriteria?.flatMap(sub => sub.items || []) || [])
-                    ];
-
-                    for (const item of allItems) {
-                        if (customItems[item.id]?.find(custom => custom.id === itemId)) {
-                            targetCriterion = criterion.name;
-                            parentItem = item;
-                            isSubitem = true; // Custom items behave like subitems
-                            break;
-                        }
-                    }
                     if (targetCriterion) break;
                 }
-            }
 
-            if (targetCriterion) {
-                setCriteriaMarks(prevMarks => {
-                    const currentMarks = prevMarks[targetCriterion] || 0;
+                if (targetCriterion && parentItem) {
+                    setCriteriaMarks(prevMarks => {
+                        const currentMarks = prevMarks[targetCriterion] || 0;
 
-                    if (isSubitem || (parentItem && parentItem.subitems_exist)) {
                         // Subitem logic: 1 mark each, max 6 marks for the parent item
                         const allSubitemIds = [];
 
@@ -162,37 +157,190 @@ const GreenElementsScreen = ({ greenElements, setGreenElements = () => {}, crite
                         }
 
                         // Count how many subitems are checked (including this toggle)
-                        const checkedSubitems = allSubitemIds.filter(id => newCheckedState[id]).length;
+                        // Need to check both newCheckedState (subitems) and checkedItems (custom items)
+                        const totalCheckedSubitems = allSubitemIds.filter(id => {
+                            // If it's in newCheckedState (subitems being toggled), use that
+                            if (id in newCheckedState) {
+                                return newCheckedState[id];
+                            }
+                            // Otherwise check checkedItems (custom items)
+                            return checkedItems[id];
+                        }).length;
 
-                        // Calculate marks: min(checkedSubitems, 6)
-                        const subitemMarks = Math.min(checkedSubitems, 6);
+                        // Calculate marks: min(checkedSubitems, maximumPoints or default 6)
+                        const maxMarks = maximumPoints || 6;
+                        const subitemMarks = Math.min(totalCheckedSubitems, maxMarks);
 
                         // Calculate the difference from previous subitem marks
-                        const previousCheckedSubitems = allSubitemIds.filter(id => prev[id]).length;
-                        const previousSubitemMarks = Math.min(previousCheckedSubitems, 6);
+                        const previousCheckedSubitems = allSubitemIds.filter(id => {
+                            // If it's in prev (previous subitems state), use that
+                            if (id in prev) {
+                                return prev[id];
+                            }
+                            // Otherwise check checkedItems (custom items)
+                            return checkedItems[id];
+                        }).length;
+                        const previousSubitemMarks = Math.min(previousCheckedSubitems, maxMarks);
                         const marksDifference = subitemMarks - previousSubitemMarks;
 
                         return {
                             ...prevMarks,
                             [targetCriterion]: Math.max(0, currentMarks + marksDifference)
                         };
-                    } else {
-                        // Regular item logic: add/deduct item.marks
-                        const marks = parentItem.marks || 0;
-                        const newMarks = wasChecked
-                            ? Math.max(0, currentMarks - marks) // Deduct marks
-                            : currentMarks + marks; // Add marks
+                    });
+                }
 
-                        return {
-                            ...prevMarks,
-                            [targetCriterion]: newMarks
-                        };
+                return newCheckedState;
+            });
+        } else {
+            setCheckedItems(prev => {
+                const wasChecked = prev[itemId];
+                const newCheckedState = {
+                    ...prev,
+                    [itemId]: !wasChecked
+                };
+
+                // Find the criterion this item belongs to
+                let targetCriterion = null;
+                let parentItem = null;
+                let isSubitem = false;
+
+                // Search through all criteria to find this item
+                for (const criterion of criteria) {
+                    // Check direct items
+                    if (criterion.items) {
+                        for (const item of criterion.items) {
+                            // ✅ Check subitems first
+                            if (item.subitems && item.subitems.find(sub => sub.id === itemId)) {
+                                targetCriterion = criterion.name;
+                                parentItem = item;
+                                isSubitem = true;
+                                break;
+                            }
+
+                            // ✅ Then check if this item itself is the one toggled
+                            if (item.id === itemId) {
+                                targetCriterion = criterion.name;
+                                parentItem = item;
+                                break;
+                            }
+                        }
+
+                        if (targetCriterion) break;
                     }
-                });
-            }
 
-            return newCheckedState;
-        });
+                    // Check subcriteria items
+                    if (criterion.subcriteria) {
+                        for (const subcriterion of criterion.subcriteria) {
+                            if (subcriterion.items) {
+                                const foundItem = subcriterion.items.find(item => item.id === itemId);
+                                if (foundItem) {
+                                    targetCriterion = criterion.name;
+                                    parentItem = foundItem;
+                                    break;
+                                }
+
+                                // Check subitems
+                                for (const item of subcriterion.items) {
+                                    if (item.subitems && item.subitems.find(sub => sub.id === itemId)) {
+                                        targetCriterion = criterion.name;
+                                        parentItem = item;
+                                        isSubitem = true;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    if (targetCriterion) break;
+                }
+
+                // Also check custom items
+                if (!targetCriterion) {
+                    for (const criterion of criteria) {
+                        const allItems = [
+                            ...(criterion.items || []),
+                            ...(criterion.subcriteria?.flatMap(sub => sub.items || []) || [])
+                        ];
+
+                        for (const item of allItems) {
+                            if (customItems[item.id]?.find(custom => custom.id === itemId)) {
+                                targetCriterion = criterion.name;
+                                parentItem = item;
+                                isSubitem = true; // Custom items behave like subitems
+                                break;
+                            }
+                        }
+                        if (targetCriterion) break;
+                    }
+                }
+
+                if (targetCriterion) {
+                    setCriteriaMarks(prevMarks => {
+                        const currentMarks = prevMarks[targetCriterion] || 0;
+
+                        if (isSubitem || (parentItem && parentItem.subitems_exist)) {
+                            // Subitem logic: 1 mark each, max 6 marks for the parent item
+                            const allSubitemIds = [];
+
+                            // Get all subitem IDs for this parent item
+                            if (parentItem.subitems) {
+                                allSubitemIds.push(...parentItem.subitems.map(sub => sub.id));
+                            }
+                            if (customItems[parentItem.id]) {
+                                allSubitemIds.push(...customItems[parentItem.id].map(custom => custom.id));
+                            }
+
+                            // Count how many subitems are checked (including this toggle)
+                            // For checkedItems: use newCheckedState (updated state)
+                            // For checkedSubitems: use the state value directly
+                            const totalChecked = allSubitemIds.filter(id => {
+                                // If it's in newCheckedState, use that (for items being toggled)
+                                if (id in newCheckedState) {
+                                    return newCheckedState[id];
+                                }
+                                // Otherwise check checkedSubitems
+                                return checkedSubitems[id];
+                            }).length;
+
+                            // Calculate marks: min(checkedSubitems, 6)
+                            const subitemMarks = Math.min(totalChecked, 6);
+
+                            // Calculate the difference from previous subitem marks
+                            const previousTotal = allSubitemIds.filter(id => {
+                                // If it's in prev, use that
+                                if (id in prev) {
+                                    return prev[id];
+                                }
+                                // Otherwise check checkedSubitems
+                                return checkedSubitems[id];
+                            }).length;
+                            const previousSubitemMarks = Math.min(previousTotal, 6);
+                            const marksDifference = subitemMarks - previousSubitemMarks;
+
+                            return {
+                                ...prevMarks,
+                                [targetCriterion]: Math.max(0, currentMarks + marksDifference)
+                            };
+                        } else {
+                            // Regular item logic: add/deduct item.marks
+                            const marks = parentItem.marks || 0;
+                            const newMarks = wasChecked
+                                ? Math.max(0, currentMarks - marks) // Deduct marks
+                                : currentMarks + marks; // Add marks
+
+                            return {
+                                ...prevMarks,
+                                [targetCriterion]: newMarks
+                            };
+                        }
+                    });
+                }
+
+                return newCheckedState;
+            });
+        }
     }, [criteria, customItems]);
 
     const handleCustomInputChange = useCallback((itemId, text) => {
@@ -205,16 +353,6 @@ const GreenElementsScreen = ({ greenElements, setGreenElements = () => {}, crite
     const addCustomItem = useCallback((itemId, text) => {
         if (!text.trim()) return;
 
-        // Success haptic for adding custom item
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-
-        const customItemId = `custom_${itemId}_${Date.now()}`;
-        const newCustomItem = {
-            id: customItemId,
-            description: text.trim(),
-            isCustom: true
-        };
-
         // Find the parent item to check if it has subitems_exist
         let parentItem = null;
         for (const criterion of criteria) {
@@ -226,6 +364,16 @@ const GreenElementsScreen = ({ greenElements, setGreenElements = () => {}, crite
             if (parentItem) break;
         }
 
+        // Success haptic for adding custom item
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+
+        const customItemId = `custom_${itemId}_${Date.now()}`;
+        const newCustomItem = {
+            id: customItemId,
+            description: text.trim(),
+            isCustom: true
+        };
+
         // Update custom items
         setCustomItems(prevCustomItems => {
             const updatedCustomItems = {
@@ -233,48 +381,29 @@ const GreenElementsScreen = ({ greenElements, setGreenElements = () => {}, crite
                 [itemId]: [...(prevCustomItems[itemId] || []), newCustomItem]
             };
 
-            // Auto-check the custom item and update marks
-            setCheckedItems(prevCheckedItems => {
-                const updatedCheckedItems = {
-                    ...prevCheckedItems,
-                    [customItemId]: true
-                };
+            // Update marks for subitems if this is a subitem parent
+            if (parentItem && parentItem.subitems_exist && selectedCriterion) {
+                setCriteriaMarks(criteriaMarks => {
+                    // Get all subitem IDs for this parent item
+                    const allSubitemIds = [];
+                    if (parentItem.subitems) {
+                        allSubitemIds.push(...parentItem.subitems.map(sub => sub.id));
+                    }
+                    // Include all custom items (including the new one)
+                    allSubitemIds.push(...updatedCustomItems[itemId].map(custom => custom.id));
 
-                // Update marks for subitems if this is a subitem parent
-                if (parentItem && parentItem.subitems_exist && selectedCriterion) {
-                    setCriteriaMarks(pprevMarks => {
-                        const currentMarks = pprevMarks[selectedCriterion] || 0;
+                    // Count checked subitems before and after
+                    const newCheckedSubitems = Object.values(checkedSubitems).filter(v => v).length + updatedCustomItems[itemId].length;
 
-                        // Get all subitem IDs for this parent item
-                        const allSubitemIds = [];
-                        if (parentItem.subitems) {
-                            allSubitemIds.push(...parentItem.subitems.map(sub => sub.id));
-                        }
-                        // Include all custom items (including the new one)
-                        allSubitemIds.push(...updatedCustomItems[itemId].map(custom => custom.id));
+                    // Calculate marks difference (max 6 marks per parent)
+                    const newMarks = Math.min(newCheckedSubitems, parentItem.marks);
 
-                        // Count checked subitems before and after
-                        const prevCheckedSubitems = allSubitemIds.filter(id =>
-                            id !== customItemId && prevCheckedItems[id]
-                        ).length;
-                        const newCheckedSubitems = allSubitemIds.filter(id =>
-                            updatedCheckedItems[id]
-                        ).length;
-
-                        // Calculate marks difference (max 6 marks per parent)
-                        const prevMarks = Math.min(prevCheckedSubitems, 6);
-                        const newMarks = Math.min(newCheckedSubitems, 6);
-                        const marksDifference = newMarks - prevMarks;
-
-                        return {
-                            ...prevMarks,
-                            [selectedCriterion]: Math.max(0, currentMarks + marksDifference)
-                        };
-                    });
-                }
-
-                return updatedCheckedItems;
-            });
+                    return {
+                        ...criteriaMarks,
+                        [selectedCriterion]: Math.max(0, newMarks)
+                    };
+                });
+            }
 
             return updatedCustomItems;
         });
@@ -284,79 +413,61 @@ const GreenElementsScreen = ({ greenElements, setGreenElements = () => {}, crite
             ...prev,
             [itemId]: ''
         }));
-    }, [selectedCriterion, criteria]);
+    }, [selectedCriterion, criteria, checkedItems, checkedSubitems, customItems]);
 
     const deleteCustomItem = useCallback((itemId, customItemId) => {
         const targetCriterion = selectedCriterion;
 
-        setCustomItems(prev => ({
-            ...prev,
-            [itemId]: prev[itemId]?.filter(item => item.id !== customItemId) || []
-        }));
+        const updatedCustomItems = {
+            ...customItems,
+            [itemId]: customItems[itemId]?.filter(item => item.id !== customItemId) || []
+        };
 
-        setCheckedItems(prev => {
-            const newState = { ...prev };
-            const wasChecked = newState[customItemId];
-            delete newState[customItemId];
+        setCustomItems(updatedCustomItems);
 
-            // Update marks if this custom item was checked
-            if (wasChecked && targetCriterion) {
-                setCriteriaMarks(prevMarks => {
-                    const currentMarks = prevMarks[targetCriterion] || 0;
+        // Update marks if this custom item was checked
+        if (targetCriterion) {
+            setCriteriaMarks(prevMarks => {
+                const currentMarks = prevMarks[targetCriterion] || 0;
 
-                    // Find the parent item
-                    let parentItem = null;
-                    for (const criterion of criteria) {
-                        const allItems = [
-                            ...(criterion.items || []),
-                            ...(criterion.subcriteria?.flatMap(sub => sub.items || []) || [])
-                        ];
-                        parentItem = allItems.find(item => item.id === itemId);
-                        if (parentItem) break;
+                // Find the parent item
+                let parentItem = null;
+                for (const criterion of criteria) {
+                    const allItems = [
+                        ...(criterion.items || []),
+                        ...(criterion.subcriteria?.flatMap(sub => sub.items || []) || [])
+                    ];
+                    parentItem = allItems.find(item => item.id === itemId);
+                    if (parentItem) break;
+                }
+
+                if (parentItem) {
+                    // Get all subitem IDs for this parent item (excluding the deleted one)
+                    const allSubitemIds = [];
+                    if (parentItem.subitems) {
+                        allSubitemIds.push(...parentItem.subitems.map(sub => sub.id));
                     }
+                    // Include remaining custom items (after deletion)
+                    const remainingCustomItems = updatedCustomItems[itemId];
+                    allSubitemIds.push(...remainingCustomItems.map(custom => custom.id));
 
-                    if (parentItem) {
-                        // Get all subitem IDs for this parent item (excluding the deleted one)
-                        const allSubitemIds = [];
-                        if (parentItem.subitems) {
-                            allSubitemIds.push(...parentItem.subitems.map(sub => sub.id));
-                        }
-                        // Include remaining custom items (after deletion)
-                        const remainingCustomItems = (prev[itemId] || []).filter(item => item.id !== customItemId);
-                        allSubitemIds.push(...remainingCustomItems.map(custom => custom.id));
+                    // Count total checked subitems after deletion
+                    console.log(checkedSubitems)
+                    const totalCheckedAfter = Object.values(checkedSubitems).filter(v => v).length + updatedCustomItems[itemId].length;
 
-                        // Count total checked subitems before deletion
-                        const totalCheckedBefore = [
-                            ...allSubitemIds,
-                            customItemId // Include the one being deleted
-                        ].filter(id => {
-                            // Use the original checkedItems state for the deleted item
-                            return id === customItemId ? wasChecked : prev[id];
-                        }).length;
+                    // Calculate marks after
+                    const marksAfter = Math.min(totalCheckedAfter, 6);
 
-                        // Count total checked subitems after deletion
-                        const totalCheckedAfter = allSubitemIds.filter(id => newState[id]).length;
+                    return {
+                        ...prevMarks,
+                        [targetCriterion]: Math.max(0, marksAfter)
+                    };
+                }
 
-                        // Calculate marks before and after
-                        const marksBefore = Math.min(totalCheckedBefore, 6);
-                        const marksAfter = Math.min(totalCheckedAfter, 6);
-
-                        // Only deduct marks if total ticks were <= 6 (meaning each tick counted)
-                        const marksDifference = marksAfter - marksBefore;
-
-                        return {
-                            ...prevMarks,
-                            [targetCriterion]: Math.max(0, currentMarks + marksDifference)
-                        };
-                    }
-
-                    return prevMarks;
-                });
-            }
-
-            return newState;
-        });
-    }, [selectedCriterion, criteria]);
+                return prevMarks;
+            });
+        };
+    }, [selectedCriterion, criteria, checkedItems, checkedSubitems, customItems]);
 
     // Update criteriaTotalMarks whenever criteriaMarks changes
     useEffect(() => {
@@ -371,7 +482,7 @@ const GreenElementsScreen = ({ greenElements, setGreenElements = () => {}, crite
                 if (selectedCriterionData) {
                     const earnedPoints = criteriaMarks[selectedCriterion];
                     const minPoints = selectedCriterionData.min_marks || 0;
-                    
+
                     // Check if just completed this criterion
                     if (earnedPoints >= minPoints && earnedPoints > 0) {
                         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -399,17 +510,21 @@ const GreenElementsScreen = ({ greenElements, setGreenElements = () => {}, crite
                 return name ? { ...item } : null;
             }).filter(Boolean);
 
-            // Initialize checked items state
+            // Initialize checked items state for regular items only (IDs 1-18)
             const initialCheckedState = {};
+            // Initialize checked subitems state separately
+            const initialCheckedSubitems = {};
+
             newSections.forEach(criterion => {
                 // Handle items at criterion level
                 if (criterion.items && Array.isArray(criterion.items)) {
                     criterion.items.forEach(item => {
+                        // Only add regular items to checkedItems
                         initialCheckedState[item.id] = false;
-                        // Initialize subitems if they exist
-                        if (item.subitems && Array.isArray(item.subitems)) {
+                        // Initialize subitems separately in checkedSubitems
+                        if (item.subitems && Array.isArray(item.subitems) && item.subitems.length > 0) {
                             item.subitems.forEach(subitem => {
-                                initialCheckedState[subitem.id] = false;
+                                initialCheckedSubitems[subitem.id] = false;
                             });
                         }
                     });
@@ -419,11 +534,12 @@ const GreenElementsScreen = ({ greenElements, setGreenElements = () => {}, crite
                     criterion.subcriteria.forEach(sub => {
                         if (sub.items && Array.isArray(sub.items)) {
                             sub.items.forEach(item => {
+                                // Only add regular items to checkedItems
                                 initialCheckedState[item.id] = false;
-                                // Initialize subitems if they exist
-                                if (item.subitems && Array.isArray(item.subitems)) {
+                                // Initialize subitems separately in checkedSubitems
+                                if (item.subitems && Array.isArray(item.subitems) && item.subitems.length > 0) {
                                     item.subitems.forEach(subitem => {
-                                        initialCheckedState[subitem.id] = false;
+                                        initialCheckedSubitems[item.id][subitem.id] = false;
                                     });
                                 }
                             });
@@ -435,124 +551,127 @@ const GreenElementsScreen = ({ greenElements, setGreenElements = () => {}, crite
             setSelectedCriterion(newSections[0]?.name);
             setCriteria(newSections);
             setCheckedItems(initialCheckedState);
+            setCheckedSubitems(initialCheckedSubitems);
         } else {
             setCriteria([]);
+            setCheckedItems({});
+            setCheckedSubitems({});
         }
 
         setLoading(false);
     }, [greenElements]);
 
     const renderSection = useCallback(({ item }) => {
-        // Enhanced UX implementation - one card per swipe, fixed size, no overflow
         const isSelected = selectedCriterion === item.name;
         const earnedPoints = criteriaMarks[item.name] || 0;
         const totalPoints = item.total_marks || 0;
         const minPoints = item.min_marks || 0;
+        const isCompleted = earnedPoints >= minPoints;
+        const progressPercentage = totalPoints > 0 ? (earnedPoints / totalPoints) * 100 : 0;
 
         return (
             <View style={{ width: SCREEN_WIDTH, paddingHorizontal: 20, justifyContent: 'center' }}>
                 <Pressable
                     key={item.name}
                     onPress={() => handleSectionPress(item)}
-                    android_ripple={{ color: '#B7E4C7' }}
+                    android_ripple={{ color: '#E0F2FE' }}
                 >
-                    <Animated.View 
-                        className={`py-4 px-5 rounded-3xl shadow-lg ${
-                            isSelected ? 'bg-[#B7E4C7] elevation-6' : 'bg-[#F8FFF9] elevation-3'
-                        } ${earnedPoints >= minPoints ? 'border-2 border-green-400' : ''}`}
+                    <Animated.View
+                        className={`rounded-2xl overflow-hidden ${isSelected ? 'shadow-lg' : 'shadow-md'
+                            }`}
                         style={{
-                            minHeight: 90,
-                            shadowColor: earnedPoints >= minPoints ? '#22C55E' : '#000',
-                            shadowOffset: { width: 0, height: 4 },
-                            shadowOpacity: isSelected ? 0.15 : (earnedPoints >= minPoints ? 0.2 : 0.1),
-                            shadowRadius: isSelected ? 8 : (earnedPoints >= minPoints ? 6 : 4),
-                            justifyContent: 'center', // Center content vertically
+                            backgroundColor: '#FFFFFF',
+                            shadowColor: isSelected ? '#3B82F6' : '#000',
+                            shadowOffset: { width: 0, height: isSelected ? 6 : 3 },
+                            shadowOpacity: isSelected ? 0.2 : 0.1,
+                            shadowRadius: isSelected ? 12 : 6,
+                            elevation: isSelected ? 8 : 4,
+                            borderWidth: isSelected ? 2 : 1,
+                            borderColor: isSelected ? '#3B82F6' : '#E5E7EB',
                         }}
                     >
-                        {/* Title Section */}
-                        <View className="justify-center mb-2">
-                            <Text 
-                                className='text-base font-semibold text-[#081C15] text-center leading-5'
+                        {/* Gradient Header */}
+                        <View
+                            className="px-4 py-2.5"
+                            style={{ backgroundColor: isSelected ? '#1E293B' : '#F8FAFC' }}
+                        >
+                            <Text
+                                className={`text-sm font-bold text-center leading-4 ${isSelected ? 'text-white' : 'text-slate-800'
+                                    }`}
                                 numberOfLines={2}
-                                style={{ 
-                                    textAlign: 'center',
-                                    fontWeight: '600'
-                                }}
                             >
                                 {item.name}
                             </Text>
                         </View>
-                        
-                        {/* Enhanced Progress Section */}
-                        <View className="items-center">
-                            {/* Progress Bar */}
-                            <View className="w-full mb-3 px-2">
-                                <View className="bg-gray-200 h-2 rounded-full overflow-hidden">
-                                    <Animated.View
-                                        className={`h-full rounded-full ${
-                                            earnedPoints >= minPoints ? 'bg-[#52B788]' : 'bg-orange-400'
-                                        }`}
-                                        style={{
-                                            width: `${Math.min((earnedPoints / totalPoints) * 100, 100)}%`,
-                                        }}
-                                    />
-                                </View>
-                                {/* Progress percentage */}
-                                <Text className="text-xs text-gray-600 text-center mt-1">
-                                    {totalPoints > 0 ? Math.round((earnedPoints / totalPoints) * 100) : 0}% Complete
-                                </Text>
-                            </View>
 
-                            {/* Score Display */}
+                        {/* Content Section */}
+                        <View className="px-4 py-3">
+                            {/* Score Display with Label */}
                             <View className="flex-row items-center justify-center gap-2 mb-2">
-                                <Animated.View 
-                                    className={`px-3 py-1.5 rounded-full ${
-                                        earnedPoints >= minPoints ? 'bg-[#52B788]' : 'bg-red-500/70'
-                                    }`}
+                                <View
+                                    className={`rounded-lg px-3 py-1.5 ${isCompleted ? 'bg-emerald-500' : 'bg-red-500'
+                                        }`}
                                     style={{
-                                        minWidth: 36,
-                                        shadowColor: '#000',
+                                        shadowColor: isCompleted ? '#10B981' : '#EF4444',
                                         shadowOffset: { width: 0, height: 1 },
-                                        shadowOpacity: 0.1,
+                                        shadowOpacity: 0.2,
                                         shadowRadius: 2,
-                                        transform: [{
-                                            scale: earnedPoints >= minPoints ? 1.05 : 1
-                                        }]
+                                        elevation: 2,
                                     }}
                                 >
-                                    <Text className="text-white text-sm font-bold text-center">
+                                    <Text className="text-white text-[8px] font-semibold uppercase tracking-wide">
+                                        Earned
+                                    </Text>
+                                    <Text className="text-white text-lg font-bold text-center">
                                         {earnedPoints}
                                     </Text>
-                                </Animated.View>
-                                <Text className="text-[#081C15] text-sm font-semibold">/</Text>
-                                <View 
-                                    className="px-3 py-1.5 rounded-full bg-[#2D6A4F]"
+                                </View>
+
+                                <Text className="text-slate-400 text-lg font-bold">/</Text>
+
+                                <View
+                                    className="bg-slate-800 rounded-lg px-3 py-1.5"
                                     style={{
-                                        minWidth: 36,
                                         shadowColor: '#000',
                                         shadowOffset: { width: 0, height: 1 },
-                                        shadowOpacity: 0.1,
+                                        shadowOpacity: 0.15,
                                         shadowRadius: 2,
+                                        elevation: 2,
                                     }}
                                 >
-                                    <Text className="text-white text-sm font-bold text-center">
+                                    <Text className="text-slate-300 text-[8px] font-semibold uppercase tracking-wide">
+                                        Total
+                                    </Text>
+                                    <Text className="text-white text-lg font-bold text-center">
                                         {totalPoints}
                                     </Text>
                                 </View>
                             </View>
-                            
+
                             {/* Status Badge */}
-                            <View className={`px-3 py-1 rounded-full ${
-                                earnedPoints >= minPoints ? 'bg-green-100' : 'bg-orange-100'
-                            }`}>
-                                <Text className={`text-xs font-medium ${
-                                    earnedPoints >= minPoints ? 'text-green-700' : 'text-orange-700'
+                            <View className={`rounded-lg px-2.5 py-1.5 ${isCompleted ? 'bg-emerald-50 border border-emerald-200' : 'bg-orange-50 border border-orange-200'
                                 }`}>
-                                    {earnedPoints >= minPoints ? 
-                                        '✓ Completed' : 
-                                        `Need ${minPoints - earnedPoints} more points`
-                                    }
-                                </Text>
+                                <View className="flex-row items-center justify-center">
+                                    {isCompleted ? (
+                                        <>
+                                            <View className="w-3.5 h-3.5 bg-emerald-500 rounded-full items-center justify-center mr-1.5">
+                                                <Text className="text-white text-[9px] font-bold">✓</Text>
+                                            </View>
+                                            <Text className="text-emerald-700 text-[10px] font-semibold">
+                                                Completed • Minimum points required: {minPoints} pts
+                                            </Text>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <View className="w-3.5 h-3.5 bg-orange-400 rounded-full items-center justify-center mr-1.5">
+                                                <Text className="text-white text-[9px] font-bold">!</Text>
+                                            </View>
+                                            <Text className="text-orange-700 text-[10px] font-semibold text-center" numberOfLines={1}>
+                                                Need {minPoints - earnedPoints} more • Minimum points required: {minPoints} pts
+                                            </Text>
+                                        </>
+                                    )}
+                                </View>
                             </View>
                         </View>
                     </Animated.View>
@@ -566,180 +685,168 @@ const GreenElementsScreen = ({ greenElements, setGreenElements = () => {}, crite
 
         return (
             <View key={item.id} className="mb-3">
-                <View className="flex-row items-center py-4 px-6 bg-white rounded-xl shadow-md border border-gray-100">
+                {/* Main Item Card */}
+                <View className="flex-row items-center py-4 px-5 bg-white rounded-2xl shadow-md border-2 border-gray-100">
                     {!hasSubitems && (
                         <Animated.View style={{
-                            transform: [{ 
-                                scale: checkedItems[item.id] ? 1.15 : 1.1 
-                            }]
+                            transform: [{ scale: checkedItems[item.id] ? 1.15 : 1.1 }]
                         }}>
                             <Checkbox
                                 value={checkedItems[item.id] || false}
                                 onValueChange={() => handleCheckboxToggle(item.id)}
-                                color={checkedItems[item.id] ? '#40916C' : undefined}
-                                className="mr-4"
+                                color={checkedItems[item.id] ? '#10B981' : undefined}
+                                className="mr-3"
                             />
                         </Animated.View>
                     )}
+
                     <TouchableOpacity
                         className="flex-1 mr-3"
                         onPress={() => !hasSubitems && handleCheckboxToggle(item.id)}
                         activeOpacity={hasSubitems ? 1 : 0.7}
                     >
                         <Text
-                            className={`text-base leading-6 ${hasSubitems ? 'font-bold text-gray-900' : 'text-gray-800'}`}
-                            style={{ fontWeight: hasSubitems ? '700' : (checkedItems[item.id] ? '600' : '500') }}
+                            className={`text-sm leading-5 ${hasSubitems ? 'font-bold text-gray-900' : 'text-gray-700'
+                                }`}
+                            style={{
+                                fontWeight: hasSubitems ? '700' : (checkedItems[item.id] ? '600' : '500')
+                            }}
                         >
                             {item.description}
                         </Text>
                     </TouchableOpacity>
+
                     <View className="flex-row items-center gap-2">
                         {item.marks && !hasSubitems && (
                             <Animated.View style={{
-                                transform: [{ 
-                                    scale: checkedItems[item.id] ? 1.1 : 1 
-                                }]
+                                transform: [{ scale: checkedItems[item.id] ? 1.05 : 1 }]
                             }}>
                                 <TouchableOpacity
                                     onPress={() => handleCheckboxToggle(item.id)}
                                     activeOpacity={0.7}
-                                    className={`px-3 py-1.5 rounded-full shadow-sm ${
-                                        checkedItems[item.id] 
-                                            ? 'bg-gradient-to-r from-[#52B788] to-[#40916C]' 
-                                            : 'bg-gradient-to-r from-[#D8F3DC] to-[#B7E4C7]'
-                                    }`}
+                                    className={`px-3 py-1.5 rounded-xl shadow-sm ${checkedItems[item.id]
+                                        ? 'bg-emerald-500'
+                                        : 'bg-emerald-50 border border-emerald-200'
+                                        }`}
                                     style={{ minWidth: 50 }}
                                 >
-                                    <Text className={`text-xs font-bold text-center ${
-                                        checkedItems[item.id] ? 'text-white' : 'text-[#1B4332]'
-                                    }`}>
+                                    <Text className={`text-xs font-bold text-center ${checkedItems[item.id] ? 'text-white' : 'text-emerald-700'
+                                        }`}>
                                         {item.marks} pts
                                     </Text>
                                 </TouchableOpacity>
                             </Animated.View>
                         )}
+
                         <TouchableOpacity
                             onPress={() => handleInfoGuideOpen(item.info)}
-                            className="bg-gray-100 p-2 rounded-full active:bg-gray-200"
+                            className="bg-blue-50 p-2 rounded-xl active:bg-blue-100 border border-blue-200"
                             activeOpacity={0.7}
                         >
-                            <Ionicons name="information-circle-outline" size={20} color="#52B788" />
+                            <Ionicons name="information-circle" size={18} color="#3B82F6" />
                         </TouchableOpacity>
                     </View>
                 </View>
 
+                {/* Subitems */}
                 {hasSubitems ? (
-                    <View className="ml-4 mt-2">
+                    <View className="ml-3 mt-2 space-y-2">
                         {item.subitems.map((subitem) => (
                             <TouchableOpacity
                                 key={subitem.id}
-                                className="flex-row items-center py-3 px-5 bg-gray-50 rounded-lg mb-2 border border-gray-200"
-                                onPress={() => handleCheckboxToggle(subitem.id)}
+                                className={`flex-row items-center py-3 px-4 rounded-xl border-2 ${checkedSubitems[subitem.id]
+                                    ? 'bg-emerald-50 border-emerald-300'
+                                    : 'bg-white border-gray-200'
+                                    }`}
+                                onPress={() => handleCheckboxToggle(subitem.id, "subitems")}
                                 activeOpacity={0.7}
+                                style={{
+                                    shadowColor: checkedSubitems[subitem.id] ? '#10B981' : '#000',
+                                    shadowOffset: { width: 0, height: 1 },
+                                    shadowOpacity: checkedSubitems[subitem.id] ? 0.1 : 0.05,
+                                    shadowRadius: 2,
+                                    elevation: checkedSubitems[subitem.id] ? 2 : 1,
+                                }}
                             >
                                 <Checkbox
-                                    value={checkedItems[subitem.id] || false}
-                                    onValueChange={() => handleCheckboxToggle(subitem.id)}
-                                    color={checkedItems[subitem.id] ? '#40916C' : undefined}
+                                    value={checkedSubitems[subitem.id] || false}
+                                    onValueChange={() => handleCheckboxToggle(subitem.id, "subitems")}
+                                    color={checkedSubitems[subitem.id] ? '#10B981' : undefined}
                                     className="mr-3"
-                                    style={{
-                                        transform: [{ scale: 1.0 }]
-                                    }}
                                 />
-                                <View className="flex-1 mr-3">
-                                    <Text
-                                        className="text-sm leading-5 text-gray-700"
-                                        style={{ fontWeight: checkedItems[subitem.id] ? '600' : '500' }}
-                                    >
-                                        {subitem.description}
-                                    </Text>
-                                </View>
+                                <Text
+                                    className="flex-1 text-sm leading-5 text-gray-700"
+                                    style={{
+                                        fontWeight: checkedSubitems[subitem.id] ? '600' : '400'
+                                    }}
+                                >
+                                    {subitem.description}
+                                </Text>
                             </TouchableOpacity>
                         ))}
 
-                        {/* Render custom items */}
+                        {/* Custom Items */}
                         {customItems[item.id] && customItems[item.id].map((customItem) => (
-                            <View key={customItem.id} className="flex-row items-center py-3 px-5 bg-gray-50 rounded-lg mb-2 border border-blue-200">
-                                <Checkbox
-                                    value={true} // Always checked for custom items
-                                    onValueChange={() => { }} // No-op - cannot toggle custom items
-                                    color='#40916C'
-                                    className="mr-3"
-                                    style={{
-                                        transform: [{ scale: 1.0 }],
-                                        // opacity: 0.8 // Slightly transparent to show it's non-interactive
-                                    }}
-                                    disabled={true}
-                                />
-                                <View className="flex-1 mr-3">
-                                    <Text
-                                        className="text-sm leading-5 text-gray-700"
-                                        style={{ fontWeight: '400' }} // Always lighter since it's always checked
-                                    >
-                                        {customItem.description}
-                                    </Text>
+                            <View
+                                key={customItem.id}
+                                className="flex-row items-center py-3 px-4 bg-blue-50 rounded-xl border-2 border-blue-300"
+                                style={{
+                                    shadowColor: '#3B82F6',
+                                    shadowOffset: { width: 0, height: 1 },
+                                    shadowOpacity: 0.1,
+                                    shadowRadius: 2,
+                                    elevation: 2,
+                                }}
+                            >
+                                <View className="mr-3 bg-blue-100 rounded-md p-0.5">
+                                    <Checkbox
+                                        value={true}
+                                        onValueChange={() => { }}
+                                        color='#10B981'
+                                        disabled={true}
+                                    />
                                 </View>
+                                <Text className="flex-1 text-sm leading-5 text-gray-700 font-medium">
+                                    {customItem.description}
+                                </Text>
                                 <TouchableOpacity
                                     onPress={() => deleteCustomItem(item.id, customItem.id)}
-                                    className="p-1 ml-2"
+                                    className="bg-red-100 p-1.5 rounded-lg active:bg-red-200"
                                     activeOpacity={0.7}
                                 >
-                                    <Ionicons name="close-circle" size={20} color="#EF4444" />
+                                    <Ionicons name="trash-outline" size={16} color="#EF4444" />
                                 </TouchableOpacity>
                             </View>
                         ))}
 
-                        {/* Custom input field for additional items */}
-                        <View className="flex-row items-center py-3 px-5 bg-white rounded-lg mb-2 border border-gray-300">
-                            <View className="mr-3 w-5 h-5">
-                                {/* Empty space to align with checkboxes above */}
+                        {/* Add Custom Item Input */}
+                        <View className="flex-row items-center py-3 px-4 mt-2 bg-white rounded-xl border-2 border-dashed border-gray-300">
+                            <View className="mr-3 w-5">
+                                <Ionicons name="add-circle-outline" size={20} color="#9CA3AF" />
                             </View>
-                            <View className="flex-1 mr-3">
-                                <TextInput
-                                    key={`input-${item.id}`}
-                                    placeholder="Add other items not listed above..."
-                                    value={customInputs[item.id] || ''}
-                                    onChangeText={(text) => handleCustomInputChange(item.id, text)}
-                                    onSubmitEditing={() => addCustomItem(item.id, customInputs[item.id])}
-                                    className="text-sm leading-5 text-gray-700 pb-1"
-                                    style={{
-                                        borderBottomWidth: 1,
-                                        borderBottomColor: '#D1D5DB',
-                                        paddingVertical: 4,
-                                        fontWeight: '400'
-                                    }}
-                                    placeholderTextColor="#9CA3AF"
-                                    returnKeyType="done"
-                                />
-                            </View>
+                            <TextInput
+                                key={`input-${item.id}`}
+                                placeholder="Add custom item..."
+                                value={customInputs[item.id] || ''}
+                                onChangeText={(text) => handleCustomInputChange(item.id, text)}
+                                onSubmitEditing={() => addCustomItem(item.id, customInputs[item.id])}
+                                className="flex-1 text-sm text-gray-700 mr-2"
+                                placeholderTextColor="#9CA3AF"
+                                returnKeyType="done"
+                            />
                             <TouchableOpacity
                                 onPress={() => addCustomItem(item.id, customInputs[item.id])}
-                                className="p-2 ml-2 bg-green-500 rounded-full"
-                                activeOpacity={0.7}
+                                className="bg-emerald-500 p-2 rounded-lg shadow-sm active:bg-emerald-600"
+                                activeOpacity={0.8}
                             >
-                                <Ionicons name="add" size={16} color="white" />
+                                <Ionicons name="checkmark" size={16} color="white" />
                             </TouchableOpacity>
                         </View>
                     </View>
                 ) : null}
             </View>
         );
-    }, [checkedItems, handleCheckboxToggle, customItems, customInputs, handleCustomInputChange, addCustomItem, deleteCustomItem]);
-
-    const renderCriterionHeader = useCallback(() => {
-        if (!selectedCriterionData) return null;
-
-        return (
-            <View className="px-5 bg-gray-100">
-                {/* Criterion Header */}
-                <View className="mb-4 pb-4 border-b-2 border-gray-200">
-                    <Text className="text-gray-900 text-xl font-bold mb-1" numberOfLines={2}>
-                        {selectedCriterionData.name}
-                    </Text>
-                </View>
-            </View>
-        );
-    }, [selectedCriterionData]);
+    }, [checkedItems, checkedSubitems, handleCheckboxToggle, customItems, customInputs, handleCustomInputChange, addCustomItem, deleteCustomItem]);
 
     const renderCriterionItems = useCallback(() => {
         if (!selectedCriterionData) return null;
@@ -791,14 +898,14 @@ const GreenElementsScreen = ({ greenElements, setGreenElements = () => {}, crite
                     <View className="w-24 h-24 bg-green-100 rounded-full items-center justify-center mb-6">
                         <Ionicons name="leaf-outline" size={40} color="#52B788" />
                     </View>
-                    
+
                     <Text className="text-gray-900 text-xl font-bold mb-3 text-center">
                         No Green Elements Available
                     </Text>
                     <Text className="text-gray-600 text-base text-center leading-6 mb-6">
                         It looks like there are no green building elements to assess for this project configuration.
                     </Text>
-                    
+
                     {/* Action suggestions */}
                     <View className="bg-blue-50 p-4 rounded-xl w-full">
                         <Text className="text-blue-800 text-sm font-medium mb-2">💡 Suggestions:</Text>
@@ -812,31 +919,30 @@ const GreenElementsScreen = ({ greenElements, setGreenElements = () => {}, crite
             ) : criteria.length !== 0 && (
                 <>
                     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-                        <View>
-                            {/* <View className="px-4 pt-4">
-                                <Text className="text-gray-900 text-base font-semibold px-2">
-                                    Criteria
-                                </Text>
-                            </View> */}
+                        <View className="bg-gray-100">
+                            {/* Section Header */}
+                            <View className="px-5 pt-2">
+                                <Text className="text-slate-800 font-bold text-base mb-0.5">Assessment Criteria</Text>
+                                <Text className="text-slate-500 text-[10px]">Swipe to view all criteria</Text>
+                            </View>
 
-                            <View className="relative" style={{ height: 180 }}>
+                            <View className="relative" style={{ height: 170 }}>
                                 <FlatList
                                     ref={criteriaFlatListRef}
                                     horizontal
                                     data={criteria}
                                     keyExtractor={(item, index) => `${item.id}-${index}`}
                                     renderItem={renderSection}
-                                    style={{ height: 110 }}
-                                    contentContainerStyle={{ paddingVertical: 20 }}
+                                    style={{ height: 140 }}
+                                    contentContainerStyle={{ paddingVertical: 15 }}
                                     showsHorizontalScrollIndicator={false}
                                     snapToInterval={SCREEN_WIDTH}
                                     decelerationRate="fast"
                                     snapToAlignment="center"
-                                    pagingEnabled={false} // Use snapToInterval for better UX control
+                                    pagingEnabled={false}
                                     onMomentumScrollEnd={(event) => {
                                         const index = Math.round(event.nativeEvent.contentOffset.x / SCREEN_WIDTH);
                                         setCurrentCriteriaIndex(index);
-                                        // Update selected criterion when swiping
                                         if (criteria[index]) {
                                             setSelectedCriterion(criteria[index].name);
                                         }
@@ -845,10 +951,10 @@ const GreenElementsScreen = ({ greenElements, setGreenElements = () => {}, crite
                                     overScrollMode="never"
                                 />
 
-                                {/* Enhanced pagination dots - positioned below FlatList */}
-                                <View 
-                                    className="flex-row justify-center items-center gap-2 absolute -bottom-3 left-0 right-0"
-                                    style={{ paddingBottom: 8 }}
+                                {/* Pagination Dots */}
+                                <View
+                                    className="flex-row justify-center items-center gap-2 absolute left-0 right-0"
+                                    style={{ bottom: 0 }}
                                 >
                                     {criteria.map((_, index) => (
                                         <TouchableOpacity
@@ -858,7 +964,6 @@ const GreenElementsScreen = ({ greenElements, setGreenElements = () => {}, crite
                                                     offset: index * SCREEN_WIDTH,
                                                     animated: true
                                                 });
-                                                // Update selected criterion when tapping pagination dot
                                                 setCurrentCriteriaIndex(index);
                                                 if (criteria[index]) {
                                                     setSelectedCriterion(criteria[index].name);
@@ -867,16 +972,16 @@ const GreenElementsScreen = ({ greenElements, setGreenElements = () => {}, crite
                                             activeOpacity={0.7}
                                         >
                                             <View
-                                                className={`h-2 rounded-full ${
-                                                    index === currentCriteriaIndex
-                                                        ? 'w-8 bg-[#2D6A4F]'
-                                                        : 'w-2 bg-gray-300'
-                                                }`}
+                                                className={`h-2 rounded-full transition-all ${index === currentCriteriaIndex
+                                                    ? 'w-8 bg-slate-800'
+                                                    : 'w-2 bg-slate-300'
+                                                    }`}
                                                 style={{
-                                                    shadowColor: index === currentCriteriaIndex ? '#2D6A4F' : 'transparent',
-                                                    shadowOffset: { width: 0, height: 1 },
+                                                    shadowColor: index === currentCriteriaIndex ? '#1E293B' : 'transparent',
+                                                    shadowOffset: { width: 0, height: 2 },
                                                     shadowOpacity: 0.3,
-                                                    shadowRadius: 2,
+                                                    shadowRadius: 3,
+                                                    elevation: index === currentCriteriaIndex ? 2 : 0,
                                                 }}
                                             />
                                         </TouchableOpacity>
@@ -887,9 +992,6 @@ const GreenElementsScreen = ({ greenElements, setGreenElements = () => {}, crite
                     </TouchableWithoutFeedback>
 
                     <View className="flex-1 pt-2">
-                        <View className="mt-4">
-                            {renderCriterionHeader()}
-                        </View>
                         <ScrollView
                             className="flex-1"
                             showsVerticalScrollIndicator={false}

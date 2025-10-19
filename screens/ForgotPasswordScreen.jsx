@@ -1,10 +1,12 @@
-import { View, Text, Keyboard, TouchableWithoutFeedback, KeyboardAvoidingView, Image, Alert } from 'react-native'
-import React, { useState } from 'react'
+import { View, Keyboard, TouchableWithoutFeedback, KeyboardAvoidingView, Image, Alert } from 'react-native'
+import { useState } from 'react'
 import { useNavigation } from '@react-navigation/native';
+
 import BackButton from '../components/BackButton';
 import Title from '../components/Title';
 import TextInput from '../components/TextInput';
 import Button from '../components/Button';
+
 import api from '../services/api';
 
 const ForgotPasswordScreen = () => {

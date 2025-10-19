@@ -1,17 +1,18 @@
-import { View, Text, TouchableOpacity, StatusBar, ScrollView, Image, ActivityIndicator } from 'react-native'
-import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { View, Text, TouchableOpacity, StatusBar, ScrollView, Image, ActivityIndicator, Platform, Alert } from 'react-native'
+import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
-import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
-import api, { setAuthToken } from '../services/api';
 import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
-import { Alert } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+
 import { AuthContext } from '../contexts/AuthContext';
+
 import LoadingIndicator from '../components/LoadingIndicator';
 import MessageModal from '../components/MessageModal';
+
+import api, { setAuthToken } from '../services/api';
 
 const AccountScreen = ({ navigation, route }) => {
     const { updateUser } = useContext(AuthContext);
