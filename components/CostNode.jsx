@@ -2,7 +2,7 @@ import { View, Text, ScrollView, TextInput, TouchableOpacity, Animated, Alert } 
 import React, { useEffect, useRef, useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 
-const CostNode = ({ code, node, level = 0, onCostChange, path, onDelete, isDeleteMode, highlightedItem }) => {
+const CostNode = ({ code, node, level = 0, onCostChange, path, onDelete = () => {}, isDeleteMode = null, highlightedItem = null, displayOnly }) => {
     // Helper function to format number with thousands separators
     const formatWithCommas = (value) => {
         if (value === null || value === undefined || value === '') return '';
@@ -158,33 +158,40 @@ const CostNode = ({ code, node, level = 0, onCostChange, path, onDelete, isDelet
                     </View>
                     {hasChildren ? (
                         <View className="bg-blue-500 rounded-xl px-3.5 py-2 flex-row items-center shadow-sm">
-                            <Text className="text-blue-100 font-bold text-[9px] mr-1.5">RM</Text>
                             <Text className="text-white font-bold text-sm tracking-tight">
                                 {node.cost !== null && node.cost !== undefined ? formatWithCommas(node.cost) : "—"}
                             </Text>
                         </View>
                     ) : (
                         <View className="flex-row items-center gap-2">
-                            <View className="bg-white border-2 border-slate-200 rounded-xl px-3 py-2 min-w-[85px] shadow-sm">
-                                <TextInput
-                                    className="text-slate-800 text-[11px] font-bold text-right p-0"
-                                    keyboardType="numeric"
-                                    value={node.inputValue !== undefined ? formatInputWithCommas(node.inputValue) : (node.cost !== null && node.cost !== undefined && node.cost !== 0 ? formatWithCommas(node.cost) : '')}
-                                    onChangeText={(val) => {
-                                        const cleanVal = removeCommas(val);
-                                        if (val === '' || /^[\d,]*\.?\d*$/.test(val)) {
-                                            if (cleanVal === '' || /^\d*\.?\d*$/.test(cleanVal)) {
-                                                onCostChange(currentPath, cleanVal === '' ? 0 : parseFloat(cleanVal) || 0, cleanVal);
+                            {displayOnly ? (
+                                <View className="bg-gray-100 rounded-xl px-3 py-2 min-w-[85px]">
+                                    <Text className="text-slate-600 text-[11px] font-bold text-right">
+                                        {node.cost !== null && node.cost !== undefined ? formatWithCommas(node.cost) : "—"}
+                                    </Text>
+                                </View>
+                            ) : (
+                                <View className="bg-white border-2 border-slate-200 rounded-xl px-3 py-2 min-w-[85px] shadow-sm">
+                                    <TextInput
+                                        className="text-slate-800 text-[11px] font-bold text-right p-0"
+                                        keyboardType="numeric"
+                                        value={node.inputValue !== undefined ? formatInputWithCommas(node.inputValue) : (node.cost !== null && node.cost !== undefined && node.cost !== 0 ? formatWithCommas(node.cost) : '')}
+                                        onChangeText={(val) => {
+                                            const cleanVal = removeCommas(val);
+                                            if (val === '' || /^[\d,]*\.?\d*$/.test(val)) {
+                                                if (cleanVal === '' || /^\d*\.?\d*$/.test(cleanVal)) {
+                                                    onCostChange(currentPath, cleanVal === '' ? 0 : parseFloat(cleanVal) || 0, cleanVal);
+                                                }
                                             }
-                                        }
-                                    }}
-                                    placeholder="0.00"
-                                    placeholderTextColor="#94a3b8"
-                                />
-                            </View>
+                                        }}
+                                        placeholder="0.00"
+                                        placeholderTextColor="#94a3b8"
+                                    />
+                                </View>
+                            )}
 
                             {/* Delete Button for top-level items without children */}
-                            {isDeleteMode && (
+                            {isDeleteMode && !displayOnly && (
                                 <TouchableOpacity
                                     onPress={handleDelete}
                                     className="bg-red-50 border border-red-200 rounded-lg p-2 active:bg-red-100"
@@ -208,12 +215,6 @@ const CostNode = ({ code, node, level = 0, onCostChange, path, onDelete, isDelet
                             }),
                         }}
                     >
-                        {/* Table Header */}
-                        <View className="bg-slate-50 px-5 py-3 flex-row justify-between">
-                            <Text className="text-slate-600 font-bold text-[10px] uppercase tracking-wider">Description</Text>
-                            <Text className="text-slate-600 font-bold text-[10px] uppercase tracking-wider">Amount</Text>
-                        </View>
-
                         {/* Table Rows */}
                         {isExpanded && Object.entries(node.children).map(([childCode, childNode]) => (
                             <CostNode
@@ -226,6 +227,7 @@ const CostNode = ({ code, node, level = 0, onCostChange, path, onDelete, isDelet
                                 onDelete={onDelete}
                                 isDeleteMode={isDeleteMode}
                                 highlightedItem={highlightedItem}
+                                displayOnly={displayOnly}
                             />
                         ))}
                     </Animated.View>
@@ -287,6 +289,7 @@ const CostNode = ({ code, node, level = 0, onCostChange, path, onDelete, isDelet
                                 onDelete={onDelete}
                                 isDeleteMode={isDeleteMode}
                                 highlightedItem={highlightedItem}
+                                displayOnly={displayOnly}
                             />
                         ))}
                     </Animated.View>
@@ -304,27 +307,35 @@ const CostNode = ({ code, node, level = 0, onCostChange, path, onDelete, isDelet
                     </Text>
 
                     <View className="flex-row items-center gap-2">
-                        {/* Input Field */}
-                        <View className="bg-white border-2 border-slate-200 rounded-xl px-3 py-2 min-w-[85px] shadow-sm">
-                            <TextInput
-                                className="text-slate-800 text-[11px] font-bold text-right p-0"
-                                keyboardType="numeric"
-                                value={node.inputValue !== undefined ? formatInputWithCommas(node.inputValue) : (node.cost !== null && node.cost !== undefined && node.cost !== 0 ? formatWithCommas(node.cost) : '')}
-                                onChangeText={(val) => {
-                                    const cleanVal = removeCommas(val);
-                                    if (val === '' || /^[\d,]*\.?\d*$/.test(val)) {
-                                        if (cleanVal === '' || /^\d*\.?\d*$/.test(cleanVal)) {
-                                            onCostChange(currentPath, cleanVal === '' ? 0 : parseFloat(cleanVal) || 0, cleanVal);
+                        {/* Input Field or Display Only */}
+                        {displayOnly ? (
+                            <View className="bg-gray-100 rounded-xl px-3 py-2 min-w-[85px]">
+                                <Text className="text-slate-600 text-[11px] font-bold text-right">
+                                    {node.cost !== null && node.cost !== undefined ? formatWithCommas(node.cost) : "—"}
+                                </Text>
+                            </View>
+                        ) : (
+                            <View className="bg-white border-2 border-slate-200 rounded-xl px-3 py-2 min-w-[85px] shadow-sm">
+                                <TextInput
+                                    className="text-slate-800 text-[11px] font-bold text-right p-0"
+                                    keyboardType="numeric"
+                                    value={node.inputValue !== undefined ? formatInputWithCommas(node.inputValue) : (node.cost !== null && node.cost !== undefined && node.cost !== 0 ? formatWithCommas(node.cost) : '')}
+                                    onChangeText={(val) => {
+                                        const cleanVal = removeCommas(val);
+                                        if (val === '' || /^[\d,]*\.?\d*$/.test(val)) {
+                                            if (cleanVal === '' || /^\d*\.?\d*$/.test(cleanVal)) {
+                                                onCostChange(currentPath, cleanVal === '' ? 0 : parseFloat(cleanVal) || 0, cleanVal);
+                                            }
                                         }
-                                    }
-                                }}
-                                placeholder="0.00"
-                                placeholderTextColor="#94a3b8"
-                            />
-                        </View>
+                                    }}
+                                    placeholder="0.00"
+                                    placeholderTextColor="#94a3b8"
+                                />
+                            </View>
+                        )}
 
                         {/* Delete Button */}
-                        {isDeleteMode && (
+                        {isDeleteMode && !displayOnly && (
                             <TouchableOpacity
                                 onPress={handleDelete}
                                 className="bg-red-50 border border-red-200 rounded-lg p-2 active:bg-red-100"

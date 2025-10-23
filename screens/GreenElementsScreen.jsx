@@ -32,25 +32,6 @@ const GreenElementsScreen = ({ greenElements, setGreenElements = () => { }, crit
     const [isInfoGuideVisible, setIsInfoGuideVisible] = useState(false);
     const [infoGuideText, setInfoGuideText] = useState('');
 
-    useEffect(() => {
-        const checkedGreenElements = Object.keys(checkedItems).filter(key => checkedItems[key]);
-
-        // console.log("Checked Green Elements:", checkedGreenElements);
-
-
-        const data = {
-            checkedItems: checkedItems,
-            customItems: customItems,
-            checkedCustomItems: Object.entries(customItems).reduce((acc, [parentId, items]) => {
-                acc[parentId] = items.filter(item => checkedItems[item.id]);
-                return acc;
-            }, {}),
-            checkedSubitems: checkedSubitems
-        };
-        console.log('=== Checked Data ===');
-        console.log(JSON.stringify(data, null, 2));
-    }, [checkedItems, customItems, checkedSubitems]);
-
     const SCREEN_WIDTH = Dimensions.get('window').width;
 
     const handleInfoGuideOpen = (text) => {
@@ -86,17 +67,19 @@ const GreenElementsScreen = ({ greenElements, setGreenElements = () => { }, crit
         ]).start();
     }, [fadeAnim, slideAnim]);
 
-    const handleCheckboxToggle = useCallback((itemId, itemData) => {
+    const handleCheckboxToggle = useCallback((itemId, parentId = null, itemData) => {
         // Add haptic feedback for checkbox interactions
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
 
         if (itemData == "subitems") {
             // Use checkedSubitems for subitems checkbox state
             setCheckedSubitems(prev => {
-                const wasChecked = prev[itemId];
+                const wasChecked = prev[parentId]?.[itemId];
                 const newCheckedState = {
-                    ...prev,
-                    [itemId]: !wasChecked
+                    [parentId]: {
+                        ...prev[parentId],
+                        [itemId]: !wasChecked
+                    }
                 };
 
                 // Find the criterion this item belongs to
@@ -160,10 +143,13 @@ const GreenElementsScreen = ({ greenElements, setGreenElements = () => { }, crit
                         // Need to check both newCheckedState (subitems) and checkedItems (custom items)
                         const totalCheckedSubitems = allSubitemIds.filter(id => {
                             // If it's in newCheckedState (subitems being toggled), use that
-                            if (id in newCheckedState) {
-                                return newCheckedState[id];
+                            if (parentId in newCheckedState && id in newCheckedState[parentId]) {
+                                return newCheckedState[parentId][id];
                             }
-                            // Otherwise check checkedItems (custom items)
+                            // Otherwise check checkedSubitems (for other subitems) and checkedItems (custom items)
+                            if (parentId in checkedSubitems && id in checkedSubitems[parentId]) {
+                                return checkedSubitems[parentId][id];
+                            }
                             return checkedItems[id];
                         }).length;
 
@@ -174,8 +160,8 @@ const GreenElementsScreen = ({ greenElements, setGreenElements = () => { }, crit
                         // Calculate the difference from previous subitem marks
                         const previousCheckedSubitems = allSubitemIds.filter(id => {
                             // If it's in prev (previous subitems state), use that
-                            if (id in prev) {
-                                return prev[id];
+                            if (parentId in prev && id in prev[parentId]) {
+                                return prev[parentId][id];
                             }
                             // Otherwise check checkedItems (custom items)
                             return checkedItems[id];
@@ -292,9 +278,6 @@ const GreenElementsScreen = ({ greenElements, setGreenElements = () => { }, crit
                                 allSubitemIds.push(...customItems[parentItem.id].map(custom => custom.id));
                             }
 
-                            // Count how many subitems are checked (including this toggle)
-                            // For checkedItems: use newCheckedState (updated state)
-                            // For checkedSubitems: use the state value directly
                             const totalChecked = allSubitemIds.filter(id => {
                                 // If it's in newCheckedState, use that (for items being toggled)
                                 if (id in newCheckedState) {
@@ -304,8 +287,9 @@ const GreenElementsScreen = ({ greenElements, setGreenElements = () => { }, crit
                                 return checkedSubitems[id];
                             }).length;
 
-                            // Calculate marks: min(checkedSubitems, 6)
-                            const subitemMarks = Math.min(totalChecked, 6);
+                            // Calculate marks: min(checkedSubitems, parentItem.marks or 6)
+                            const maxMarks = parentItem.marks || 6;
+                            const subitemMarks = Math.min(totalChecked, maxMarks);
 
                             // Calculate the difference from previous subitem marks
                             const previousTotal = allSubitemIds.filter(id => {
@@ -316,7 +300,7 @@ const GreenElementsScreen = ({ greenElements, setGreenElements = () => { }, crit
                                 // Otherwise check checkedSubitems
                                 return checkedSubitems[id];
                             }).length;
-                            const previousSubitemMarks = Math.min(previousTotal, 6);
+                            const previousSubitemMarks = Math.min(previousTotal, maxMarks);
                             const marksDifference = subitemMarks - previousSubitemMarks;
 
                             return {
@@ -383,7 +367,9 @@ const GreenElementsScreen = ({ greenElements, setGreenElements = () => { }, crit
 
             // Update marks for subitems if this is a subitem parent
             if (parentItem && parentItem.subitems_exist && selectedCriterion) {
-                setCriteriaMarks(criteriaMarks => {
+                setCriteriaMarks(prevMarks => {
+                    const currentMarks = prevMarks[selectedCriterion] || 0;
+
                     // Get all subitem IDs for this parent item
                     const allSubitemIds = [];
                     if (parentItem.subitems) {
@@ -392,15 +378,24 @@ const GreenElementsScreen = ({ greenElements, setGreenElements = () => { }, crit
                     // Include all custom items (including the new one)
                     allSubitemIds.push(...updatedCustomItems[itemId].map(custom => custom.id));
 
-                    // Count checked subitems before and after
-                    const newCheckedSubitems = Object.values(checkedSubitems).filter(v => v).length + updatedCustomItems[itemId].length;
+                    // Count checked subitems for THIS parent item only
+                    const totalCheckedForThisParent = allSubitemIds.filter(id => {
+                        // Check if it's a regular subitem that's checked
+                        if (parentItem.subitems?.find(sub => sub.id === id)) {
+                            return checkedSubitems[itemId]?.[id] || false;
+                        }
+                        // Custom items are auto-checked, so always return true
+                        return true;
+                    }).length;
 
-                    // Calculate marks difference (max 6 marks per parent)
-                    const newMarks = Math.min(newCheckedSubitems, parentItem.marks);
+                    // Calculate marks (max 6 marks per parent, or parentItem.marks if specified)
+                    const maxMarks = parentItem.marks || 6;
+                    const newMarks = Math.min(totalCheckedForThisParent, maxMarks);
+                    const marksDifference = newMarks - (prevMarks[selectedCriterion] || 0);
 
                     return {
-                        ...criteriaMarks,
-                        [selectedCriterion]: Math.max(0, newMarks)
+                        ...prevMarks,
+                        [selectedCriterion]: Math.max(0, currentMarks + marksDifference)
                     };
                 });
             }
@@ -428,8 +423,6 @@ const GreenElementsScreen = ({ greenElements, setGreenElements = () => { }, crit
         // Update marks if this custom item was checked
         if (targetCriterion) {
             setCriteriaMarks(prevMarks => {
-                const currentMarks = prevMarks[targetCriterion] || 0;
-
                 // Find the parent item
                 let parentItem = null;
                 for (const criterion of criteria) {
@@ -452,7 +445,6 @@ const GreenElementsScreen = ({ greenElements, setGreenElements = () => { }, crit
                     allSubitemIds.push(...remainingCustomItems.map(custom => custom.id));
 
                     // Count total checked subitems after deletion
-                    console.log(checkedSubitems)
                     const totalCheckedAfter = Object.values(checkedSubitems).filter(v => v).length + updatedCustomItems[itemId].length;
 
                     // Calculate marks after
@@ -472,7 +464,6 @@ const GreenElementsScreen = ({ greenElements, setGreenElements = () => { }, crit
     // Update criteriaTotalMarks whenever criteriaMarks changes
     useEffect(() => {
         if (setCriteriaTotalMarks && typeof setCriteriaTotalMarks === 'function') {
-            const prevTotal = Object.values(criteriaMarks).reduce((sum, marks) => sum + marks, 0);
             const newTotal = Object.values(criteriaMarks).reduce((sum, marks) => sum + marks, 0);
             setCriteriaTotalMarks(newTotal);
 
@@ -521,10 +512,12 @@ const GreenElementsScreen = ({ greenElements, setGreenElements = () => { }, crit
                     criterion.items.forEach(item => {
                         // Only add regular items to checkedItems
                         initialCheckedState[item.id] = false;
+
                         // Initialize subitems separately in checkedSubitems
                         if (item.subitems && Array.isArray(item.subitems) && item.subitems.length > 0) {
+                            initialCheckedSubitems[item.id] = {};
                             item.subitems.forEach(subitem => {
-                                initialCheckedSubitems[subitem.id] = false;
+                                initialCheckedSubitems[item.id][subitem.id] = false;
                             });
                         }
                     });
@@ -536,8 +529,10 @@ const GreenElementsScreen = ({ greenElements, setGreenElements = () => { }, crit
                             sub.items.forEach(item => {
                                 // Only add regular items to checkedItems
                                 initialCheckedState[item.id] = false;
+
                                 // Initialize subitems separately in checkedSubitems
                                 if (item.subitems && Array.isArray(item.subitems) && item.subitems.length > 0) {
+                                    initialCheckedSubitems[item.id] = {};
                                     item.subitems.forEach(subitem => {
                                         initialCheckedSubitems[item.id][subitem.id] = false;
                                     });
@@ -567,7 +562,6 @@ const GreenElementsScreen = ({ greenElements, setGreenElements = () => { }, crit
         const totalPoints = item.total_marks || 0;
         const minPoints = item.min_marks || 0;
         const isCompleted = earnedPoints >= minPoints;
-        const progressPercentage = totalPoints > 0 ? (earnedPoints / totalPoints) * 100 : 0;
 
         return (
             <View style={{ width: SCREEN_WIDTH, paddingHorizontal: 20, justifyContent: 'center' }}>
@@ -758,26 +752,26 @@ const GreenElementsScreen = ({ greenElements, setGreenElements = () => { }, crit
                                     ? 'bg-emerald-50 border-emerald-300'
                                     : 'bg-white border-gray-200'
                                     }`}
-                                onPress={() => handleCheckboxToggle(subitem.id, "subitems")}
+                                onPress={() => handleCheckboxToggle(subitem.id, item.id, "subitems")}
                                 activeOpacity={0.7}
                                 style={{
-                                    shadowColor: checkedSubitems[subitem.id] ? '#10B981' : '#000',
+                                    shadowColor: checkedSubitems[item.id]?.[subitem.id] ? '#10B981' : '#000',
                                     shadowOffset: { width: 0, height: 1 },
-                                    shadowOpacity: checkedSubitems[subitem.id] ? 0.1 : 0.05,
+                                    shadowOpacity: checkedSubitems[item.id]?.[subitem.id] ? 0.1 : 0.05,
                                     shadowRadius: 2,
-                                    elevation: checkedSubitems[subitem.id] ? 2 : 1,
+                                    elevation: checkedSubitems[item.id]?.[subitem.id] ? 2 : 1,
                                 }}
                             >
                                 <Checkbox
-                                    value={checkedSubitems[subitem.id] || false}
-                                    onValueChange={() => handleCheckboxToggle(subitem.id, "subitems")}
-                                    color={checkedSubitems[subitem.id] ? '#10B981' : undefined}
+                                    value={checkedSubitems[item.id]?.[subitem.id] || false}
+                                    onValueChange={() => handleCheckboxToggle(subitem.id, item.id, "subitems")}
+                                    color={checkedSubitems[item.id]?.[subitem.id] ? '#10B981' : undefined}
                                     className="mr-3"
                                 />
                                 <Text
                                     className="flex-1 text-sm leading-5 text-gray-700"
                                     style={{
-                                        fontWeight: checkedSubitems[subitem.id] ? '600' : '400'
+                                        fontWeight: checkedSubitems[item.id]?.[subitem.id] ? '600' : '400'
                                     }}
                                 >
                                     {subitem.description}

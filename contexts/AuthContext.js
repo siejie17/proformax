@@ -7,7 +7,7 @@ export const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [loading, setLoading] = useState(true); // To handle splash/loading state
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState({});
 
   // Check if token exists on app start
   useEffect(() => {
@@ -48,8 +48,12 @@ export const AuthProvider = ({ children }) => {
   };
 
   const updateUser = async (userData) => {
-    await AsyncStorage.setItem('user', JSON.stringify(userData));
-    setUser(userData);
+    let userBefore = await AsyncStorage.getItem('user');
+    userBefore = JSON.parse(userBefore);
+
+    const updatedUser = { ...userBefore, ...userData };
+    await AsyncStorage.setItem('user', JSON.stringify(updatedUser));
+    setUser(updatedUser);
   };
 
   return (

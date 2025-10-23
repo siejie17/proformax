@@ -8,6 +8,7 @@ import ResultsTopTabs from '../components/ResultsTopTabs';
 import AccountScreen from '../screens/AccountScreen';
 import EditFieldScreen from '../screens/EditFieldScreen';
 import NotificationScreen from '../screens/NotificationScreen';
+import HistoryTopTabs from '../components/HistoryTopTabs';
 
 const AppStack = () => {
     const Stack = createNativeStackNavigator();
@@ -18,6 +19,7 @@ const AppStack = () => {
             <Stack.Screen name="GBSCalculator" component={GBSCalculatorScreen} options={{ headerShown: false }} />
             <Stack.Screen name="Results" component={ResultsTopTabs} options={{ headerShown: false }} />
             <Stack.Screen name="History" component={HistoryScreen} options={{ headerShown: false }} />
+            <Stack.Screen name="HistoryDetail" component={HistoryTopTabs} options={{ headerShown: false }} />
             <Stack.Screen name="Account" component={AccountScreen} options={{ headerShown: false }} />
             <Stack.Screen name="EditFieldScreen" component={EditFieldScreen} options={{ headerShown: false }} />
             <Stack.Screen name="About" component={AboutScreen} options={{ headerShown: false }} />

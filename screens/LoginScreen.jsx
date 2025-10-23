@@ -15,7 +15,7 @@ import MessageModal from '../components/MessageModal';
 import api from '../services/api';
 
 const LoginScreen = () => {
-    const { setIsLoggedIn } = useContext(AuthContext);
+    const { login } = useContext(AuthContext);
 
     const [email, setEmail] = useState({ value: '', error: '' });
     const [password, setPassword] = useState({ value: '', error: '' });
@@ -65,15 +65,10 @@ const LoginScreen = () => {
             if (res.data.user.email_verified_at) {
                 const token = res.data.token;
 
-                // save token securely (AsyncStorage used here for example)
-                await AsyncStorage.setItem('token', token);
+                // Use the login function from AuthContext to properly update state
+                await login(token, res.data.user);
+
                 api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-
-                // optional: store user
-                await AsyncStorage.setItem('user', JSON.stringify(res.data.user));
-                console.log(res.data.user);
-
-                setIsLoggedIn(true);
             } else {
                 setIsNotVerifiedYetModalVisible(true);
             }

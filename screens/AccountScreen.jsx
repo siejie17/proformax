@@ -1,6 +1,7 @@
 import { View, Text, TouchableOpacity, StatusBar, ScrollView, Image, ActivityIndicator, Platform, Alert } from 'react-native'
-import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useContext, useMemo, useRef, useState } from 'react';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
+import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
@@ -15,6 +16,7 @@ import MessageModal from '../components/MessageModal';
 import api, { setAuthToken } from '../services/api';
 
 const AccountScreen = ({ navigation, route }) => {
+    const { userId } = route.params;
     const { updateUser } = useContext(AuthContext);
     const [userData, setUserData] = useState({});
     const [loading, setLoading] = useState(true);
@@ -116,46 +118,55 @@ const AccountScreen = ({ navigation, route }) => {
         return require("../assets/defaultProfilePic.png");
     };
 
-    useEffect(() => {
-        const fetchUserData = async () => {
-            try {
-                await AsyncStorage.getItem('user').then((user) => {
-                    if (user) {
-                        setUserData(JSON.parse(user));
-                    }
-                });
-            } catch (error) {
-                console.error('Error fetching user data:', error);
-            } finally {
+    useFocusEffect(
+        useCallback(() => {
+            // Only run fetch if userId is available
+            if (!userId) {
                 setLoading(false);
+                return;
             }
-        };
 
-        fetchUserData();
-    }, []);
-
-    // Handle updates from EditFieldScreen
-    useEffect(() => {
-        if (route.params?.updatedField && route.params?.updatedValue) {
-            const { updatedField, updatedValue } = route.params;
-            const updatedUserData = {
-                ...userData,
-                [updatedField]: updatedValue
+            const fetchUserData = async () => {
+                try {
+                    setLoading(true);
+                    const response = await api.get(`/users/${userId}`);
+                    const apiData = response.data.user;
+                    setUserData(apiData);
+                } catch (error) {
+                    console.error('Error fetching user data:', error);
+                } finally {
+                    setLoading(false);
+                }
             };
 
-            setUserData(updatedUserData);
+            fetchUserData();
+        }, [userId])
+    );
 
-            // Update AsyncStorage with the new data
-            AsyncStorage.setItem('user', JSON.stringify(updatedUserData))
-                .catch(error => console.error('Error saving user data to AsyncStorage:', error));
+    // Handle updates from EditFieldScreen
+    useFocusEffect(
+        useCallback(() => {
+            if (route.params?.updatedField && route.params?.updatedValue) {
+                const { updatedField, updatedValue } = route.params;
+                const updatedUserData = {
+                    ...userData,
+                    [updatedField]: updatedValue
+                };
 
-            // Clear the params to prevent re-triggering
-            navigation.setParams({
-                updatedField: undefined,
-                updatedValue: undefined
-            });
-        }
-    }, [route.params, userData]);
+                setUserData(updatedUserData);
+
+                // Update AsyncStorage with the new data
+                AsyncStorage.setItem('user', JSON.stringify(updatedUserData))
+                    .catch(error => console.error('Error saving user data to AsyncStorage:', error));
+
+                // Clear the params to prevent re-triggering
+                navigation.setParams({
+                    updatedField: undefined,
+                    updatedValue: undefined
+                });
+            }
+        }, [route.params, userData])
+    );
 
     if (loading) {
         return <LoadingIndicator />;

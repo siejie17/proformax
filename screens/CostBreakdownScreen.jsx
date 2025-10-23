@@ -1,11 +1,11 @@
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 
 import CostNode from '../components/CostNode';
 import AddCostModal from '../components/AddCostModal';
 
-const CostBreakdownScreen = ({ route, navigation, newProjectCosts, setNewProjectCosts, mappedFormData }) => {
+const CostBreakdownScreen = ({ route, navigation, newProjectCosts, setNewProjectCosts, mappedFormData, selectedProject = null, displayOnly = false }) => {
     const projectCosts = newProjectCosts || { cost_breakdown: {}, total_cost: 0 };
     const initializedRef = useRef(false);
     const scrollViewRef = useRef(null);
@@ -14,12 +14,11 @@ const CostBreakdownScreen = ({ route, navigation, newProjectCosts, setNewProject
     const [highlightedItem, setHighlightedItem] = useState(null);
 
     // Get budget from mappedFormData (adjust the property name based on your data structure)
-    const projectBudget = mappedFormData?.projectBudget || 0;
-    const totalCost = projectCosts.total_cost || projectCosts || 0;
+    const projectBudget = mappedFormData?.projectBudget || parseFloat(selectedProject?.budget) || 0;
+    const totalCost = displayOnly ? (selectedProject?.adjusted_cost || 0) : (mappedFormData?.costPreviewWay === 'Detailed' ? projectCosts?.total_cost : projectCosts || 0);
 
     // Calculate budget status
     const isOverBudget = projectBudget > 0 && totalCost > projectBudget;
-    const isWithinBudget = projectBudget > 0 && totalCost <= projectBudget;
     const budgetDifference = Math.abs(totalCost - projectBudget);
     const budgetPercentage = projectBudget > 0 ? ((totalCost / projectBudget) * 100).toFixed(1) : 0;
 
@@ -100,9 +99,18 @@ const CostBreakdownScreen = ({ route, navigation, newProjectCosts, setNewProject
     };
 
     const handleAddCostSubmit = ({ description, cost }) => {
-        if (!newProjectCosts || !setNewProjectCosts) return;
+        if (!setNewProjectCosts) return;
 
-        const updatedProjectCosts = JSON.parse(JSON.stringify(projectCosts));
+        // Initialize newProjectCosts if it's empty
+        let updatedProjectCosts;
+        if (!newProjectCosts || Object.keys(newProjectCosts).length === 0) {
+            updatedProjectCosts = {
+                total_cost: 0,
+                cost_breakdown: {}
+            };
+        } else {
+            updatedProjectCosts = JSON.parse(JSON.stringify(projectCosts));
+        }
 
         // Check if "OTHERS" section exists
         let othersSection = null;
@@ -121,8 +129,8 @@ const CostBreakdownScreen = ({ route, navigation, newProjectCosts, setNewProject
         if (!othersSection) {
             // Find the next available letter key
             const existingKeys = Object.keys(updatedProjectCosts.cost_breakdown);
-            const lastKey = existingKeys[existingKeys.length - 1];
-            const nextKey = String.fromCharCode(lastKey.charCodeAt(0) + 1);
+            const lastKey = existingKeys.length > 0 ? existingKeys[existingKeys.length - 1] : null;
+            const nextKey = lastKey ? String.fromCharCode(lastKey.charCodeAt(0) + 1) : 'A';
 
             othersSectionKey = nextKey;
             othersSection = {
@@ -183,6 +191,8 @@ const CostBreakdownScreen = ({ route, navigation, newProjectCosts, setNewProject
             setNewProjectCosts(initialCosts);
             initializedRef.current = true;
         }
+
+        console.log(mappedFormData);
     }, []);
 
     return (
@@ -198,19 +208,19 @@ const CostBreakdownScreen = ({ route, navigation, newProjectCosts, setNewProject
             <View className="px-5 py-2 border-b border-slate-100">
                 <Text className="text-slate-800 font-bold text-lg mb-1">Construction Cost</Text>
                 <View className="flex-row items-center">
-                    <View className={`px-2.5 py-1 rounded-lg mr-2 ${mappedFormData?.costPreviewWay === 'Detailed'
+                    <View className={`px-2.5 py-1 rounded-lg mr-2 ${mappedFormData?.costPreviewWay === 'Detailed' || selectedProject?.cost_preview_way === 'Detailed'
                         ? 'bg-blue-100'
                         : 'bg-emerald-100'
                         }`}>
-                        <Text className={`font-bold text-[10px] uppercase tracking-wide ${mappedFormData?.costPreviewWay === 'Detailed'
+                        <Text className={`font-bold text-[10px] uppercase tracking-wide ${mappedFormData?.costPreviewWay === 'Detailed' || selectedProject?.cost_preview_way === 'Detailed'
                             ? 'text-blue-700'
                             : 'text-emerald-700'
                             }`}>
-                            {mappedFormData?.costPreviewWay || 'Detailed'}
+                            {mappedFormData?.costPreviewWay || selectedProject?.cost_preview_way || 'Detailed'}
                         </Text>
                     </View>
                     <Text className="text-slate-500 text-xs flex-1">
-                        {mappedFormData?.costPreviewWay === 'Detailed'
+                        {mappedFormData?.costPreviewWay === 'Detailed' || selectedProject?.cost_preview_way === 'Detailed'
                             ? 'Thorough cost breakdown based on real project data'
                             : 'Fast, general overview from BCISM Costbook'}
                     </Text>
@@ -228,10 +238,18 @@ const CostBreakdownScreen = ({ route, navigation, newProjectCosts, setNewProject
                         <View className="bg-blue-500 rounded-xl px-4 py-2.5 shadow-sm">
                             <Text className="text-blue-100 font-bold text-[9px] text-center mb-0.5">RM</Text>
                             <Text className="text-white font-bold text-xl tracking-tight">
-                                {(projectCosts.total_cost || projectCosts || 0).toLocaleString('en-US', {
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2
-                                })}
+                                {displayOnly && selectedProject?.adjusted_cost ? (
+                                    (parseFloat(selectedProject?.adjusted_cost) || 0).toLocaleString('en-US', {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2
+                                    })
+                                ) : (
+                                    ((mappedFormData?.costPreviewWay === 'Detailed' ? projectCosts.total_cost : projectCosts) || 0).toLocaleString('en-US', {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2
+                                    })
+                                )
+                                }
                             </Text>
                         </View>
                     </View>
@@ -279,70 +297,125 @@ const CostBreakdownScreen = ({ route, navigation, newProjectCosts, setNewProject
                 </View>
             </View>
 
-            {mappedFormData?.costPreviewWay === 'Detailed' && (
+            {(mappedFormData?.costPreviewWay === 'Detailed' || selectedProject?.cost_preview_way === 'Detailed') && (
                 <>
-                    {/* Action Buttons */}
-                    <View className="flex-row px-5 pb-4 gap-3">
-                        <TouchableOpacity
-                            onPress={handleAddCost}
-                            className="flex-1 bg-blue-500 rounded-xl py-3 flex-row items-center justify-center shadow-md active:bg-blue-600"
-                            activeOpacity={0.8}
-                        >
-                            <View className="w-5 h-5 bg-white/20 rounded-lg items-center justify-center mr-2">
-                                <Ionicons name="add" size={14} color="#FFFFFF" />
+                    {/* Check if cost breakdown is empty */}
+                    {(!displayOnly && (!projectCosts.cost_breakdown || Object.keys(projectCosts.cost_breakdown).length === 0)) ||
+                    (displayOnly && (!selectedProject?.cost_breakdown || Object.keys(selectedProject?.cost_breakdown || {}).length === 0)) ? (
+                        <View className="flex-1 items-center justify-center">
+                            <View className="items-center gap-3">
+                                <View className="w-20 h-20 bg-slate-200 rounded-full items-center justify-center">
+                                    <Ionicons name="document-outline" size={40} color="#94a3b8" />
+                                </View>
+                                <Text className="text-slate-600 font-bold text-base">Unavailable data at the moment</Text>
+                                <Text className="text-slate-400 text-sm text-center px-4">
+                                    {displayOnly ? 'No cost breakdown data available' : 'Start by adding your first cost item'}
+                                </Text>
+                                {!displayOnly && (
+                                    <TouchableOpacity
+                                        onPress={handleAddCost}
+                                        className="mt-2 bg-blue-500 rounded-xl px-6 py-3 flex-row items-center justify-center shadow-md active:bg-blue-600"
+                                        activeOpacity={0.8}
+                                    >
+                                        <View className="w-5 h-5 bg-white/20 rounded-lg items-center justify-center mr-2">
+                                            <Ionicons name="add" size={14} color="#FFFFFF" />
+                                        </View>
+                                        <Text className="text-white font-bold text-xs">Add Cost</Text>
+                                    </TouchableOpacity>
+                                )}
                             </View>
-                            <Text className="text-white font-bold text-xs">Add Cost</Text>
-                        </TouchableOpacity>
+                        </View>
+                    ) : (
+                        <>
+                            {displayOnly ? null : (
+                                <View className="flex-row px-5 pb-4 gap-3">
+                                    <TouchableOpacity
+                                        onPress={handleAddCost}
+                                        className="flex-1 bg-blue-500 rounded-xl py-3 flex-row items-center justify-center shadow-md active:bg-blue-600"
+                                        activeOpacity={0.8}
+                                    >
+                                        <View className="w-5 h-5 bg-white/20 rounded-lg items-center justify-center mr-2">
+                                            <Ionicons name="add" size={14} color="#FFFFFF" />
+                                        </View>
+                                        <Text className="text-white font-bold text-xs">Add Cost</Text>
+                                    </TouchableOpacity>
 
-                        <TouchableOpacity
-                            onPress={() => setIsDeleteMode(!isDeleteMode)}
-                            className={`flex-1 rounded-xl py-3 flex-row items-center justify-center shadow-md ${isDeleteMode
-                                ? 'bg-red-500 active:bg-red-600'
-                                : 'bg-slate-100 active:bg-slate-200 border-2 border-slate-200'
-                                }`}
-                            activeOpacity={0.8}
-                        >
-                            <View className={`w-5 h-5 rounded-lg items-center justify-center mr-2 ${isDeleteMode ? 'bg-white/20' : 'bg-slate-200'
-                                }`}>
-                                <Ionicons
-                                    name={isDeleteMode ? "checkmark" : "trash-outline"}
-                                    size={14}
-                                    color={isDeleteMode ? "#FFFFFF" : "#475569"}
-                                />
+                                    <TouchableOpacity
+                                        onPress={() => setIsDeleteMode(!isDeleteMode)}
+                                        className={`flex-1 rounded-xl py-3 flex-row items-center justify-center shadow-md ${isDeleteMode
+                                            ? 'bg-red-500 active:bg-red-600'
+                                            : 'bg-slate-100 active:bg-slate-200 border-2 border-slate-200'
+                                            }`}
+                                        activeOpacity={0.8}
+                                    >
+                                        <View className={`w-5 h-5 rounded-lg items-center justify-center mr-2 ${isDeleteMode ? 'bg-white/20' : 'bg-slate-200'
+                                            }`}>
+                                            <Ionicons
+                                                name={isDeleteMode ? "checkmark" : "trash-outline"}
+                                                size={14}
+                                                color={isDeleteMode ? "#FFFFFF" : "#475569"}
+                                            />
+                                        </View>
+                                        <Text className={`font-bold text-xs ${isDeleteMode ? 'text-white' : 'text-slate-700'
+                                            }`}>
+                                            {isDeleteMode ? 'Done' : 'Delete'}
+                                        </Text>
+                                    </TouchableOpacity>
+                                </View>
+                            )}
+
+                            {/* Column Headers */}
+                            <View className="bg-slate-100 px-7 py-3 flex-row justify-between border-t border-slate-200">
+                                <Text className="text-slate-600 font-bold text-[10px] uppercase tracking-wider">Description</Text>
+                                <Text className="text-slate-600 font-bold text-[10px] uppercase tracking-wider">Amount (RM)</Text>
                             </View>
-                            <Text className={`font-bold text-xs ${isDeleteMode ? 'text-white' : 'text-slate-700'
-                                }`}>
-                                {isDeleteMode ? 'Done' : 'Delete'}
-                            </Text>
-                        </TouchableOpacity>
-                    </View>
 
-                    {/* Column Headers */}
-                    <View className="bg-slate-100 px-5 py-3 flex-row justify-between border-t border-slate-200">
-                        <Text className="text-slate-600 font-bold text-[10px] uppercase tracking-wider">Description</Text>
-                        <Text className="text-slate-600 font-bold text-[10px] uppercase tracking-wider">Amount (RM)</Text>
-                    </View>
-
-                    {/* Cost Breakdown List */}
-                    <ScrollView
-                        className="flex-1"
-                        ref={scrollViewRef}
-                        contentContainerClassName="p-4"
-                        showsVerticalScrollIndicator={false}
-                    >
-                        {projectCosts.cost_breakdown && Object.entries(projectCosts.cost_breakdown).map(([code, node]) => (
-                            <CostNode
-                                key={code}
-                                code={code}
-                                path={''}
-                                node={node}
-                                onCostChange={handleCostChange}
-                                onDelete={handleDelete}
-                                isDeleteMode={isDeleteMode}
-                                highlightedItem={highlightedItem}
-                            />
-                        ))}
-                    </ScrollView>
+                            {/* Cost Breakdown List */}
+                            {!displayOnly ? (
+                                <ScrollView
+                                    className="flex-1"
+                                    ref={scrollViewRef}
+                                    contentContainerClassName="p-4"
+                                    showsVerticalScrollIndicator={false}
+                                >
+                                    {projectCosts.cost_breakdown && Object.entries(projectCosts.cost_breakdown).map(([code, node]) => (
+                                        <CostNode
+                                            key={code}
+                                            code={code}
+                                            path={''}
+                                            node={node}
+                                            onCostChange={handleCostChange}
+                                            onDelete={handleDelete}
+                                            isDeleteMode={isDeleteMode}
+                                            highlightedItem={highlightedItem}
+                                            displayOnly={displayOnly}
+                                        />
+                                    ))}
+                                </ScrollView>
+                            ) : (
+                                <ScrollView
+                                    className="flex-1"
+                                    ref={scrollViewRef}
+                                    contentContainerClassName="p-4"
+                                    showsVerticalScrollIndicator={false}
+                                >
+                                    {selectedProject.cost_breakdown && Object.entries(selectedProject.cost_breakdown).map(([code, node]) => (
+                                        <CostNode
+                                            key={code}
+                                            code={code}
+                                            path={''}
+                                            node={node}
+                                            // onCostChange={handleCostChange}
+                                            // onDelete={handleDelete}
+                                            // isDeleteMode={isDeleteMode}
+                                            // highlightedItem={highlightedItem}
+                                            displayOnly={displayOnly}
+                                        />
+                                    ))}
+                                </ScrollView>
+                            )}
+                        </>
+                    )}
                 </>
             )}
         </View>

@@ -3,10 +3,11 @@ import { createMaterialTopTabNavigator } from '@react-navigation/material-top-ta
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import TabBar from './TabBar';
+import { useEffect } from 'react';
 
 const TopBar = createMaterialTopTabNavigator();
 
-const TopTabsWrapper = ({ title, tabs, params, onSubmit, criteriaTotalMarks = 0, mappedFormData, ...props }) => {
+const TopTabsWrapper = ({ title, tabs, params, onSubmit, criteriaTotalMarks = 0, mappedFormData, submitLoading, newProjectCosts, ...props }) => {
     // Certification scale ranges
     const certifiedScaleRange = {
         'Platinum': [85, 100],
@@ -54,12 +55,24 @@ const TopTabsWrapper = ({ title, tabs, params, onSubmit, criteriaTotalMarks = 0,
         return criteriaTotalMarks >= targetRange[0] && criteriaTotalMarks <= targetRange[1];
     })();
 
-    const isSubmitDisabled = Boolean(hasTargetRating && !targetMet);
-    const pointsNeeded = isSubmitDisabled ? certifiedScaleRange[mappedFormData.certifiedRatingScale]?.[0] - criteriaTotalMarks : 0;
+    // Check if newProjectCosts is empty for Detailed cost preview
+    const isCostBreakdownEmpty = mappedFormData?.costPreviewWay === 'Detailed' && 
+        (!newProjectCosts || 
+         Object.keys(newProjectCosts).length === 0 ||
+         !newProjectCosts?.cost_breakdown || 
+         Object.keys(newProjectCosts?.cost_breakdown).length === 0);
+
+    const isSubmitDisabled = Boolean(hasTargetRating && !targetMet) || isCostBreakdownEmpty;
+    const pointsNeeded = (hasTargetRating && !targetMet) ? certifiedScaleRange[mappedFormData.certifiedRatingScale]?.[0] - criteriaTotalMarks : 0;
 
     // Check if target is exceeded
     const targetExceeded = hasTargetRating && criteriaTotalMarks > certifiedScaleRange[mappedFormData.certifiedRatingScale]?.[1];
 
+    useEffect(() => {
+        // You can add any side effects here if needed
+        console.log(mappedFormData);
+    }, []);
+    
     return (
         <SafeAreaView className="flex-1 bg-gray-100">
             <StatusBar barStyle="dark-content" backgroundColor="#F9FAFB" />
@@ -90,6 +103,7 @@ const TopTabsWrapper = ({ title, tabs, params, onSubmit, criteriaTotalMarks = 0,
                                     {...params}
                                     {...props}
                                     mappedFormData={mappedFormData}
+                                    newProjectCosts={newProjectCosts}
                                 />
                             )}
                         </TopBar.Screen>
@@ -172,6 +186,25 @@ const TopTabsWrapper = ({ title, tabs, params, onSubmit, criteriaTotalMarks = 0,
                         </View>
                     )}
 
+                    {/* Cost Breakdown Empty Warning - Detailed Preview */}
+                    {isCostBreakdownEmpty && (
+                        <View className="mb-2.5 px-3 py-2 bg-red-50 rounded-xl border border-red-200">
+                            <View className="flex-row items-center justify-between">
+                                <View className="flex-row items-center flex-1">
+                                    <View className="w-4 h-4 bg-red-500 rounded-full items-center justify-center mr-2">
+                                        <Text className="text-white text-xs font-bold">!</Text>
+                                    </View>
+                                    <Text className="text-red-700 text-[10px] font-semibold">
+                                        Cost Breakdown Required
+                                    </Text>
+                                </View>
+                            </View>
+                            <Text className="text-red-600 text-[9px] mt-1">
+                                Please add at least one cost item to proceed
+                            </Text>
+                        </View>
+                    )}
+
                     {/* Submit Button */}
                     <TouchableOpacity
                         className={`rounded-xl py-4 w-full items-center shadow-md ${isSubmitDisabled
@@ -179,7 +212,7 @@ const TopTabsWrapper = ({ title, tabs, params, onSubmit, criteriaTotalMarks = 0,
                                 : 'bg-gray-800'
                             }`}
                         activeOpacity={0.8}
-                        disabled={isSubmitDisabled}
+                        // disabled={isSubmitDisabled || submitLoading}
                         onPress={onSubmit}
                     >
                         <Text className={`text-sm font-bold ${isSubmitDisabled ? 'text-gray-500' : 'text-white'

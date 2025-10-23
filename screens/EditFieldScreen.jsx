@@ -8,12 +8,8 @@ import { updatePassword, updateUserField } from '../services/api';
 import FormInputField from '../components/FormInputField';
 import MessageModal from '../components/MessageModal';
 
-import { AuthContext } from '../contexts/AuthContext';
-
 const EditFieldScreen = ({ navigation, route }) => {
     const { field, currentValue, title } = route.params;
-
-    const { updateUser } = useContext(AuthContext);
 
     // Regular field states
     const [editValue, setEditValue] = useState(currentValue || '');
@@ -30,10 +26,7 @@ const EditFieldScreen = ({ navigation, route }) => {
     const isPasswordField = field === 'password';
 
     const onUpdatedSuccessfully = () => {
-        navigation.navigate('Account', {
-            updatedField: field,
-            updatedValue: editValue.trim()
-        });
+        navigation.goBack();
     }
 
     const validatePasswords = () => {
@@ -94,8 +87,7 @@ const EditFieldScreen = ({ navigation, route }) => {
         setIsUpdating(true);
 
         try {
-            const response = await updateUserField(field, editValue.trim());
-            await updateUser(response.data.user);
+            await updateUserField(field, editValue.trim());
 
             setIsNormalFieldsModalVisible(true);
         } catch (error) {

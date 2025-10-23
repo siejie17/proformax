@@ -1,4 +1,4 @@
-import { useEffect, useContext, useState } from 'react';
+import { useCallback, useContext, useState, useRef } from 'react';
 import {
     View,
     Text,
@@ -10,10 +10,12 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import * as Haptics from 'expo-haptics';
 
 import { AuthContext } from '../contexts/AuthContext';
+import api from '../services/api';
+import LoadingIndicator from '../components/LoadingIndicator';
 
 const { height: screenHeight } = Dimensions.get('window');
 
@@ -21,6 +23,9 @@ const HomeScreen = () => {
     const { user, loading } = useContext(AuthContext);
     const heroHeight = screenHeight * 0.46; // Reduced to make room for content
     const navigation = useNavigation();
+
+    const [currentUser, setCurrentUser] = useState(null);
+    const [isLoading, setIsLoading] = useState(true);
 
     const [notifications] = useState([
         { id: 1, title: 'Assessment Complete', message: 'Your green building score is ready', time: '2h ago', read: false },
@@ -31,20 +36,40 @@ const HomeScreen = () => {
     // Animation values
     const cardAnimation = useState(new Animated.Value(0))[0];
 
-    useEffect(() => {
-        Animated.stagger(100, [
-            Animated.timing(cardAnimation, {
-                toValue: 1,
-                duration: 800,
-                useNativeDriver: true,
-            })
-        ]).start();
-    }, []);
+    useFocusEffect(
+        useCallback(() => {
+            // Only proceed when loading is complete and user exists
+            if (loading || !user) return;
+
+            Animated.stagger(100, [
+                Animated.timing(cardAnimation, {
+                    toValue: 1,
+                    duration: 800,
+                    useNativeDriver: true,
+                })
+            ]).start();
+
+            const fetchCurrentUser = async () => {
+                try {
+                    setIsLoading(true);
+                    const response = await api.get(`/users/${user.id}`);
+                    const apiData = response.data.user;
+                    setCurrentUser(apiData);
+                } catch (error) {
+                    console.error('Error fetching current user:', error);
+                } finally {
+                    setIsLoading(false);
+                }
+            };
+
+            fetchCurrentUser();
+        }, [user, loading])
+    );
 
     // Extract username from user object, with fallback
     const getDisplayName = () => {
         if (loading) return "Loading...";
-        if (user?.first_name) return user.first_name;
+        if (currentUser?.first_name) return currentUser.first_name;
         return "User";
     };
 
@@ -115,6 +140,12 @@ const HomeScreen = () => {
         </Animated.View>
     );
 
+    if (isLoading) {
+        return (
+            <LoadingIndicator />
+        );
+    }
+
     return (
         <SafeAreaView className="flex-1 bg-gray-100">
             <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
@@ -145,7 +176,7 @@ const HomeScreen = () => {
                                 activeOpacity={0.8}
                             >
                                 <Image
-                                    source={getProfilePicSource(user?.profile_pic)}
+                                    source={getProfilePicSource(currentUser?.profile_pic)}
                                     className="w-full h-full"
                                     style={{ resizeMode: "cover" }}
                                 />

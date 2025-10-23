@@ -1,5 +1,6 @@
 import { View, Text, TouchableWithoutFeedback, Keyboard, TouchableOpacity, StatusBar, ScrollView, FlatList } from 'react-native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -111,6 +112,8 @@ const GBSCalculatorScreen = ({ navigation }) => {
         return years;
     });
 
+    const [projectName, setProjectName] = useState(null);
+
     const [selectedYear, setSelectedYear] = useState(null);
     const [buildingSize, setBuildingSize] = useState(0.00);
     const [projectBudget, setProjectBudget] = useState(0.00);
@@ -127,6 +130,7 @@ const GBSCalculatorScreen = ({ navigation }) => {
 
     // Error states for form validation
     const [errors, setErrors] = useState({
+        projectName: '',
         buildingType: '',
         category: '',
         year: '',
@@ -166,6 +170,38 @@ const GBSCalculatorScreen = ({ navigation }) => {
         fetchCategories();
     }, []);
 
+    // Reset form when screen comes into focus
+    useFocusEffect(
+        useCallback(() => {
+            setProjectName('');
+            setSelectedBuildingType(null);
+            setSelectedCategory(null);
+            setSelectedYear(null);
+            setBuildingSize(0.00);
+            setProjectBudget(0.00);
+            setSelectedState(null);
+            setSelectedRegion(null);
+            setSelectedStructure(null);
+            setSelectedPreviewWay(null);
+            setSelectedCertifiedRatingScale(null);
+            setBuildingSizeDisplay('');
+            setProjectBudgetDisplay('0');
+            setErrors({
+                projectName: '',
+                buildingType: '',
+                category: '',
+                year: '',
+                buildingSize: '',
+                projectBudget: '',
+                state: '',
+                region: '',
+                structure: '',
+                previewWay: '',
+                certifiedRatingScale: ''
+            });
+        }, [])
+    );
+
     // Update categories when building type changes
     useEffect(() => {
         if (selectedBuildingType) {
@@ -197,6 +233,7 @@ const GBSCalculatorScreen = ({ navigation }) => {
     }, [selectedBuildingType, selectedState]);
 
     const handleBuildingTypePress = useCallback(() => {
+        Keyboard.dismiss();
         clearError('buildingType');
         setActiveSheet('buildingType');
         buildingTypeBottomSheetRef.current?.snapToIndex(1);
@@ -209,6 +246,7 @@ const GBSCalculatorScreen = ({ navigation }) => {
     }, []);
 
     const handleCategoryPress = useCallback(() => {
+        Keyboard.dismiss();
         clearError('category');
         setActiveSheet('category');
         categoryBottomSheetRef.current?.snapToIndex(1);
@@ -221,6 +259,7 @@ const GBSCalculatorScreen = ({ navigation }) => {
     }, []);
 
     const handleYearPress = useCallback(() => {
+        Keyboard.dismiss();
         clearError('year');
         setActiveSheet('year');
         yearBottomSheetRef.current?.snapToIndex(1);
@@ -233,6 +272,7 @@ const GBSCalculatorScreen = ({ navigation }) => {
     }, []);
 
     const handleStatePress = useCallback(() => {
+        Keyboard.dismiss();
         clearError('state');
         setActiveSheet('state');
         stateBottomSheetRef.current?.snapToIndex(1);
@@ -245,6 +285,7 @@ const GBSCalculatorScreen = ({ navigation }) => {
     }, []);
 
     const handleRegionPress = useCallback(() => {
+        Keyboard.dismiss();
         clearError('region');
         setActiveSheet('region');
         regionBottomSheetRef.current?.snapToIndex(1);
@@ -257,6 +298,7 @@ const GBSCalculatorScreen = ({ navigation }) => {
     }, []);
 
     const handleStructurePress = useCallback(() => {
+        Keyboard.dismiss();
         clearError('structure');
         setActiveSheet('structure');
         structureBottomSheetRef.current?.snapToIndex(1);
@@ -269,6 +311,7 @@ const GBSCalculatorScreen = ({ navigation }) => {
     }, []);
 
     const handlePreviewWayPress = useCallback(() => {
+        Keyboard.dismiss();
         clearError('previewWay');
         setActiveSheet('previewWay');
         previewWayBottomSheetRef.current?.snapToIndex(1);
@@ -281,6 +324,7 @@ const GBSCalculatorScreen = ({ navigation }) => {
     }, []);
 
     const handleRatingPress = useCallback(() => {
+        Keyboard.dismiss();
         clearError('certifiedRatingScale');
         setActiveSheet('ratingScale');
         ratingScaleBottomSheetRef.current?.snapToIndex(1);
@@ -520,6 +564,7 @@ const GBSCalculatorScreen = ({ navigation }) => {
 
     const validateForm = () => {
         const newErrors = {
+            projectName: '',
             buildingType: '',
             category: '',
             year: '',
@@ -528,8 +573,14 @@ const GBSCalculatorScreen = ({ navigation }) => {
             state: '',
             region: '',
             structure: '',
+            previewWay: '',
             certifiedRatingScale: ''
         };
+
+        // Validate project name
+        if (!projectName || !projectName.trim()) {
+            newErrors.projectName = 'Please enter a project name';
+        }
 
         // Validate building type
         if (!selectedBuildingType) {
@@ -587,37 +638,25 @@ const GBSCalculatorScreen = ({ navigation }) => {
     };
 
     const handleFormSubmit = () => {
-        // if (!validateForm()) {
-        //     return;
-        // }
-
-        // const formData = {
-        //     buildingType: selectedBuildingType,
-        //     category: selectedCategory,
-        //     year: selectedYear,
-        //     buildingSize: buildingSize,
-        //     projectBudget: projectBudget,
-        //     state: selectedState,
-        //     region: selectedRegion || '',
-        //     structure: selectedStructure,
-        //     certifiedRatingScale: selectedCertifiedRatingScale,
-        //     costPreviewWay: "Detailed"
-        // };
-
-        const formData = {
-            "buildingType": "Non-Residential New Construction (NRNC)",
-            "category": "Multi-purpose halls",
-            "year": 2026,
-            "buildingSize": 2500.75,
-            "projectBudget": 14300000.00,
-            "state": "Sarawak",
-            "region": "Miri",
-            "structure": "5 Storey and Above (R.C.) Building (For Office)",
-            "certifiedRatingScale": "Platinum (86 - 100)",
-            "costPreviewWay": "Detailed"
+        if (!validateForm()) {
+            return;
         }
 
-        navigation.replace('Results', { formData });
+        const formData = {
+            projectName: projectName,
+            buildingType: selectedBuildingType,
+            category: selectedCategory,
+            year: selectedYear,
+            buildingSize: buildingSize,
+            projectBudget: projectBudget,
+            state: selectedState,
+            region: selectedRegion || '',
+            structure: selectedStructure,
+            certifiedRatingScale: selectedCertifiedRatingScale,
+            costPreviewWay: previewWays[selectedPreviewWay]
+        };
+
+        navigation.navigate('Results', { formData });
     }
 
     if (loading) {
@@ -656,6 +695,14 @@ const GBSCalculatorScreen = ({ navigation }) => {
                         bounces={true}
                     >
                         <View className="mb-4">
+                            <FormInputField
+                                label="Project Name"
+                                value={projectName}
+                                placeholder="Enter Project Name"
+                                onChangeText={setProjectName}
+                                error={errors.projectName}
+                            />
+
                             <FormInputField
                                 label="Building Type"
                                 value={selectedBuildingType}

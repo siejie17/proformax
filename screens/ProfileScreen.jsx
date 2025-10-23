@@ -1,14 +1,16 @@
 import { View, Text, ScrollView, TouchableOpacity, Switch, StyleSheet, Image } from 'react-native';
-import { useContext, useState } from 'react';
-import { useNavigation } from '@react-navigation/native';
+import { useContext, useCallback, useState } from 'react';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
 import api from '../services/api';
 
 import { AuthContext } from '../contexts/AuthContext';
+import LoadingIndicator from '../components/LoadingIndicator';
 
 const ProfileScreen = () => {
+    const [currentUser, setCurrentUser] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
     const [settings, setSettings] = useState({
         darkMode: false,
@@ -18,6 +20,28 @@ const ProfileScreen = () => {
     const navigation = useNavigation();
 
     const { user, loading, logout } = useContext(AuthContext);
+
+    useFocusEffect(
+        useCallback(() => {
+
+            const fetchUserProfile = async () => {
+                try {
+                    setIsLoading(true);
+                    const userId = user.id;
+                    const response = await api.get(`/users/${userId}`);
+                    const apiData = response.data.user;
+
+                    setCurrentUser(apiData);
+                } catch (error) {
+                    console.error('Error fetching user profile:', error);
+                } finally {
+                    setIsLoading(false);
+                }
+            };
+
+            fetchUserProfile();
+        }, [user])
+    );
 
     const getProfilePicSource = (profilePic) => {
         if (profilePic) {
@@ -41,8 +65,14 @@ const ProfileScreen = () => {
         }
     }
 
+    if (loading || isLoading || !currentUser) {
+        return (
+            <LoadingIndicator />
+        )
+    }
+
     return (
-        <SafeAreaView className="flex-1 bg-gray-100">
+        <SafeAreaView className="flex-1 bg-gray-100 px-1">
             <View className="items-center py-4">
                 <Text numberOfLines={1} className="text-[19px] font-semibold">
                     Profile
@@ -56,19 +86,19 @@ const ProfileScreen = () => {
                     <View className="rounded-xl shadow shadow-gray-500">
                         <View className="p-3 bg-white rounded-xl">
                         <TouchableOpacity
-                            onPress={() => navigation.navigate('Account')}
+                            onPress={() => navigation.navigate('Account', { userId: currentUser?.id })}
                             className="items-center justify-start flex-row"
                         >
                             <Image
                                 alt="Profile Picture"
-                                source={getProfilePicSource(user.profile_pic)}
+                                source={getProfilePicSource(currentUser?.profile_pic || null)}
                                 className="size-16 rounded-full mr-4 border border-gray-300"
                                 style={{ resizeMode: "cover" }}
                             />
 
                             <View className="mr-auto">
-                                <Text className="text-[16px] font-semibold text-[#292929]">{user.first_name} {user.last_name}</Text>
-                                <Text className="text-[14px] mt-1 text-[#858585] font-normal">{user.email}</Text>
+                                <Text className="text-[16px] font-semibold text-[#292929]">{currentUser?.first_name} {currentUser?.last_name}</Text>
+                                <Text className="text-[14px] mt-1 text-[#858585] font-normal">{currentUser?.email}</Text>
                             </View>
 
                             <Ionicons name="chevron-forward" size={22} color="#BCBCBC" />

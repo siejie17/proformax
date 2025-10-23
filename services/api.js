@@ -37,9 +37,9 @@ export const updateUserField = async (fieldName, fieldValue) => {
     const response = await api.patch('/user/profile', {
       [fieldName]: fieldValue
     });
+    console.log('User field update response:', response.data);
     return response;
   } catch (error) {
-    console.error('User field update error:', error);
     throw error.response?.data || { message: `Failed to update ${fieldName}` };
   }
 };
