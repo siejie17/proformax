@@ -1,8 +1,8 @@
 import { View, Text, Modal, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 
-const AddCostModal = ({ visible, onClose, onAdd }) => {
+const AddCostModal = ({ visible, onClose, onAdd, parentPath, parentDescription }) => {
     const [description, setDescription] = useState('');
     const [cost, setCost] = useState('');
     const [errors, setErrors] = useState({ description: '', cost: '' });
@@ -84,21 +84,27 @@ const AddCostModal = ({ visible, onClose, onAdd }) => {
                     <View className="bg-white rounded-3xl w-full max-w-md shadow-2xl overflow-hidden">
                         {/* Header */}
                         <View className="bg-gray-50 px-6 py-4 border-b border-gray-200">
-                            <Text className="text-gray-800 font-bold text-lg">Adding Cost</Text>
-                            <Text className="text-gray-500 text-xs mt-1">Add a new construction cost item</Text>
+                            <Text className="text-gray-800 font-bold text-lg">
+                                {parentPath ? 'Add Inner Cost' : 'Adding Cost'}
+                            </Text>
+                            <Text className="text-gray-500 text-xs mt-1">
+                                {parentPath ? 'Add a new cost item to this section' : 'Add a new construction cost item'}
+                            </Text>
                         </View>
 
                         <ScrollView className="px-6 py-5" showsVerticalScrollIndicator={false}>
                             {/* Section Indicator */}
                             <View className="mb-5">
                                 <Text className="text-slate-600 font-semibold text-xs mb-2 uppercase tracking-wide">
-                                    Section
+                                    {parentPath ? 'Parent Section' : 'Section'}
                                 </Text>
                                 <View className="bg-blue-50 border-2 border-blue-200 rounded-xl px-4 py-3 flex-row items-center">
                                     <View className="bg-blue-500 w-8 h-8 rounded-lg items-center justify-center mr-3">
                                         <Ionicons name="folder-open" size={16} color="#FFFFFF" />
                                     </View>
-                                    <Text className="text-blue-700 font-bold text-sm">OTHERS</Text>
+                                    <Text className="text-blue-700 font-bold text-sm">
+                                        {parentDescription || (parentPath ? parentPath.split('.')[0] : 'OTHERS')}
+                                    </Text>
                                 </View>
                             </View>
 

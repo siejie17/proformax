@@ -1,8 +1,8 @@
-import { View, Text, ScrollView, TextInput, TouchableOpacity, Animated, Alert } from 'react-native';
-import React, { useEffect, useRef, useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, Animated, Alert } from 'react-native';
+import React, { useRef, useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 
-const CostNode = ({ code, node, level = 0, onCostChange, path, onDelete = () => {}, isDeleteMode = null, highlightedItem = null, displayOnly }) => {
+const CostNode = ({ code, node, level = 0, onCostChange, path, onDelete = () => {}, isDeleteMode = null, isAddMode = null, onAddCost = () => {}, highlightedItem = null, displayOnly }) => {
     // Helper function to format number with thousands separators
     const formatWithCommas = (value) => {
         if (value === null || value === undefined || value === '') return '';
@@ -140,68 +140,52 @@ const CostNode = ({ code, node, level = 0, onCostChange, path, onDelete = () => 
                 <TouchableOpacity
                     className="px-5 py-4 flex-row items-center justify-between"
                     style={{ backgroundColor: '#1e293b' }}
-                    onPress={hasChildren ? toggleExpanded : undefined}
-                    activeOpacity={hasChildren ? 0.8 : 1}
+                    onPress={toggleExpanded}
+                    activeOpacity={0.8}
                 >
                     <View className="flex-row items-center flex-1 mr-4">
-                        {hasChildren && (
-                            <Animated.View
-                                className="w-7 h-7 rounded-xl bg-white/10 items-center justify-center mr-3"
-                                style={{ transform: [{ rotate: rotateInterpolate }] }}
-                            >
-                                <Ionicons name="chevron-forward" size={16} color="#FFFFFF" />
-                            </Animated.View>
-                        )}
+                        {/* Always show chevron for parent sections */}
+                        <Animated.View
+                            className="w-7 h-7 rounded-xl bg-white/10 items-center justify-center mr-3"
+                            style={{ transform: [{ rotate: rotateInterpolate }] }}
+                        >
+                            <Ionicons name="chevron-forward" size={16} color="#FFFFFF" />
+                        </Animated.View>
                         <Text className="text-white font-bold text-xs leading-4 flex-1" numberOfLines={2}>
                             {code}. {node.description || 'No description'}
                         </Text>
                     </View>
-                    {hasChildren ? (
-                        <View className="bg-blue-500 rounded-xl px-3.5 py-2 flex-row items-center shadow-sm">
-                            <Text className="text-white font-bold text-sm tracking-tight">
-                                {node.cost !== null && node.cost !== undefined ? formatWithCommas(node.cost) : "—"}
-                            </Text>
-                        </View>
-                    ) : (
-                        <View className="flex-row items-center gap-2">
-                            {displayOnly ? (
-                                <View className="bg-gray-100 rounded-xl px-3 py-2 min-w-[85px]">
-                                    <Text className="text-slate-600 text-[11px] font-bold text-right">
-                                        {node.cost !== null && node.cost !== undefined ? formatWithCommas(node.cost) : "—"}
-                                    </Text>
-                                </View>
-                            ) : (
-                                <View className="bg-white border-2 border-slate-200 rounded-xl px-3 py-2 min-w-[85px] shadow-sm">
-                                    <TextInput
-                                        className="text-slate-800 text-[11px] font-bold text-right p-0"
-                                        keyboardType="numeric"
-                                        value={node.inputValue !== undefined ? formatInputWithCommas(node.inputValue) : (node.cost !== null && node.cost !== undefined && node.cost !== 0 ? formatWithCommas(node.cost) : '')}
-                                        onChangeText={(val) => {
-                                            const cleanVal = removeCommas(val);
-                                            if (val === '' || /^[\d,]*\.?\d*$/.test(val)) {
-                                                if (cleanVal === '' || /^\d*\.?\d*$/.test(cleanVal)) {
-                                                    onCostChange(currentPath, cleanVal === '' ? 0 : parseFloat(cleanVal) || 0, cleanVal);
-                                                }
-                                            }
-                                        }}
-                                        placeholder="0.00"
-                                        placeholderTextColor="#94a3b8"
-                                    />
-                                </View>
-                            )}
+                    {/* Always show cost in header format */}
+                    <View className="bg-blue-500 rounded-xl px-3.5 py-2 flex-row items-center shadow-sm">
+                        <Text className="text-white font-bold text-sm tracking-tight">
+                            {node.cost !== null && node.cost !== undefined ? formatWithCommas(node.cost) : "—"}
+                        </Text>
+                    </View>
 
-                            {/* Delete Button for top-level items without children */}
-                            {isDeleteMode && !displayOnly && (
-                                <TouchableOpacity
-                                    onPress={handleDelete}
-                                    className="bg-red-50 border border-red-200 rounded-lg p-2 active:bg-red-100"
-                                    activeOpacity={0.7}
-                                >
-                                    <Ionicons name="trash-outline" size={14} color="#dc2626" />
-                                </TouchableOpacity>
-                            )}
-                        </View>
-                    )}
+                    {/* Add/Delete buttons section */}
+                    <View className="flex-row items-center gap-2 ml-2">
+                        {/* Add Child Button for top-level items */}
+                        {isAddMode && !displayOnly && (
+                            <TouchableOpacity
+                                onPress={() => onAddCost(currentPath)}
+                                className="bg-emerald-50 border border-emerald-200 rounded-lg p-2 active:bg-emerald-100"
+                                activeOpacity={0.7}
+                            >
+                                <Ionicons name="add" size={14} color="#059669" />
+                            </TouchableOpacity>
+                        )}
+
+                        {/* Delete Button for top-level items */}
+                        {isDeleteMode && !displayOnly && (
+                            <TouchableOpacity
+                                onPress={handleDelete}
+                                className="bg-red-50 border border-red-200 rounded-lg p-2 active:bg-red-100"
+                                activeOpacity={0.7}
+                            >
+                                <Ionicons name="trash-outline" size={14} color="#dc2626" />
+                            </TouchableOpacity>
+                        )}
+                    </View>
                 </TouchableOpacity>
 
                 {/* Table Container */}
@@ -226,6 +210,8 @@ const CostNode = ({ code, node, level = 0, onCostChange, path, onDelete = () => 
                                 onCostChange={onCostChange}
                                 onDelete={onDelete}
                                 isDeleteMode={isDeleteMode}
+                                isAddMode={isAddMode}
+                                onAddCost={onAddCost}
                                 highlightedItem={highlightedItem}
                                 displayOnly={displayOnly}
                             />
@@ -264,6 +250,28 @@ const CostNode = ({ code, node, level = 0, onCostChange, path, onDelete = () => 
                                     {node.cost !== null && node.cost !== undefined ? formatWithCommas(node.cost) : "—"}
                                 </Text>
                             </View>
+
+                            {/* Add Child Button */}
+                            {isAddMode && !displayOnly && (
+                                <TouchableOpacity
+                                    onPress={() => onAddCost(currentPath)}
+                                    className="bg-emerald-50 border border-emerald-200 rounded-lg p-2 active:bg-emerald-100"
+                                    activeOpacity={0.7}
+                                >
+                                    <Ionicons name="add" size={12} color="#059669" />
+                                </TouchableOpacity>
+                            )}
+
+                            {/* Delete Button */}
+                            {isDeleteMode && !displayOnly && (
+                                <TouchableOpacity
+                                    onPress={handleDelete}
+                                    className="bg-red-50 border border-red-200 rounded-lg p-2 active:bg-red-100"
+                                    activeOpacity={0.7}
+                                >
+                                    <Ionicons name="trash-outline" size={12} color="#dc2626" />
+                                </TouchableOpacity>
+                            )}
                         </View>
                     </TouchableOpacity>
 
@@ -288,6 +296,8 @@ const CostNode = ({ code, node, level = 0, onCostChange, path, onDelete = () => 
                                 onCostChange={onCostChange}
                                 onDelete={onDelete}
                                 isDeleteMode={isDeleteMode}
+                                isAddMode={isAddMode}
+                                onAddCost={onAddCost}
                                 highlightedItem={highlightedItem}
                                 displayOnly={displayOnly}
                             />

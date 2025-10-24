@@ -192,7 +192,7 @@ const HomeScreen = () => {
                         </View>
 
                         {/* Enhanced Notification Bell */}
-                        <TouchableOpacity
+                        {/* <TouchableOpacity
                             className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm items-center justify-center shadow-lg"
                             onPress={handleNotificationPress}
                             activeOpacity={0.8}
@@ -215,7 +215,7 @@ const HomeScreen = () => {
                                     </Text>
                                 </Animated.View>
                             )}
-                        </TouchableOpacity>
+                        </TouchableOpacity> */}
                     </View>
                 </View>
 

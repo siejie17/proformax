@@ -1,18 +1,19 @@
-import { View, Text, Image, KeyboardAvoidingView, TouchableOpacity, TouchableWithoutFeedback, Keyboard, Alert } from 'react-native';
+import { View, Text, Image, KeyboardAvoidingView, TouchableOpacity, TouchableWithoutFeedback, Keyboard, Alert, StatusBar, ScrollView } from 'react-native';
 import { useRef, useState, useContext } from 'react';
 import { TextInput as PaperTextInput } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { AuthContext } from '../contexts/AuthContext';
 
 import TextInput from '../components/TextInput';
-import Title from '../components/Title';
 import Button from '../components/Button';
 import MessageModal from '../components/MessageModal';
 
 import api from '../services/api';
+import BackButton from '../components/BackButton';
 
 const LoginScreen = () => {
     const { login } = useContext(AuthContext);
@@ -82,90 +83,108 @@ const LoginScreen = () => {
     };
 
     return (
-        <TouchableWithoutFeedback onPress={dismissEverything}>
-            <View className="flex-1 w-full bg-white">
-                <KeyboardAvoidingView
-                    className="flex-1 p-4 w-full max-w-[340px] self-center items-center justify-center"
-                    behavior="padding"
+        <View className="flex-1 bg-white">
+            <StatusBar barStyle="dark-content" />
+            <TouchableWithoutFeedback onPress={dismissEverything}>
+                <ScrollView
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    showsVerticalScrollIndicator={false}
                 >
-                    <Image
-                        source={require('../assets/logo/proformax-logo.png')}
-                        className="w-48 h-48"
-                    />
-
-                    <Title>Sign In to ProFormaX</Title>
-
-                    {/* Email Input */}
-                    <TextInput
-                        label="Email Address"
-                        returnKeyType="next"
-                        value={email.value}
-                        onChangeText={text => setEmail({ value: text, error: "" })}
-                        errorText={email.error}
-                        autoCapitalize="none"
-                        autoCompleteType="email"
-                        textContentType="emailAddress"
-                        keyboardType="email-address"
-                        disabled={loading}
-                        onRef={(ref) => (emailInputRef.current = ref)}
-                        required
-                    />
-
-                    {/* Password Input */}
-                    <TextInput
-                        label="Password"
-                        returnKeyType="done"
-                        value={password.value}
-                        onChangeText={text => setPassword({ value: text, error: "" })}
-                        errorText={password.error}
-                        secureTextEntry={!showPassword}
-                        disabled={loading}
-                        onRef={(ref) => (passwordInputRef.current = ref)}
-                        right={
-                            <PaperTextInput.Icon
-                                icon={showPassword ? "eye-off" : "eye"}
-                                onPress={() => setShowPassword(!showPassword)}
-                            />
-                        }
-                        required
-                    />
-
-                    {/* Forgot password */}
-                    <View className="w-full items-end mb-6">
-                        <TouchableOpacity onPress={() => navigation.navigate("ForgotPassword")}>
-                            <Text className="text-secondary text-sm">Forgot your password?</Text>
-                        </TouchableOpacity>
-                    </View>
-
-                    {/* Login button */}
-                    <Button
-                        mode="contained"
-                        onPress={_onLoginPressed}
-                        loading={loading}
-                        disabled={loading}
+                    <BackButton goBack={() => navigation.goBack()} />
+                    <KeyboardAvoidingView
+                        className="flex-1 justify-center px-8 py-12"
+                        behavior="padding"
                     >
-                        Login
-                    </Button>
+                        {/* Logo */}
+                        <View className="items-center mb-8">
+                            <Image
+                                source={require('../assets/logo/proformax-logo.png')}
+                                className="w-40 h-40"
+                                resizeMode="contain"
+                            />
+                        </View>
 
-                    {/* Sign up link */}
-                    <View className="flex-row mt-1">
-                        <Text className="text-secondary">Don't have an account? </Text>
-                        <TouchableOpacity onPress={() => navigation.navigate("Register")}>
-                            <Text className="font-bold text-primary">Sign up</Text>
+                        {/* Title */}
+                        <View className="items-center mb-8">
+                            <Text className="text-3xl font-bold text-gray-900 text-center mb-2">
+                                Welcome Back
+                            </Text>
+                            <Text className="text-base text-gray-500 text-center">
+                                Sign in to access your account
+                            </Text>
+                        </View>
+
+                        <View className="px-2">
+                            {/* Email Input */}
+                            <TextInput
+                                label="Email Address"
+                                returnKeyType="next"
+                                value={email.value}
+                                onChangeText={text => setEmail({ value: text, error: "" })}
+                                errorText={email.error}
+                                autoCapitalize="none"
+                                autoCompleteType="email"
+                                textContentType="emailAddress"
+                                keyboardType="email-address"
+                                disabled={loading}
+                                onRef={(ref) => (emailInputRef.current = ref)}
+                                required
+                            />
+
+                            {/* Password Input */}
+                            <TextInput
+                                label="Password"
+                                returnKeyType="done"
+                                value={password.value}
+                                onChangeText={text => setPassword({ value: text, error: "" })}
+                                errorText={password.error}
+                                secureTextEntry={!showPassword}
+                                disabled={loading}
+                                onRef={(ref) => (passwordInputRef.current = ref)}
+                                right={
+                                    <PaperTextInput.Icon
+                                        icon={showPassword ? "eye-off" : "eye"}
+                                        onPress={() => setShowPassword(!showPassword)}
+                                    />
+                                }
+                                required
+                            />
+
+
+                            {/* Forgot password */}
+                            <View className="w-full items-end mb-8">
+                                <TouchableOpacity onPress={() => navigation.navigate("ForgotPassword")}>
+                                    <Text className="text-emerald-500 text-sm font-medium">
+                                        Forgot your password?
+                                    </Text>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+
+                        {/* Login button */}
+                        <TouchableOpacity
+                            className="bg-emerald-500 rounded-2xl py-4 px-6 shadow-sm active:bg-emerald-600 mb-4"
+                            activeOpacity={0.8}
+                            onPress={_onLoginPressed}
+                            disabled={loading}
+                        >
+                            <Text className="text-white text-center text-lg font-semibold">
+                                {loading ? 'Signing in...' : 'Sign In'}
+                            </Text>
                         </TouchableOpacity>
-                    </View>
 
-                    <MessageModal
-                        isVisible={isNotVerifiedYetModalVisible}
-                        imgSource={require('../assets/auth/unverified.png')}
-                        title="Email Verification Required"
-                        description="Your email isn't verified yet. Please check your inbox to continue."
-                        onClose={() => setIsNotVerifiedYetModalVisible(false)}
-                        buttonText="Got it"
-                    />
-                </KeyboardAvoidingView>
-            </View>
-        </TouchableWithoutFeedback>
+                        <MessageModal
+                            isVisible={isNotVerifiedYetModalVisible}
+                            imgSource={require('../assets/auth/unverified.png')}
+                            title="Email Verification Required"
+                            description="Your email isn't verified yet. Please check your inbox to continue."
+                            onClose={() => setIsNotVerifiedYetModalVisible(false)}
+                            buttonText="Got it"
+                        />
+                    </KeyboardAvoidingView>
+                </ScrollView>
+            </TouchableWithoutFeedback>
+        </View>
     )
 }
 

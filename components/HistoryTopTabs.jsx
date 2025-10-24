@@ -1,6 +1,4 @@
-import { View, Text } from 'react-native';
-import React, { use, useEffect, useState } from 'react';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useEffect, useState } from 'react';
 
 import ThreeDModelScreen from '../screens/ThreeDModelScreen';
 import HistoryTabsWrapper from './HistoryTabsWrapper';

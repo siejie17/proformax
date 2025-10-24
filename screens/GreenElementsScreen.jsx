@@ -445,7 +445,14 @@ const GreenElementsScreen = ({ greenElements, setGreenElements = () => { }, crit
                     allSubitemIds.push(...remainingCustomItems.map(custom => custom.id));
 
                     // Count total checked subitems after deletion
-                    const totalCheckedAfter = Object.values(checkedSubitems).filter(v => v).length + updatedCustomItems[itemId].length;
+                    const totalCheckedAfter = allSubitemIds.filter(id => {
+                        // If it's a regular subitem that's checked
+                        if (parentItem.subitems?.find(sub => sub.id === id)) {
+                            return checkedSubitems[itemId]?.[id] || false;
+                        }
+                        // Custom items are auto-checked, so always return true
+                        return true;
+                    }).length;
 
                     // Calculate marks after
                     const marksAfter = Math.min(totalCheckedAfter, 6);

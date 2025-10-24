@@ -1,9 +1,9 @@
-import { View, Text, StatusBar, TouchableOpacity } from 'react-native';
+import { View, Text, StatusBar, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useEffect } from 'react';
 
 import TabBar from './TabBar';
-import { useEffect } from 'react';
 
 const TopBar = createMaterialTopTabNavigator();
 
@@ -207,18 +207,29 @@ const TopTabsWrapper = ({ title, tabs, params, onSubmit, criteriaTotalMarks = 0,
 
                     {/* Submit Button */}
                     <TouchableOpacity
-                        className={`rounded-xl py-4 w-full items-center shadow-md ${isSubmitDisabled
+                        className={`rounded-xl py-4 w-full items-center shadow-md transition-colors ${isSubmitDisabled
                                 ? 'bg-gray-300'
+                                : submitLoading
+                                ? 'bg-gray-700 opacity-90'
                                 : 'bg-gray-800'
                             }`}
-                        activeOpacity={0.8}
-                        // disabled={isSubmitDisabled || submitLoading}
+                        activeOpacity={submitLoading ? 1 : 0.8}
+                        disabled={isSubmitDisabled || submitLoading}
                         onPress={onSubmit}
                     >
-                        <Text className={`text-sm font-bold ${isSubmitDisabled ? 'text-gray-500' : 'text-white'
-                            }`}>
-                            {'Submit Assessment'}
-                        </Text>
+                        <View className="flex-row items-center justify-center gap-2">
+                            {submitLoading && (
+                                <ActivityIndicator 
+                                    size="small" 
+                                    color="#FFFFFF" 
+                                    style={{ marginRight: 4 }}
+                                />
+                            )}
+                            <Text className={`text-sm font-bold ${isSubmitDisabled ? 'text-gray-500' : submitLoading ? 'text-white opacity-90' : 'text-white'
+                                }`}>
+                                {submitLoading ? 'Submitting...' : 'Submit Assessment'}
+                            </Text>
+                        </View>
                     </TouchableOpacity>
                 </View>
             </View>

@@ -1,4 +1,4 @@
-import { View, TouchableWithoutFeedback, KeyboardAvoidingView, Keyboard, Image, Alert } from 'react-native'
+import { View, TouchableWithoutFeedback, KeyboardAvoidingView, Keyboard, Image, Alert, StatusBar, ScrollView, Text, TouchableOpacity } from 'react-native'
 import { useState } from 'react';
 import { TextInput as PaperTextInput } from 'react-native-paper';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -6,11 +6,9 @@ import { useNavigation } from '@react-navigation/native';
 
 import api from '../services/api';
 
-import BackButton from '../components/BackButton';
-import Title from '../components/Title';
 import TextInput from '../components/TextInput';
-import Button from '../components/Button';
 import MessageModal from '../components/MessageModal';
+import BackButton from '../components/BackButton';
 
 const RegisterScreen = () => {
     const [firstName, setFirstName] = useState({ value: '', error: '' });
@@ -114,112 +112,131 @@ const RegisterScreen = () => {
     }
 
     return (
-        <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
-            <View className="flex-1 w-full bg-white">
-                <BackButton goBack={() => navigation.navigate("Login")} />
-                <KeyboardAvoidingView
-                    className="flex-1 p-4 w-full max-w-[340px] self-center items-center justify-center"
-                    behavior="padding"
+        <View className="flex-1 bg-white">
+            <StatusBar barStyle="dark-content" />
+            <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
+                <ScrollView
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    showsVerticalScrollIndicator={false}
                 >
-                    <Image
-                        source={require('../assets/logo/proformax-logo.png')}
-                        className="w-48 h-48"
-                    />
-
-                    <Title>Let's Sign Up</Title>
-
-                    <TextInput
-                        label="First Name"
-                        returnKeyType="next"
-                        value={firstName.value}
-                        onChangeText={text => setFirstName({ value: text, error: '' })}
-                        error={!!firstName.error}
-                        errorText={firstName.error}
-                        disabled={loading}
-                        required
-                    />
-
-                    <TextInput
-                        label="Last Name"
-                        returnKeyType="next"
-                        value={lastName.value}
-                        onChangeText={text => setLastName({ value: text, error: '' })}
-                        error={!!lastName.error}
-                        errorText={lastName.error}
-                        disabled={loading}
-                        required
-                    />
-
-                    <TextInput
-                        label="Email Address"
-                        returnKeyType="next"
-                        value={email.value}
-                        onChangeText={text => setEmail({ value: text, error: '' })}
-                        error={!!email.error}
-                        errorText={email.error}
-                        autoCapitalize="none"
-                        autoCompleteType="email"
-                        textContentType="emailAddress"
-                        keyboardType="email-address"
-                        disabled={loading}
-                        required
-                    />
-
-                    <TextInput
-                        label="Password"
-                        returnKeyType="done"
-                        value={password.value}
-                        onChangeText={text => setPassword({ value: text, error: '' })}
-                        errorText={password.error}
-                        secureTextEntry={!showPassword}
-                        right={
-                            <PaperTextInput.Icon
-                                icon={showPassword ? "eye-off" : "eye"}
-                                onPress={() => setShowPassword(!showPassword)}
-                            />
-                        }
-                        disabled={loading}
-                        required
-                    />
-
-                    <TextInput
-                        label="Confirm Password"
-                        returnKeyType="done"
-                        value={confirmPassword.value}
-                        onChangeText={text => setConfirmPassword({ value: text, error: '' })}
-                        errorText={confirmPassword.error}
-                        secureTextEntry={!showConfirmPassword}
-                        right={
-                            <PaperTextInput.Icon
-                                icon={showConfirmPassword ? "eye-off" : "eye"}
-                                onPress={() => setShowConfirmPassword(!showConfirmPassword)}
-                            />
-                        }
-                        disabled={loading}
-                        required
-                    />
-
-                    <Button
-                        className="mt-8"
-                        mode="contained"
-                        onPress={_onSignUpPressed}
-                        loading={loading}
-                        disabled={loading}
+                    <BackButton goBack={() => navigation.goBack()} />
+                    <KeyboardAvoidingView
+                        className="flex-1 justify-center px-8 py-12"
+                        behavior="padding"
                     >
-                        Sign Up
-                    </Button>
+                        {/* Logo */}
+                        <View className="items-center mb-8">
+                            <Image
+                                source={require('../assets/logo/proformax-logo.png')}
+                                className="w-40 h-40"
+                                resizeMode="contain"
+                            />
+                        </View>
 
-                    <MessageModal
-                        isVisible={successModalVisible} // Control visibility via state if needed
-                        imgSource={require('../assets/auth/email-sent.png')}
-                        title="Check Your Email"
-                        description="We've sent you a verification link. Please confirm your email to continue."
-                        onClose={closeSuccessModal}
-                        buttonText="Continue to Login"
-                    />
-                </KeyboardAvoidingView>
-            </View>
-        </TouchableWithoutFeedback>
+                        {/* Title */}
+                        <View className="items-center mb-8">
+                            <Text className="text-3xl font-bold text-gray-900 text-center mb-2">
+                                Let's Sign Up
+                            </Text>
+                            <Text className="text-base text-gray-500 text-center">
+                                Create your account to get started
+                            </Text>
+                        </View>
+
+                        <View className="px-2">
+                            <TextInput
+                                label="First Name"
+                                returnKeyType="next"
+                                value={firstName.value}
+                                onChangeText={text => setFirstName({ value: text, error: '' })}
+                                errorText={firstName.error}
+                                disabled={loading}
+                                required
+                            />
+
+                            <TextInput
+                                label="Last Name"
+                                returnKeyType="next"
+                                value={lastName.value}
+                                onChangeText={text => setLastName({ value: text, error: '' })}
+                                errorText={lastName.error}
+                                disabled={loading}
+                                required
+                            />
+
+                            <TextInput
+                                label="Email Address"
+                                returnKeyType="next"
+                                value={email.value}
+                                onChangeText={text => setEmail({ value: text, error: '' })}
+                                errorText={email.error}
+                                autoCapitalize="none"
+                                autoCompleteType="email"
+                                textContentType="emailAddress"
+                                keyboardType="email-address"
+                                disabled={loading}
+                                required
+                            />
+
+                            <TextInput
+                                label="Password"
+                                returnKeyType="done"
+                                value={password.value}
+                                onChangeText={text => setPassword({ value: text, error: '' })}
+                                errorText={password.error}
+                                secureTextEntry={!showPassword}
+                                right={
+                                    <PaperTextInput.Icon
+                                        icon={showPassword ? "eye-off" : "eye"}
+                                        onPress={() => setShowPassword(!showPassword)}
+                                    />
+                                }
+                                disabled={loading}
+                                required
+                            />
+
+                            <TextInput
+                                label="Confirm Password"
+                                returnKeyType="done"
+                                value={confirmPassword.value}
+                                onChangeText={text => setConfirmPassword({ value: text, error: '' })}
+                                errorText={confirmPassword.error}
+                                secureTextEntry={!showConfirmPassword}
+                                right={
+                                    <PaperTextInput.Icon
+                                        icon={showConfirmPassword ? "eye-off" : "eye"}
+                                        onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                                    />
+                                }
+                                disabled={loading}
+                                required
+                            />
+                        </View>
+
+                        {/* Sign Up button */}
+                        <TouchableOpacity
+                            className="bg-emerald-500 rounded-2xl py-4 px-6 shadow-sm active:bg-emerald-600 mt-6 mb-4"
+                            activeOpacity={0.8}
+                            onPress={_onSignUpPressed}
+                            disabled={loading}
+                        >
+                            <Text className="text-white text-center text-lg font-semibold">
+                                {loading ? 'Creating account...' : 'Sign Up'}
+                            </Text>
+                        </TouchableOpacity>
+
+                        <MessageModal
+                            isVisible={successModalVisible}
+                            imgSource={require('../assets/auth/email-sent.png')}
+                            title="Check Your Email"
+                            description="We've sent you a verification link. Please confirm your email to continue."
+                            onClose={closeSuccessModal}
+                            buttonText="Continue to Login"
+                        />
+                    </KeyboardAvoidingView>
+                </ScrollView>
+            </TouchableWithoutFeedback>
+        </View>
     )
 }
 
