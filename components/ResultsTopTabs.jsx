@@ -94,16 +94,6 @@ const ResultsTopTabs = ({ navigation }) => {
             return { isValid: true, message: '' }; // Invalid target rating, allow submission
         }
 
-        const isWithinTarget = criteriaTotalMarks >= targetRange[0] && criteriaTotalMarks <= targetRange[1];
-
-        if (!isWithinTarget) {
-            const pointsNeeded = Math.max(0, targetRange[0] - criteriaTotalMarks);
-            return {
-                isValid: false,
-                message: `Target: ${targetRating} (${targetRange[0]}-${targetRange[1]} pts)\nCurrent Score: ${criteriaTotalMarks} pts\n${pointsNeeded > 0 ? `Need ${pointsNeeded} more points to reach target.` : 'Score exceeds target range.'}`
-            };
-        }
-
         return { isValid: true, message: '' };
     }, [mappedFormData, criteriaTotalMarks, certifiedScaleRange]);
 
@@ -126,6 +116,7 @@ const ResultsTopTabs = ({ navigation }) => {
                 subtitle: `The following criteria need more points to meet minimum requirements:\n\n${criteriaNamesAndMarks}`,
                 imgSource: require('../assets/components/error.png')
             });
+            setSubmitLoading(false);
             return;
         }
 
@@ -137,6 +128,7 @@ const ResultsTopTabs = ({ navigation }) => {
                 subtitle: targetValidation.message,
                 imgSource: require('../assets/components/error.png')
             });
+            setSubmitLoading(false);
             return;
         }
 

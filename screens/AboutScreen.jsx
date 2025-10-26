@@ -28,33 +28,33 @@ const AboutScreen = ({ navigation }) => {
 
     const whyMatters = [
         {
-            id: 1,
+            id: 5,
             img: require('../assets/components/developer.png'),
             title: 'For Developers',
             description: 'Minimise upfront cost risk while maintaining long-term green building certification.',
         },
         {
-            id: 2,
+            id: 6,
             img: require('../assets/components/contractor.png'),
             title: 'For Contractors & Consultants',
             description: 'Gain clarity in cost distribution, material choices, and design strategies.',
         },
         {
-            id: 3,
+            id: 7,
             img: require('../assets/components/policymaker.png'),
             title: 'For Policy Makers',
             description: 'Support data-backed incentives and sustainable construction policies.',
         },
         {
-            id: 4,
+            id: 8,
             img: require('../assets/components/community.png'),
             title: 'For Communities',
             description: 'Encourage greener buildings that are economically viable, socially inclusive, and environmentally responsible.',
         },
     ];
 
-    const SectionCard = ({ key, imageURL, title, description }) => (
-        <View key={key} className="bg-white rounded-3xl p-6 shadow-sm items-center mb-3">
+    const SectionCard = ({ imageURL, title, description }) => (
+        <View className="bg-white rounded-3xl p-6 shadow-sm items-center mb-3">
             <Image
                 source={imageURL}
                 className="w-10 h-10 mb-4"

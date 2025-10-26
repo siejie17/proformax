@@ -52,7 +52,7 @@ const TopTabsWrapper = ({ title, tabs, params, onSubmit, criteriaTotalMarks = 0,
             return true;
         }
 
-        return criteriaTotalMarks >= targetRange[0] && criteriaTotalMarks <= targetRange[1];
+        return criteriaTotalMarks >= targetRange[0];
     })();
 
     // Check if newProjectCosts is empty for Detailed cost preview
@@ -62,15 +62,12 @@ const TopTabsWrapper = ({ title, tabs, params, onSubmit, criteriaTotalMarks = 0,
          !newProjectCosts?.cost_breakdown || 
          Object.keys(newProjectCosts?.cost_breakdown).length === 0);
 
-    const isSubmitDisabled = Boolean(hasTargetRating && !targetMet) || isCostBreakdownEmpty;
+    const isSubmitDisabled = !targetMet || isCostBreakdownEmpty;
     const pointsNeeded = (hasTargetRating && !targetMet) ? certifiedScaleRange[mappedFormData.certifiedRatingScale]?.[0] - criteriaTotalMarks : 0;
-
-    // Check if target is exceeded
-    const targetExceeded = hasTargetRating && criteriaTotalMarks > certifiedScaleRange[mappedFormData.certifiedRatingScale]?.[1];
 
     useEffect(() => {
         // You can add any side effects here if needed
-        console.log(mappedFormData);
+        console.log(isSubmitDisabled);
     }, []);
     
     return (
@@ -148,27 +145,8 @@ const TopTabsWrapper = ({ title, tabs, params, onSubmit, criteriaTotalMarks = 0,
                         </View>
                     )}
 
-                    {/* Target Exceeded - Compact */}
-                    {hasTargetRating && targetExceeded && (
-                        <View className="mb-2.5 px-3 py-2 bg-emerald-50 rounded-xl border border-emerald-200">
-                            <View className="flex-row items-center justify-between">
-                                <View className="flex-row items-center flex-1">
-                                    <View className="w-4 h-4 bg-emerald-500 rounded-full items-center justify-center mr-2">
-                                        <Text className="text-white text-xs font-bold">✓</Text>
-                                    </View>
-                                    <Text className="text-emerald-700 text-[10px] font-semibold">
-                                        Target Exceeded! 🎉
-                                    </Text>
-                                </View>
-                                <Text className="text-emerald-600 text-[9px]">
-                                    {mappedFormData.certifiedRatingScale} surpassed
-                                </Text>
-                            </View>
-                        </View>
-                    )}
-
                     {/* Target Met - Compact */}
-                    {hasTargetRating && targetMet && !targetExceeded && (
+                    {hasTargetRating && targetMet && (
                         <View className="mb-2.5 px-3 py-2 bg-emerald-50 rounded-xl border border-emerald-200">
                             <View className="flex-row items-center justify-between">
                                 <View className="flex-row items-center flex-1">
