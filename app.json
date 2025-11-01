@@ -4,12 +4,12 @@
     "slug": "ProFormaX",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/logo/proformax-logo.png",
+    "icon": "./assets/logo/proformax-device-logo-w.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "scheme": "myapp",
     "splash": {
-      "image": "./assets/logo/proformax-logo.png",
+      "image": "./assets/logo/proformax-device-logo-w.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -18,14 +18,20 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/logo/proformax-logo.png",
+        "foregroundImage": "./assets/logo/proformax-device-logo-w.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.unimas.ProFormaX"
     },
     "web": {
       "bundler": "metro",
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "a9168505-9a40-48cb-97ba-8d06f62ffa3e"
+      }
     }
   }
 }
