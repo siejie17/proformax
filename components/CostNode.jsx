@@ -134,62 +134,91 @@ const CostNode = ({ code, node, level = 0, onCostChange, path, onDelete = () => 
 
     // Top level sections (A, B, C)
     if (level === 0) {
+        const isLocked = node.locked && node.isMultiplier;
+
         return (
             <View className="bg-white rounded-3xl mb-4 overflow-hidden shadow-md border border-gray-100">
                 {/* Section Header */}
                 <TouchableOpacity
-                    className="px-5 py-4 flex-row items-center justify-between"
-                    style={{ backgroundColor: '#1e293b' }}
-                    onPress={toggleExpanded}
-                    activeOpacity={0.8}
+                    className={`px-5 py-4 flex-row items-center justify-between ${isLocked ? 'bg-amber-700' : 'bg-slate-800'}`}
+                    onPress={!isLocked ? toggleExpanded : undefined}
+                    activeOpacity={isLocked ? 1 : 0.8}
+                    disabled={isLocked}
                 >
                     <View className="flex-row items-center flex-1 mr-4">
-                        {/* Always show chevron for parent sections */}
-                        <Animated.View
-                            className="w-7 h-7 rounded-xl bg-white/10 items-center justify-center mr-3"
-                            style={{ transform: [{ rotate: rotateInterpolate }] }}
-                        >
-                            <Ionicons name="chevron-forward" size={16} color="#FFFFFF" />
-                        </Animated.View>
+                        {/* Chevron or Lock Icon */}
+                        <View className={`w-7 h-7 rounded-xl ${isLocked ? 'bg-white/10' : 'bg-white/10'} items-center justify-center mr-3`}>
+                            {isLocked ? (
+                                <Ionicons name="lock-closed" size={16} color="#FFFFFF" />
+                            ) : hasChildren ? (
+                                <Animated.View style={{ transform: [{ rotate: rotateInterpolate }] }}>
+                                    <Ionicons name="chevron-forward" size={16} color="#FFFFFF" />
+                                </Animated.View>
+                            ) : (
+                                <Ionicons name="attach" size={16} color="#FFFFFF" opacity={0.5} />
+                            )}
+                        </View>
                         <Text className="text-white font-bold text-xs leading-4 flex-1" numberOfLines={2}>
                             {code}. {node.description || 'No description'}
                         </Text>
                     </View>
-                    {/* Always show cost in header format */}
-                    <View className="bg-blue-500 rounded-xl px-3.5 py-2 flex-row items-center shadow-sm">
-                        <Text className="text-white font-bold text-sm tracking-tight">
-                            {node.cost !== null && node.cost !== undefined ? formatWithCommas(node.cost) : "—"}
-                        </Text>
-                    </View>
+                    {/* Cost Display or Input */}
+                    {displayOnly || hasChildren || isLocked ? (
+                        <View className={`${isLocked ? 'bg-amber-500' : 'bg-blue-500'} rounded-xl px-3.5 py-2 flex-row items-center shadow-sm`}>
+                            <Text className="text-white font-bold text-sm tracking-tight">
+                                {node.cost !== null && node.cost !== undefined ? formatWithCommas(node.cost) : "—"}
+                            </Text>
+                        </View>
+                    ) : (
+                        <View className="bg-white border-2 border-slate-200 rounded-xl px-3 py-2 min-w-[80px] shadow-sm">
+                            <TextInput
+                                className="text-slate-800 text-sm font-bold text-right p-0"
+                                keyboardType="numeric"
+                                value={node.inputValue !== undefined ? formatInputWithCommas(node.inputValue) : (node.cost !== null && node.cost !== undefined && node.cost !== 0 ? formatWithCommas(node.cost) : '')}
+                                onChangeText={(val) => {
+                                    const cleanVal = removeCommas(val);
+                                    if (val === '' || /^[\d,]*\.?\d*$/.test(val)) {
+                                        if (cleanVal === '' || /^\d*\.?\d*$/.test(cleanVal)) {
+                                            onCostChange(currentPath, cleanVal === '' ? 0 : parseFloat(cleanVal) || 0, cleanVal);
+                                        }
+                                    }
+                                }}
+                                placeholder="0.00"
+                                placeholderTextColor="#94a3b8"
+                            />
+                        </View>
+                    )}
 
-                    {/* Add/Delete buttons section */}
-                    <View className="flex-row items-center gap-2 ml-2">
-                        {/* Add Child Button for top-level items */}
-                        {isAddMode && !displayOnly && (
-                            <TouchableOpacity
-                                onPress={() => onAddCost(currentPath)}
-                                className="bg-emerald-50 border border-emerald-200 rounded-lg p-2 active:bg-emerald-100"
-                                activeOpacity={0.7}
-                            >
-                                <Ionicons name="add" size={14} color="#059669" />
-                            </TouchableOpacity>
-                        )}
+                    {/* Add/Delete buttons section - Hide for locked items */}
+                    {!isLocked && (
+                        <View className="flex-row items-center gap-2 ml-2">
+                            {/* Add Child Button for top-level items */}
+                            {isAddMode && !displayOnly && (
+                                <TouchableOpacity
+                                    onPress={() => onAddCost(currentPath)}
+                                    className="bg-emerald-50 border border-emerald-200 rounded-lg p-2 active:bg-emerald-100"
+                                    activeOpacity={0.7}
+                                >
+                                    <Ionicons name="add" size={14} color="#059669" />
+                                </TouchableOpacity>
+                            )}
 
-                        {/* Delete Button for top-level items */}
-                        {isDeleteMode && !displayOnly && (
-                            <TouchableOpacity
-                                onPress={handleDelete}
-                                className="bg-red-50 border border-red-200 rounded-lg p-2 active:bg-red-100"
-                                activeOpacity={0.7}
-                            >
-                                <Ionicons name="trash-outline" size={14} color="#dc2626" />
-                            </TouchableOpacity>
-                        )}
-                    </View>
+                            {/* Delete Button for top-level items */}
+                            {isDeleteMode && !displayOnly && (
+                                <TouchableOpacity
+                                    onPress={handleDelete}
+                                    className="bg-red-50 border border-red-200 rounded-lg p-2 active:bg-red-100"
+                                    activeOpacity={0.7}
+                                >
+                                    <Ionicons name="trash-outline" size={14} color="#dc2626" />
+                                </TouchableOpacity>
+                            )}
+                        </View>
+                    )}
                 </TouchableOpacity>
 
                 {/* Table Container */}
-                {hasChildren && (
+                {!isLocked && hasChildren && (
                     <Animated.View
                         style={{
                             opacity: animatedHeight,

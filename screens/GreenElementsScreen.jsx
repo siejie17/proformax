@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Checkbox from 'expo-checkbox';
 import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
+import Markdown from '@ronradtke/react-native-markdown-display';
 import {
     configureReanimatedLogger,
     ReanimatedLogLevel,
@@ -23,6 +24,7 @@ const GreenElementsScreen = ({ greenElements, setGreenElements = () => { }, crit
     const [selectedCriterion, setSelectedCriterion] = useState(null);
     const [loading, setLoading] = useState(false);
     const [customInputs, setCustomInputs] = useState({});
+    const [expandedItems, setExpandedItems] = useState({});
 
     const fadeAnim = useRef(new Animated.Value(0)).current;
     const slideAnim = useRef(new Animated.Value(50)).current;
@@ -146,9 +148,13 @@ const GreenElementsScreen = ({ greenElements, setGreenElements = () => { }, crit
                             if (parentId in newCheckedState && id in newCheckedState[parentId]) {
                                 return newCheckedState[parentId][id];
                             }
-                            // Otherwise check checkedSubitems (for other subitems) and checkedItems (custom items)
+                            // Otherwise check checkedSubitems (for other subitems)
                             if (parentId in checkedSubitems && id in checkedSubitems[parentId]) {
                                 return checkedSubitems[parentId][id];
+                            }
+                            // Check if it's a custom item (auto-checked, so return true)
+                            if (customItems[parentId]?.find(custom => custom.id === id)) {
+                                return true;
                             }
                             return checkedItems[id];
                         }).length;
@@ -162,6 +168,10 @@ const GreenElementsScreen = ({ greenElements, setGreenElements = () => { }, crit
                             // If it's in prev (previous subitems state), use that
                             if (parentId in prev && id in prev[parentId]) {
                                 return prev[parentId][id];
+                            }
+                            // Check if it's a custom item (auto-checked, so return true)
+                            if (customItems[parentId]?.find(custom => custom.id === id)) {
+                                return true;
                             }
                             // Otherwise check checkedItems (custom items)
                             return checkedItems[id];
@@ -378,7 +388,12 @@ const GreenElementsScreen = ({ greenElements, setGreenElements = () => { }, crit
                     // Include all custom items (including the new one)
                     allSubitemIds.push(...updatedCustomItems[itemId].map(custom => custom.id));
 
-                    // Count checked subitems for THIS parent item only
+                    // Count PREVIOUSLY checked subitems for THIS parent item only
+                    const previouslyCheckedForThisParent = (parentItem.subitems || []).filter(sub =>
+                        checkedSubitems[itemId]?.[sub.id] || false
+                    ).length + (prevCustomItems[itemId]?.length || 0);
+
+                    // Count NEW total (after adding custom item)
                     const totalCheckedForThisParent = allSubitemIds.filter(id => {
                         // Check if it's a regular subitem that's checked
                         if (parentItem.subitems?.find(sub => sub.id === id)) {
@@ -390,8 +405,9 @@ const GreenElementsScreen = ({ greenElements, setGreenElements = () => { }, crit
 
                     // Calculate marks (max 6 marks per parent, or parentItem.marks if specified)
                     const maxMarks = parentItem.marks || 6;
+                    const previousMarks = Math.min(previouslyCheckedForThisParent, maxMarks);
                     const newMarks = Math.min(totalCheckedForThisParent, maxMarks);
-                    const marksDifference = newMarks - (prevMarks[selectedCriterion] || 0);
+                    const marksDifference = newMarks - previousMarks;
 
                     return {
                         ...prevMarks,
@@ -457,10 +473,55 @@ const GreenElementsScreen = ({ greenElements, setGreenElements = () => { }, crit
                     // Calculate marks after
                     const marksAfter = Math.min(totalCheckedAfter, 6);
 
+                    // Calculate new marks for this parent item (subitems only)
+                    const maxMarks = parentItem.marks || 6;
+                    const newSubitemMarks = Math.min(totalCheckedAfter, maxMarks);
+
+                    // Now rebuild full criterion total properly
+                    let newCriterionTotal = 0;
+
+                    // Loop through every item in the criterion
+                    const criterionObj = criteria.find(c => c.name === targetCriterion);
+                    if (criterionObj) {
+                        const allItems = [
+                            ...(criterionObj.items || []),
+                            ...(criterionObj.subcriteria?.flatMap(sub => sub.items || []) || [])
+                        ];
+
+                        for (let item of allItems) {
+                            // If this is the parent item whose subitems changed
+                            if (item.id === parentItem.id) {
+                                newCriterionTotal += newSubitemMarks;
+                            }
+                            else if (item.subitems_exist) {
+                                // For other subitem-type items
+                                const ids = [
+                                    ...(item.subitems?.map(s => s.id) || []),
+                                    ...(customItems[item.id]?.map(c => c.id) || [])
+                                ];
+
+                                const count = ids.filter(id => {
+                                    if (checkedSubitems[item.id]?.[id]) return true;
+                                    if (checkedItems[id]) return true;
+                                    return false;
+                                }).length;
+
+                                newCriterionTotal += Math.min(count, item.marks || 6);
+                            }
+                            else {
+                                // Normal items
+                                if (checkedItems[item.id]) {
+                                    newCriterionTotal += item.marks || 0;
+                                }
+                            }
+                        }
+                    }
+
                     return {
                         ...prevMarks,
-                        [targetCriterion]: Math.max(0, marksAfter)
+                        [targetCriterion]: newCriterionTotal
                     };
+
                 }
 
                 return prevMarks;
@@ -683,6 +744,7 @@ const GreenElementsScreen = ({ greenElements, setGreenElements = () => { }, crit
 
     const renderItem = useCallback((item) => {
         const hasSubitems = item.subitems_exist && item.subitems && item.subitems.length > 0;
+        const isExpanded = expandedItems[item.id] || false;
 
         return (
             <View key={item.id} className="mb-3">
@@ -739,15 +801,52 @@ const GreenElementsScreen = ({ greenElements, setGreenElements = () => { }, crit
                             </Animated.View>
                         )}
 
-                        <TouchableOpacity
-                            onPress={() => handleInfoGuideOpen(item.info)}
-                            className="bg-blue-50 p-2 rounded-xl active:bg-blue-100 border border-blue-200"
-                            activeOpacity={0.7}
-                        >
-                            <Ionicons name="information-circle" size={18} color="#3B82F6" />
-                        </TouchableOpacity>
+                        {item.info && (
+                            <TouchableOpacity
+                                onPress={() => handleInfoGuideOpen(item.info)}
+                                className="bg-blue-50 p-1.5 rounded-lg active:bg-blue-100 border border-blue-200"
+                                activeOpacity={0.7}
+                            >
+                                <Ionicons name="information-circle" size={14} color="#3B82F6" />
+                            </TouchableOpacity>
+                        )}
+
+                        {item.suggestions && (
+                            <TouchableOpacity
+                                onPress={() => setExpandedItems(prev => ({
+                                    ...prev,
+                                    [item.id]: !prev[item.id]
+                                }))}
+                                className={`bg-amber-50 p-1.5 rounded-lg active:bg-amber-100 border border-amber-200 ${isExpanded ? 'bg-amber-200' : ''}`}
+                                activeOpacity={0.7}
+                            >
+                                <Ionicons 
+                                    name={isExpanded ? "chevron-up" : "chevron-down"} 
+                                    size={14} 
+                                    color={isExpanded ? "#92400E" : "#D97706"} 
+                                />
+                            </TouchableOpacity>
+                        )}
                     </View>
                 </View>
+
+                {/* Expandable Suggestions Accordion */}
+                {item.suggestions && isExpanded && (
+                    <View className="ml-3 mt-2 bg-amber-50 p-4 rounded-xl border-2 border-amber-200">
+                        <Text className="text-amber-900 font-semibold text-sm mb-3">Suggestions:</Text>
+                        <Markdown
+                            style={{
+                                body: { flexWrap: 'wrap', color: '#78350F', fontSize: 13, lineHeight: 20 },
+                                bullet_list: { flexWrap: 'wrap' },
+                                list_item: { flexWrap: 'wrap', color: '#92400E', marginBottom: 4 },
+                                strong: { fontWeight: '600', color: '#78350F' },
+                                em: { fontStyle: 'italic', color: '#A16207' },
+                            }}
+                        >
+                            {item.suggestions}
+                        </Markdown>
+                    </View>
+                )}
 
                 {/* Subitems */}
                 {hasSubitems ? (
@@ -847,7 +946,7 @@ const GreenElementsScreen = ({ greenElements, setGreenElements = () => { }, crit
                 ) : null}
             </View>
         );
-    }, [checkedItems, checkedSubitems, handleCheckboxToggle, customItems, customInputs, handleCustomInputChange, addCustomItem, deleteCustomItem]);
+    }, [checkedItems, checkedSubitems, handleCheckboxToggle, customItems, customInputs, handleCustomInputChange, addCustomItem, deleteCustomItem, expandedItems]);
 
     const renderCriterionItems = useCallback(() => {
         if (!selectedCriterionData) return null;

@@ -2,6 +2,7 @@ import { Animated, View, Text, FlatList, TouchableOpacity, ScrollView, Keyboard,
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import * as Haptics from 'expo-haptics';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import Markdown from '@ronradtke/react-native-markdown-display';
 import {
     configureReanimatedLogger,
     ReanimatedLogLevel,
@@ -23,6 +24,7 @@ const GreenElementsDisplayScreen = ({ greenElements, selectedProject, ...otherPr
     const [loading, setLoading] = useState(false);
     const [isInfoGuideVisible, setIsInfoGuideVisible] = useState(false);
     const [infoGuideText, setInfoGuideText] = useState('');
+    const [expandedItems, setExpandedItems] = useState({});
 
     const fadeAnim = useRef(new Animated.Value(0)).current;
     const slideAnim = useRef(new Animated.Value(50)).current;
@@ -98,11 +100,11 @@ const GreenElementsDisplayScreen = ({ greenElements, selectedProject, ...otherPr
 
         // Get all items in this criterion (both direct items and items in subcriteria)
         const allItems = [];
-        
+
         if (criterionData.items && Array.isArray(criterionData.items)) {
             allItems.push(...criterionData.items);
         }
-        
+
         if (criterionData.subcriteria && Array.isArray(criterionData.subcriteria)) {
             criterionData.subcriteria.forEach(subcriterion => {
                 if (subcriterion.items && Array.isArray(subcriterion.items)) {
@@ -259,6 +261,7 @@ const GreenElementsDisplayScreen = ({ greenElements, selectedProject, ...otherPr
 
     const renderItem = useCallback((item) => {
         const hasSubitems = item.subitems_exist && item.subitems && item.subitems.length > 0;
+        const isExpanded = expandedItems[item.id] || false;
 
         // Display-only mode logic - get data from selectedProject
         let isItemChecked = false;
@@ -305,14 +308,53 @@ const GreenElementsDisplayScreen = ({ greenElements, selectedProject, ...otherPr
                         </Text>
                     </TouchableOpacity>
 
-                    <TouchableOpacity
-                        onPress={() => handleInfoGuideOpen(item.info)}
-                        className="bg-blue-50 p-2 rounded-xl active:bg-blue-100 border border-blue-200 ml-2"
-                        activeOpacity={0.7}
-                    >
-                        <Ionicons name="information-circle" size={18} color="#3B82F6" />
-                    </TouchableOpacity>
+                    <View className="flex-row items-center gap-2">
+                        {item.info && (
+                            <TouchableOpacity
+                                onPress={() => handleInfoGuideOpen(item.info)}
+                                className="bg-blue-50 p-1.5 rounded-lg active:bg-blue-100 border border-blue-200"
+                                activeOpacity={0.7}
+                            >
+                                <Ionicons name="information-circle" size={14} color="#3B82F6" />
+                            </TouchableOpacity>
+                        )}
+
+                        {item.suggestions && (
+                            <TouchableOpacity
+                                onPress={() => setExpandedItems(prev => ({
+                                    ...prev,
+                                    [item.id]: !prev[item.id]
+                                }))}
+                                className={`bg-amber-50 p-1.5 rounded-lg active:bg-amber-100 border border-amber-200 ${isExpanded ? 'bg-amber-200' : ''}`}
+                                activeOpacity={0.7}
+                            >
+                                <Ionicons
+                                    name={isExpanded ? "chevron-up" : "chevron-down"}
+                                    size={14}
+                                    color={isExpanded ? "#92400E" : "#D97706"}
+                                />
+                            </TouchableOpacity>
+                        )}
+                    </View>
                 </View>
+
+                {/* Expandable Suggestions Accordion */}
+                {item.suggestions && isExpanded && (
+                    <View className="ml-3 mt-2 bg-amber-50 p-4 rounded-xl border-2 border-amber-200">
+                        <Text className="text-amber-900 font-semibold text-sm mb-3">Suggestions:</Text>
+                        <Markdown
+                            style={{
+                                body: { flexWrap: 'wrap', color: '#78350F', fontSize: 13, lineHeight: 20 },
+                                bullet_list: { flexWrap: 'wrap' },
+                                list_item: { flexWrap: 'wrap', color: '#92400E', marginBottom: 4 },
+                                strong: { fontWeight: '600', color: '#78350F' },
+                                em: { fontStyle: 'italic', color: '#A16207' },
+                            }}
+                        >
+                            {item.suggestions}
+                        </Markdown>
+                    </View>
+                )}
 
                 {/* Subitems - shown in display mode */}
                 {hasSubitems ? (
@@ -385,7 +427,7 @@ const GreenElementsDisplayScreen = ({ greenElements, selectedProject, ...otherPr
                 ) : null}
             </View>
         );
-    }, [selectedProject]);
+    }, [selectedProject, expandedItems]);
 
     const renderCriterionItems = useCallback(() => {
         if (!selectedCriterionData) return null;

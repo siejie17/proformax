@@ -32,7 +32,7 @@ const ForgotPasswordScreen = () => {
             navigation.navigate('Login');
         } catch (error) {
             console.error('Error sending password reset link:', error);
-            Alert.alert('Error', 'Failed to send password reset link');
+            Alert.alert('Error', `Failed to send password reset link ${error.response?.data?.message || error.message}`);
         } finally {
             setLoading(false);
         }
@@ -41,7 +41,7 @@ const ForgotPasswordScreen = () => {
     return (
         <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
             <View className="flex-1 w-full bg-white">
-                <BackButton goBack={() => navigation.navigate("Login")} />
+                <BackButton goBack={() => navigation.goBack()} />
                 <KeyboardAvoidingView
                     className="flex-1 p-4 w-full max-w-[340px] self-center items-center justify-center"
                     behavior="padding"

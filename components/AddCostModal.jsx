@@ -2,10 +2,11 @@ import { View, Text, Modal, TextInput, TouchableOpacity, KeyboardAvoidingView, P
 import { useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 
-const AddCostModal = ({ visible, onClose, onAdd, parentPath, parentDescription }) => {
+const AddCostModal = ({ visible, onClose, onAdd, parentPath, parentDescription, isCreatingNewSection = false }) => {
     const [description, setDescription] = useState('');
     const [cost, setCost] = useState('');
-    const [errors, setErrors] = useState({ description: '', cost: '' });
+    const [sectionName, setSectionName] = useState('');
+    const [errors, setErrors] = useState({ description: '', cost: '', sectionName: '' });
 
     const formatCost = (value) => {
         // Remove non-numeric characters except decimal point
@@ -30,7 +31,18 @@ const AddCostModal = ({ visible, onClose, onAdd, parentPath, parentDescription }
 
     const validate = () => {
         let isValid = true;
-        const newErrors = { description: '', cost: '' };
+        const newErrors = { description: '', cost: '', sectionName: '' };
+
+        // Validate section name when creating a new section (no parent path)
+        if (!parentPath) {
+            if (!sectionName.trim()) {
+                newErrors.sectionName = 'Section name is required';
+                isValid = false;
+            } else if (sectionName.trim().toUpperCase() === 'OTHERS') {
+                newErrors.sectionName = '"OTHERS" is a reserved label and cannot be used';
+                isValid = false;
+            }
+        }
 
         if (!description.trim()) {
             newErrors.description = 'Description is required';
@@ -53,19 +65,22 @@ const AddCostModal = ({ visible, onClose, onAdd, parentPath, parentDescription }
         if (validate()) {
             onAdd({
                 description: description.trim(),
-                cost: parseFloat(cost)
+                cost: parseFloat(cost),
+                sectionName: !parentPath ? sectionName.trim() : undefined
             });
             // Reset fields
             setDescription('');
             setCost('');
-            setErrors({ description: '', cost: '' });
+            setSectionName('');
+            setErrors({ description: '', cost: '', sectionName: '' });
         }
     };
 
     const handleCancel = () => {
         setDescription('');
         setCost('');
-        setErrors({ description: '', cost: '' });
+        setSectionName('');
+        setErrors({ description: '', cost: '', sectionName: '' });
         onClose();
     };
 
@@ -85,28 +100,57 @@ const AddCostModal = ({ visible, onClose, onAdd, parentPath, parentDescription }
                         {/* Header */}
                         <View className="bg-gray-50 px-6 py-4 border-b border-gray-200">
                             <Text className="text-gray-800 font-bold text-lg">
-                                {parentPath ? 'Add Inner Cost' : 'Adding Cost'}
+                                {parentPath ? 'Add Inner Cost' : 'Add New Cost Section'}
                             </Text>
                             <Text className="text-gray-500 text-xs mt-1">
-                                {parentPath ? 'Add a new cost item to this section' : 'Add a new construction cost item'}
+                                {parentPath ? 'Add a new cost item to this section' : 'Create a new section and add your first cost item'}
                             </Text>
                         </View>
 
                         <ScrollView className="px-6 py-5" showsVerticalScrollIndicator={false}>
-                            {/* Section Indicator */}
-                            <View className="mb-5">
-                                <Text className="text-slate-600 font-semibold text-xs mb-2 uppercase tracking-wide">
-                                    {parentPath ? 'Parent Section' : 'Section'}
-                                </Text>
-                                <View className="bg-blue-50 border-2 border-blue-200 rounded-xl px-4 py-3 flex-row items-center">
-                                    <View className="bg-blue-500 w-8 h-8 rounded-lg items-center justify-center mr-3">
-                                        <Ionicons name="folder-open" size={16} color="#FFFFFF" />
-                                    </View>
-                                    <Text className="text-blue-700 font-bold text-sm">
-                                        {parentDescription || (parentPath ? parentPath.split('.')[0] : 'OTHERS')}
+                            {/* Section Indicator or Input */}
+                            {parentPath ? (
+                                <View className="mb-5">
+                                    <Text className="text-slate-600 font-semibold text-xs mb-2 uppercase tracking-wide">
+                                        Parent Section
                                     </Text>
+                                    <View className="bg-blue-50 border-2 border-blue-200 rounded-xl px-4 py-3 flex-row items-center">
+                                        <View className="bg-blue-500 w-8 h-8 rounded-lg items-center justify-center mr-3">
+                                            <Ionicons name="folder-open" size={16} color="#FFFFFF" />
+                                        </View>
+                                        <Text className="text-blue-700 font-bold text-sm">
+                                            {parentDescription || parentPath.split('.')[0]}
+                                        </Text>
+                                    </View>
                                 </View>
-                            </View>
+                            ) : (
+                                <View className="mb-5">
+                                    <Text className="text-slate-700 font-semibold text-xs mb-2 uppercase tracking-wide">
+                                        Section Name
+                                    </Text>
+                                    <TextInput
+                                        className={`bg-slate-50 border-2 rounded-xl px-4 py-3 text-sm text-slate-800 ${errors.sectionName ? 'border-red-300' : 'border-slate-200'
+                                            }`}
+                                        placeholder="e.g., Foundation, Structural Works, etc."
+                                        placeholderTextColor="#94A3B8"
+                                        value={sectionName}
+                                        onChangeText={(text) => {
+                                            setSectionName(text);
+                                            if (errors.sectionName) {
+                                                setErrors(prev => ({ ...prev, sectionName: '' }));
+                                            }
+                                        }}
+                                    />
+                                    {errors.sectionName ? (
+                                        <View className="flex-row items-center mt-1.5 px-1">
+                                            <Ionicons name="alert-circle" size={12} color="#EF4444" />
+                                            <Text className="text-red-500 text-[10px] ml-1 font-medium">
+                                                {errors.sectionName}
+                                            </Text>
+                                        </View>
+                                    ) : null}
+                                </View>
+                            )}
 
                             {/* Description Input */}
                             <View className="mb-4">

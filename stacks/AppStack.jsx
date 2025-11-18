@@ -7,25 +7,26 @@ import TeamScreen from '../screens/TeamScreen';
 import ResultsTopTabs from '../components/ResultsTopTabs';
 import AccountScreen from '../screens/AccountScreen';
 import EditFieldScreen from '../screens/EditFieldScreen';
-import NotificationScreen from '../screens/NotificationScreen';
 import HistoryTopTabs from '../components/HistoryTopTabs';
+import AIAssistantWrapper from '../components/AIAssistantWrapper';
 
 const AppStack = () => {
     const Stack = createNativeStackNavigator();
-    
+
     return (
-        <Stack.Navigator initialRouteName="Tabs">
-            <Stack.Screen name="Tabs" component={TabStack} options={{ headerShown: false }} />
-            <Stack.Screen name="GBSCalculator" component={GBSCalculatorScreen} options={{ headerShown: false }} />
-            <Stack.Screen name="Results" component={ResultsTopTabs} options={{ headerShown: false }} />
-            <Stack.Screen name="History" component={HistoryScreen} options={{ headerShown: false }} />
-            <Stack.Screen name="HistoryDetail" component={HistoryTopTabs} options={{ headerShown: false }} />
-            <Stack.Screen name="Account" component={AccountScreen} options={{ headerShown: false }} />
-            <Stack.Screen name="EditFieldScreen" component={EditFieldScreen} options={{ headerShown: false }} />
-            <Stack.Screen name="About" component={AboutScreen} options={{ headerShown: false }} />
-            <Stack.Screen name="Team" component={TeamScreen} options={{ headerShown: false }} />
-            <Stack.Screen name="Notifications" component={NotificationScreen} options={{ headerShown: false }} />
-        </Stack.Navigator>
+        <AIAssistantWrapper>
+            <Stack.Navigator initialRouteName="Tabs">
+                <Stack.Screen name="Tabs" component={TabStack} options={{ headerShown: false }} />
+                <Stack.Screen name="GBSCalculator" component={GBSCalculatorScreen} options={{ headerShown: false }} />
+                <Stack.Screen name="Results" component={ResultsTopTabs} options={{ headerShown: false }} />
+                <Stack.Screen name="History" component={HistoryScreen} options={{ headerShown: false }} />
+                <Stack.Screen name="HistoryDetail" component={HistoryTopTabs} options={{ headerShown: false }} />
+                <Stack.Screen name="Account" component={AccountScreen} options={{ headerShown: false }} />
+                <Stack.Screen name="EditFieldScreen" component={EditFieldScreen} options={{ headerShown: false }} />
+                <Stack.Screen name="About" component={AboutScreen} options={{ headerShown: false }} />
+                <Stack.Screen name="Team" component={TeamScreen} options={{ headerShown: false }} />
+            </Stack.Navigator>
+        </AIAssistantWrapper>
     )
 }
 

@@ -48,6 +48,152 @@ const ResultsTopTabs = ({ navigation }) => {
         'Not Certified': [0, 54]
     }
 
+    // Certification cost multiplier percentages
+    const certificationMultipliers = {
+        'Platinum': 8.7,
+        'Gold': 4.54,
+        'Silver': 2.97,
+        'Certified': 1.87,
+        'Not Certified': 0
+    };
+
+    // Calculate certification level based on total marks
+    const getCertificationLevel = useCallback((marks) => {
+        for (const [level, range] of Object.entries(certifiedScaleRange)) {
+            if (marks >= range[0] && marks <= range[1]) {
+                return level;
+            }
+        }
+        return 'Not Certified';
+    }, []);
+
+    // Apply certification multiplier to costs (pure function, no useCallback)
+    const applyMultiplierToCosts = (costs, totalMarks) => {
+        if (!costs) return costs;
+
+        const certLevel = getCertificationLevel(totalMarks);
+        const multiplierPercent = certificationMultipliers[certLevel] || 0;
+
+        // Only apply if certification is "Certified" or above
+        if (multiplierPercent === 0) {
+            // If not certified, remove any existing multiplier
+            if (mappedFormData?.costPreviewWay === 'Simplified') {
+                // For Simplified, just return with no multiplier cost added
+                const updatedCosts = JSON.parse(JSON.stringify(costs));
+                delete updatedCosts.multiplierCost;
+                delete updatedCosts.certificationLevel;
+                delete updatedCosts.multiplierPercent;
+                // Recalculate total without multiplier
+                if (typeof updatedCosts === 'object' && updatedCosts.cost_breakdown) {
+                    updatedCosts.total_cost = updatedCosts.cost_breakdown;
+                } else if (typeof updatedCosts === 'number') {
+                    // Already a number, keep it
+                }
+                return updatedCosts;
+            }
+
+            // For Detailed, remove the multiplier node from cost_breakdown
+            if (!costs || !costs.cost_breakdown) return costs;
+
+            const updatedCosts = JSON.parse(JSON.stringify(costs));
+            let hasMultiplier = false;
+            for (const key in updatedCosts.cost_breakdown) {
+                if (updatedCosts.cost_breakdown[key].isMultiplier) {
+                    delete updatedCosts.cost_breakdown[key];
+                    hasMultiplier = true;
+                    break;
+                }
+            }
+            if (hasMultiplier) {
+                let total = 0;
+                for (const key in updatedCosts.cost_breakdown) {
+                    total += updatedCosts.cost_breakdown[key].cost || 0;
+                }
+                updatedCosts.total_cost = total;
+            }
+            return updatedCosts;
+        }
+
+        // For Simplified cost preview, apply multiplier to the total cost directly
+        if (mappedFormData?.costPreviewWay === 'Simplified') {
+            // If multiplier properties already exist, just return as-is to avoid infinite loops
+            if (costs.multiplierCost !== undefined && costs.certificationLevel === certLevel) {
+                return costs;
+            }
+            
+            const baseTotal = typeof costs === 'number' ? costs : (costs?.total_cost || costs?.cost_breakdown || 0);
+            const multiplierCost = (baseTotal * multiplierPercent) / 100;
+            
+            const updatedCosts = {
+                ...costs,
+                multiplierCost: multiplierCost,
+                certificationLevel: certLevel,
+                multiplierPercent: multiplierPercent,
+                total_cost: baseTotal + multiplierCost
+            };
+            return updatedCosts;
+        }
+
+        // For Detailed cost preview, add multiplier as a node in cost_breakdown
+        if (!costs.cost_breakdown) return costs;
+
+        const updatedCosts = JSON.parse(JSON.stringify(costs));
+        const baseTotal = Object.values(updatedCosts.cost_breakdown).reduce((sum, node) => {
+            const calcNodeCost = (node) => {
+                let total = node.cost || 0;
+                if (node.isMultiplier) return 0;
+                return total;
+            };
+            return sum + calcNodeCost(node);
+        }, 0);
+
+        console.log("Base total for multiplier calculation:", updatedCosts.cost_breakdown, multiplierPercent);
+
+        const multiplierCost = (baseTotal * multiplierPercent) / 100;
+
+        // Add or update the multiplier section
+        let multiplierSection = null;
+        let multiplierSectionKey = null;
+
+        // Find existing multiplier section
+        for (const [key, node] of Object.entries(updatedCosts.cost_breakdown)) {
+            if (node.isMultiplier) {
+                multiplierSection = node;
+                multiplierSectionKey = key;
+                break;
+            }
+        }
+
+        // If no multiplier section exists, create one at the end
+        if (!multiplierSection) {
+            const existingKeys = Object.keys(updatedCosts.cost_breakdown);
+            const lastKey = existingKeys.length > 0 ? existingKeys[existingKeys.length - 1] : null;
+            const nextKey = lastKey ? String.fromCharCode(lastKey.charCodeAt(0) + 1) : 'A';
+
+            multiplierSectionKey = nextKey;
+            multiplierSection = {
+                description: `${certLevel} Certification (${multiplierPercent}%)`,
+                cost: multiplierCost,
+                isMultiplier: true,
+                locked: true
+            };
+            updatedCosts.cost_breakdown[multiplierSectionKey] = multiplierSection;
+        } else {
+            // Update existing multiplier
+            multiplierSection.description = `${certLevel} Certification (${multiplierPercent}%)`;
+            multiplierSection.cost = multiplierCost;
+        }
+
+        // Recalculate total
+        let total = 0;
+        for (const key in updatedCosts.cost_breakdown) {
+            total += updatedCosts.cost_breakdown[key].cost || 0;
+        }
+        updatedCosts.total_cost = total;
+
+        return updatedCosts;
+    };
+
     // Create a wrapped setCriteriaTotalMarks function for debugging
     const wrappedSetCriteriaTotalMarks = useCallback((value) => {
         setCriteriaTotalMarks(value);
@@ -229,7 +375,26 @@ const ResultsTopTabs = ({ navigation }) => {
         // Calculate total sum of all values in criteriaMarks
         const total = Object.values(criteriaMarks).reduce((sum, value) => sum + Number(value || 0), 0);
         setCriteriaTotalMarks(total);
+
+        // Apply certification multiplier to costs when criteria marks change
+        if (newProjectCosts && setNewProjectCosts) {
+            setNewProjectCosts(prevCosts => {
+                const updatedCosts = applyMultiplierToCosts(prevCosts, total);
+                return updatedCosts;
+            });
+        }
     }, [criteriaMarks]);
+
+    // Recalculate multiplier whenever costs change (addition, deletion, or editing of cost nodes)
+    // Only for Detailed view - Simplified doesn't need this as it's handled in the criteriaMarks effect
+    useEffect(() => {
+        if (newProjectCosts && setNewProjectCosts && mappedFormData?.costPreviewWay === 'Detailed') {
+            setNewProjectCosts(prevCosts => {
+                const updatedCosts = applyMultiplierToCosts(prevCosts, criteriaTotalMarks);
+                return updatedCosts;
+            });
+        }
+    }, [newProjectCosts.total_cost, mappedFormData?.costPreviewWay]);
 
     // Handle navigation (swipe or header back)
     useEffect(() => {

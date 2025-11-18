@@ -17,12 +17,49 @@ const CostBreakdownScreen = ({ route, navigation, newProjectCosts, setNewProject
 
     // Get budget from mappedFormData (adjust the property name based on your data structure)
     const projectBudget = mappedFormData?.projectBudget || parseFloat(selectedProject?.budget) || 0;
-    const totalCost = displayOnly ? (selectedProject?.adjusted_cost || 0) : (mappedFormData?.costPreviewWay === 'Detailed' ? projectCosts?.total_cost : projectCosts || 0);
+    const totalCost = displayOnly ? (selectedProject?.adjusted_cost || 0) : (projectCosts?.total_cost || 0);
 
     // Calculate budget status
     const isOverBudget = projectBudget > 0 && totalCost > projectBudget;
     const budgetDifference = Math.abs(totalCost - projectBudget);
     const budgetPercentage = projectBudget > 0 ? ((totalCost / projectBudget) * 100).toFixed(1) : 0;
+
+    // Reverse-engineer multiplier cost for Simplified view (display only)
+    const getSimplifiedMultiplierInfo = () => {
+        if (!displayOnly || selectedProject?.cost_preview_way !== 'Simplified' || !selectedProject?.adjusted_cost) {
+            return null;
+        }
+
+        const adjustedCost = parseFloat(selectedProject.adjusted_cost);
+        const certificationMultipliers = [
+            { level: 'Certified', multiplier: 1.87 },
+            { level: 'Silver', multiplier: 2.97 },
+            { level: 'Gold', multiplier: 4.54 },
+            { level: 'Platinum', multiplier: 8.7 }
+        ];
+
+        // Try to reverse-engineer: baseCost = adjustedCost / (1 + multiplier/100)
+        // Check in order from smallest to largest multiplier for better accuracy
+        for (const { level, multiplier } of certificationMultipliers) {
+            const baseCost = adjustedCost / (1 + multiplier / 100);
+            const calculatedAdjusted = baseCost * (1 + multiplier / 100);
+            
+            // Check if this matches (with small tolerance for rounding)
+            if (Math.abs(calculatedAdjusted - adjustedCost) < 1) {
+                const multiplierCost = adjustedCost - baseCost;
+                return {
+                    certificationLevel: level,
+                    multiplierPercent: multiplier,
+                    baseCost: baseCost,
+                    multiplierCost: multiplierCost
+                };
+            }
+        }
+
+        return null;
+    };
+
+    const simplifiedMultiplierInfo = getSimplifiedMultiplierInfo();
 
     const recalculateCosts = (node) => {
         if (!node || !node.children) return node?.cost ?? 0;
@@ -39,9 +76,16 @@ const CostBreakdownScreen = ({ route, navigation, newProjectCosts, setNewProject
     const handleCostChange = (path, newCost, inputValue) => {
         if (!newProjectCosts || !setNewProjectCosts) return;
 
-        const updatedProjectCosts = JSON.parse(JSON.stringify(projectCosts));
+        // Prevent changes to multiplier cost
         const keys = path.split('.');
+        if (keys.length === 1) {
+            const node = projectCosts.cost_breakdown[keys[0]];
+            if (node && node.isMultiplier && node.locked) {
+                return; // Do not allow changes
+            }
+        }
 
+        const updatedProjectCosts = JSON.parse(JSON.stringify(projectCosts));
         let current = updatedProjectCosts.cost_breakdown;
         for (let i = 0; i < keys.length - 1; i++) {
             current = current[keys[i]].children;
@@ -73,11 +117,20 @@ const CostBreakdownScreen = ({ route, navigation, newProjectCosts, setNewProject
     const handleDelete = (path) => {
         if (!newProjectCosts || !setNewProjectCosts) return;
 
-        const updatedProjectCosts = JSON.parse(JSON.stringify(projectCosts));
         const keys = path.split('.');
+        
+        // Prevent deletion of multiplier cost
+        if (keys.length === 1) {
+            const node = projectCosts.cost_breakdown[keys[0]];
+            if (node && node.isMultiplier && node.locked) {
+                return; // Do not allow deletion
+            }
+        }
 
         // Determine if this is a top-level deletion or child deletion
         const isTopLevelDelete = keys.length === 1;
+
+        const updatedProjectCosts = JSON.parse(JSON.stringify(projectCosts));
 
         if (isTopLevelDelete) {
             // Delete top-level node
@@ -130,7 +183,7 @@ const CostBreakdownScreen = ({ route, navigation, newProjectCosts, setNewProject
         setIsAddModalVisible(true);
     };
 
-    const handleAddCostSubmit = ({ description, cost }) => {
+    const handleAddCostSubmit = ({ description, cost, sectionName }) => {
         if (!setNewProjectCosts) return;
 
         // Initialize newProjectCosts if it's empty
@@ -204,6 +257,25 @@ const CostBreakdownScreen = ({ route, navigation, newProjectCosts, setNewProject
 
                 highlightPath = modalParentPath + '.' + nextChildKey;
             }
+        } else if (sectionName) {
+            // Creating a new section with custom name (when cost breakdown is empty)
+            const existingKeys = Object.keys(updatedProjectCosts.cost_breakdown);
+            const nextKey = existingKeys.length > 0 
+                ? String.fromCharCode(Math.max(...existingKeys.map(k => k.charCodeAt(0))) + 1)
+                : 'A';
+
+            updatedProjectCosts.cost_breakdown[nextKey] = {
+                description: sectionName,
+                cost: 0,
+                children: {
+                    1: {
+                        description: description,
+                        cost: cost
+                    }
+                }
+            };
+
+            highlightPath = nextKey + '.1';
         } else {
             // Adding to OTHERS (from "Add New Section" button)
             let othersSection = null;
@@ -351,7 +423,7 @@ const CostBreakdownScreen = ({ route, navigation, newProjectCosts, setNewProject
                                         maximumFractionDigits: 2
                                     })
                                 ) : (
-                                    ((mappedFormData?.costPreviewWay === 'Detailed' ? projectCosts.total_cost : projectCosts) || 0).toLocaleString('en-US', {
+                                    ((mappedFormData?.costPreviewWay === 'Detailed' ? projectCosts.total_cost : projectCosts.total_cost || projectCosts) || 0).toLocaleString('en-US', {
                                         minimumFractionDigits: 2,
                                         maximumFractionDigits: 2
                                     })
@@ -401,6 +473,60 @@ const CostBreakdownScreen = ({ route, navigation, newProjectCosts, setNewProject
                             </View>
                         </View>
                     )}
+
+                    {/* Certification Multiplier for Simplified */}
+                    {mappedFormData?.costPreviewWay === 'Simplified' && projectCosts.multiplierCost && projectCosts.multiplierCost > 0 && (
+                        <View className="rounded-2xl p-2.5 px-4 mt-3 flex-row items-center justify-between bg-amber-500/20">
+                            <View className="flex-row items-center flex-1">
+                                <View className="w-6 h-6 rounded-lg items-center justify-center mr-2 bg-amber-500">
+                                    <Ionicons name="star" size={14} color="#FFFFFF" />
+                                </View>
+                                <View className="flex-1">
+                                    <Text className="font-bold text-[10px] text-amber-300">
+                                        {projectCosts.certificationLevel} Certification
+                                    </Text>
+                                    <Text className="text-slate-300 text-[9px]">
+                                        +{projectCosts.multiplierPercent}% multiplier applied
+                                    </Text>
+                                </View>
+                            </View>
+                            <View className="items-end">
+                                <Text className="font-bold text-xs text-amber-300">
+                                    +RM {projectCosts.multiplierCost.toLocaleString('en-US', {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2
+                                    })}
+                                </Text>
+                            </View>
+                        </View>
+                    )}
+
+                    {/* Certification Multiplier for Simplified (Display Only - Reverse Engineered) */}
+                    {selectedProject?.cost_preview_way === 'Simplified' && simplifiedMultiplierInfo && simplifiedMultiplierInfo.multiplierCost > 0 && (
+                        <View className="rounded-2xl p-2.5 px-4 mt-3 flex-row items-center justify-between bg-amber-500/20">
+                            <View className="flex-row items-center flex-1">
+                                <View className="w-6 h-6 rounded-lg items-center justify-center mr-2 bg-amber-500">
+                                    <Ionicons name="star" size={14} color="#FFFFFF" />
+                                </View>
+                                <View className="flex-1">
+                                    <Text className="font-bold text-[10px] text-amber-300">
+                                        {simplifiedMultiplierInfo.certificationLevel} Certification
+                                    </Text>
+                                    <Text className="text-slate-300 text-[9px]">
+                                        +{simplifiedMultiplierInfo.multiplierPercent}% multiplier applied
+                                    </Text>
+                                </View>
+                            </View>
+                            <View className="items-end">
+                                <Text className="font-bold text-xs text-amber-300">
+                                    +RM {simplifiedMultiplierInfo.multiplierCost.toLocaleString('en-US', {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2
+                                    })}
+                                </Text>
+                            </View>
+                        </View>
+                    )}
                 </View>
             </View>
 
@@ -420,7 +546,7 @@ const CostBreakdownScreen = ({ route, navigation, newProjectCosts, setNewProject
                                 </Text>
                                 {!displayOnly && (
                                     <TouchableOpacity
-                                        onPress={handleAddCost}
+                                        onPress={() => handleAddCost(null)}
                                         className="mt-2 bg-blue-500 rounded-xl px-6 py-3 flex-row items-center justify-center shadow-md active:bg-blue-600"
                                         activeOpacity={0.8}
                                     >
