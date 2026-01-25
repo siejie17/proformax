@@ -2,14 +2,10 @@ import { View, Text, Image, KeyboardAvoidingView, TouchableOpacity, TouchableWit
 import { useRef, useState, useContext } from 'react';
 import { TextInput as PaperTextInput } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { AuthContext } from '../contexts/AuthContext';
 
 import TextInput from '../components/TextInput';
-import Button from '../components/Button';
 import MessageModal from '../components/MessageModal';
 
 import api from '../services/api';
@@ -54,7 +50,6 @@ const LoginScreen = () => {
             return;
         }
 
-        // Proceed with login
         setLoading(true);
 
         try {
@@ -65,18 +60,40 @@ const LoginScreen = () => {
 
             if (res.data.user.email_verified_at) {
                 const token = res.data.token;
-
-                // Use the login function from AuthContext to properly update state
                 await login(token, res.data.user);
-
                 api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
             } else {
                 setIsNotVerifiedYetModalVisible(true);
             }
         } catch (err) {
+            // Try to extract field errors from response
             const message = err.response?.data?.message || 'Network or server error';
-            Alert.alert('Login failed', message);
-            console.error(err.response?.data ?? err.message);
+            let emailFieldError = '';
+            let passwordFieldError = '';
+
+            // If API returns validation errors
+            if (err.response?.data?.errors) {
+                const errors = err.response.data.errors;
+                if (errors.email) emailFieldError = errors.email.join(' ');
+                if (errors.password) passwordFieldError = errors.password.join(' ');
+            }
+
+            // If error message mentions email
+            if (message.toLowerCase().includes('email')) {
+                emailFieldError = message;
+            }
+            // If error message mentions password
+            if (message.toLowerCase().includes('password')) {
+                passwordFieldError = message;
+            }
+            // If error is general, show on both fields
+            if (!emailFieldError && !passwordFieldError) {
+                emailFieldError = message;
+                passwordFieldError = message;
+            }
+
+            setEmail({ ...email, error: emailFieldError });
+            setPassword({ ...password, error: passwordFieldError });
         } finally {
             setLoading(false);
         }

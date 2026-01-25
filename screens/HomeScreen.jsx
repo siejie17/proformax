@@ -1,4 +1,4 @@
-import { useCallback, useContext, useState, useRef } from 'react';
+import { useCallback, useContext, useState } from 'react';
 import {
     View,
     Text,
@@ -15,7 +15,10 @@ import * as Haptics from 'expo-haptics';
 
 import { AuthContext } from '../contexts/AuthContext';
 import api from '../services/api';
+
 import LoadingIndicator from '../components/LoadingIndicator';
+import AIAssistantWrapper from '../components/AIAssistantWrapper';
+import AIButton from '../components/AIButton';
 
 const { height: screenHeight } = Dimensions.get('window');
 
@@ -27,11 +30,7 @@ const HomeScreen = () => {
     const [currentUser, setCurrentUser] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
 
-    const [notifications] = useState([
-        { id: 1, title: 'Assessment Complete', message: 'Your green building score is ready', time: '2h ago', read: false },
-        { id: 2, title: 'New Feature', message: 'Cost breakdown analysis now available', time: '1d ago', read: false },
-        { id: 3, title: 'Reminder', message: 'Complete your pending assessment', time: '3d ago', read: true }
-    ]);
+    const [aiModalVisible, setAIModalVisible] = useState(false);
 
     // Animation values
     const cardAnimation = useState(new Animated.Value(0))[0];
@@ -84,11 +83,6 @@ const HomeScreen = () => {
     const navigateWithHaptic = (screenName) => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
         navigation.navigate(screenName);
-    };
-
-    const handleNotificationPress = () => {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-        navigation.navigate('Notifications');
     };
 
     const QuickActionButton = ({ icon, title, description, onPress, gradient = false }) => (
@@ -191,31 +185,9 @@ const HomeScreen = () => {
                             </View>
                         </View>
 
-                        {/* Enhanced Notification Bell */}
-                        {/* <TouchableOpacity
-                            className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm items-center justify-center shadow-lg"
-                            onPress={handleNotificationPress}
-                            activeOpacity={0.8}
-                        >
-                            <Ionicons name="notifications" size={22} color="white" />
-                            {notifications.filter(n => !n.read).length > 0 && (
-                                <Animated.View
-                                    className="absolute -top-1 -right-1 w-6 h-6 bg-red-500 rounded-full items-center justify-center border-2 border-white"
-                                    style={{
-                                        transform: [{
-                                            scale: cardAnimation.interpolate({
-                                                inputRange: [0, 1],
-                                                outputRange: [0, 1]
-                                            })
-                                        }]
-                                    }}
-                                >
-                                    <Text className="text-white text-xs font-bold">
-                                        {notifications.filter(n => !n.read).length}
-                                    </Text>
-                                </Animated.View>
-                            )}
-                        </TouchableOpacity> */}
+                        <View className="items-end">
+                            <AIButton onPress={() => setAIModalVisible(true)} />
+                        </View>
                     </View>
                 </View>
 
@@ -278,6 +250,9 @@ const HomeScreen = () => {
                         onPress={() => navigateWithHaptic('History')}
                     />
                 </View>
+
+                {/* Render AI Assistant modal */}
+                <AIAssistantWrapper isVisible={aiModalVisible} onClose={() => setAIModalVisible(false)} />
             </View>
         </SafeAreaView>
     );

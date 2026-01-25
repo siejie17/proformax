@@ -1,5 +1,5 @@
 import { View, Text, TouchableOpacity, StatusBar, KeyboardAvoidingView, Alert, ScrollView, Platform } from 'react-native';
-import { useState, useContext } from 'react';
+import { useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 

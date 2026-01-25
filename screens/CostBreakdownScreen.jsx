@@ -361,8 +361,6 @@ const CostBreakdownScreen = ({ route, navigation, newProjectCosts, setNewProject
             setNewProjectCosts(initialCosts);
             initializedRef.current = true;
         }
-
-        console.log(mappedFormData);
     }, []);
 
     return (

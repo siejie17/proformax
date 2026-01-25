@@ -191,20 +191,6 @@ const ProfileScreen = () => {
                     <Text className="m-2 ml-3 text-[13px] font-medium uppercase text-[#A69F9F]">Preferences</Text>
 
                     <View className="rounded-xl shadow shadow-gray-500">
-                        {/* <View className="pl-4 bg-white border-t border-[#F0F0F0] rounded-t-[12px]">
-                            <View className="height-[44px] w-full flex-row justify-start items-center pr-3">
-                                <Text className="text-[16px] font-semibold text-black tracking-wide">Dark Mode</Text>
-
-                                <View className="flex-grow flex-shrink basis-0" />
-
-                                <Switch
-                                    value={settings.darkMode}
-                                    onValueChange={(value) => setSettings({ ...settings, darkMode: value })}
-                                    style={{ transform: [{ scaleX: 0.95 }, { scaleY: 0.95 }] }}
-                                />
-                            </View>
-                        </View> */}
-
                         <View className="pl-4 bg-white border-t border-[#F0F0F0] rounded-t-[12px]">
                             <View className="h-[44px] w-full flex-row justify-start items-center pr-3">
                                 <Text className="text-[16px] font-semibold text-black tracking-wide">Push Notifications</Text>

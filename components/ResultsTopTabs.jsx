@@ -147,8 +147,6 @@ const ResultsTopTabs = ({ navigation }) => {
             return sum + calcNodeCost(node);
         }, 0);
 
-        console.log("Base total for multiplier calculation:", updatedCosts.cost_breakdown, multiplierPercent);
-
         const multiplierCost = (baseTotal * multiplierPercent) / 100;
 
         // Add or update the multiplier section
@@ -347,7 +345,7 @@ const ResultsTopTabs = ({ navigation }) => {
                 try {
                     const response = await api.post('/results', formData);
                     setGreenElements(response.data.green_elements);
-                    setNewProjectCosts(response.data.cost);
+                    setNewProjectCosts(response.data.cost || { cost_breakdown: {}, total_cost: 0 });
                     setMappedFormData(response.data.mapped_form_data || null);
                 } catch (error) {
                     console.error("API Error:", error);

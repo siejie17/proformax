@@ -193,7 +193,7 @@ const CostNode = ({ code, node, level = 0, onCostChange, path, onDelete = () => 
                     {!isLocked && (
                         <View className="flex-row items-center gap-2 ml-2">
                             {/* Add Child Button for top-level items */}
-                            {isAddMode && !displayOnly && (
+                            {isAddMode && hasChildren&& !displayOnly && (
                                 <TouchableOpacity
                                     onPress={() => onAddCost(currentPath)}
                                     className="bg-emerald-50 border border-emerald-200 rounded-lg p-2 active:bg-emerald-100"
@@ -281,7 +281,7 @@ const CostNode = ({ code, node, level = 0, onCostChange, path, onDelete = () => 
                             </View>
 
                             {/* Add Child Button */}
-                            {isAddMode && !displayOnly && (
+                            {isAddMode && hasChildren && !displayOnly && (
                                 <TouchableOpacity
                                     onPress={() => onAddCost(currentPath)}
                                     className="bg-emerald-50 border border-emerald-200 rounded-lg p-2 active:bg-emerald-100"

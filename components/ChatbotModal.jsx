@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useContext } from 'react';
+import { useState, useRef, useEffect, useContext } from 'react';
 import {
     View,
     Modal,
@@ -15,6 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import { AuthContext } from '../contexts/AuthContext';
 import { sendMessageToGemini } from '../services/geminiApi';
+import Markdown from '@ronradtke/react-native-markdown-display';
 
 const ChatbotModal = ({ isVisible, onClose }) => {
     const { user } = useContext(AuthContext);
@@ -47,12 +48,19 @@ const ChatbotModal = ({ isVisible, onClose }) => {
     };
 
     useEffect(() => {
-
-    }, []);
-
-    useEffect(() => {
         scrollToBottom();
     }, [messages]);
+
+    useEffect(() => {
+        setMessages([
+            {
+                id: '1',
+                text: 'Hello! I\'m your AI assistant. How can I help you today?',
+                sender: 'bot',
+                timestamp: new Date(),
+            },
+        ])
+    }, [isVisible]);
 
     const handleSendMessage = async () => {
         if (inputText.trim() === '') return;
@@ -97,56 +105,72 @@ const ChatbotModal = ({ isVisible, onClose }) => {
 
     const renderMessage = ({ item }) => {
         const isUser = item.sender === 'user';
-        
+
         return (
-            <View className={`mb-4 flex-row ${isUser ? 'justify-end' : 'justify-start'} px-2`}>
+            <View className={`mb-3 flex-row ${isUser ? 'justify-end' : 'justify-start'} px-4`}>
                 {/* Bot Avatar */}
                 {!isUser && (
-                    <View className="mr-2 mt-1">
-                        <Image
-                            source={require('../assets/gemini.png')}
-                            className="w-9 h-9 rounded-full border-2 border-blue-200"
-                        />
+                    <View className="mr-3">
+                        <View className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 items-center justify-center shadow-sm overflow-hidden">
+                            <Image
+                                source={require('../assets/gemini.png')}
+                                className="w-full h-full"
+                                resizeMode="cover"
+                            />
+                        </View>
                     </View>
                 )}
 
                 {/* Message Bubble */}
-                <View className={`max-w-[75%]`}>
+                <View className={`max-w-[75%] ${isUser ? 'items-end' : 'items-start'}`}>
                     <View
-                        className={`rounded-2xl px-4 py-3 shadow-sm ${
-                            isUser
-                                ? 'bg-green-600 rounded-tr-md'
-                                : 'bg-gray-100 rounded-tl-md'
-                        }`}
+                        className={`rounded-2xl px-4 py-2.5 ${isUser
+                            ? 'bg-emerald-500 rounded-tr-sm'
+                            : 'bg-white border border-gray-100 rounded-tl-sm'
+                            }`}
                         style={{
-                            shadowColor: '#000',
+                            shadowColor: isUser ? '#10b981' : '#000',
                             shadowOffset: { width: 0, height: 1 },
-                            shadowOpacity: 0.1,
-                            shadowRadius: 2,
-                            elevation: 2,
+                            shadowOpacity: isUser ? 0.15 : 0.05,
+                            shadowRadius: 3,
+                            elevation: 1,
                         }}
                     >
-                        <Text
-                            className={`text-base leading-5 ${
-                                isUser ? 'text-white' : 'text-gray-800'
-                            }`}
-                        >
-                            {item.text}
-                        </Text>
+                        {isUser ? (
+                            <Text
+                                className="text-[15px] leading-5 text-white"
+                            >
+                                {item.text}
+                            </Text>
+                        ) : (
+                            <Markdown
+                                style={{
+                                    body: { color: '#1F2937', fontSize: 15, lineHeight: 20 },
+                                }}
+                            >
+                                {item.text}
+                            </Markdown>
+                        )}
                     </View>
-                    
+
                     {/* Timestamp */}
-                    <Text className={`text-xs text-gray-400 mt-1 ${isUser ? 'text-right' : 'text-left'} px-1`}>
+                    <Text className={`text-[11px] text-gray-400 mt-1 px-1`}>
                         {item.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </Text>
                 </View>
 
                 {/* User Avatar */}
                 {isUser && (
-                    <View className="ml-2 mt-1">
+                    <View className="ml-3">
                         <Image
                             source={userProfilePic}
-                            className="w-9 h-9 rounded-full border-2 border-blue-200"
+                            className="w-8 h-8 rounded-full border border-emerald-200"
+                            style={{
+                                shadowColor: '#10b981',
+                                shadowOffset: { width: 0, height: 1 },
+                                shadowOpacity: 0.1,
+                                shadowRadius: 2,
+                            }}
                         />
                     </View>
                 )}
@@ -169,76 +193,69 @@ const ChatbotModal = ({ isVisible, onClose }) => {
             >
                 <SafeAreaView className="flex-1 bg-gray-50" edges={['top', 'bottom']}>
                     {/* Header */}
-                    <View 
-                        className="flex-row items-center justify-between bg-green-600 px-6 py-4"
-                        style={{
-                            shadowColor: '#000',
-                            shadowOffset: { width: 0, height: 2 },
-                            shadowOpacity: 0.1,
-                            shadowRadius: 3,
-                            elevation: 4,
-                        }}
+                    <View
+                        className="flex-row items-center justify-between bg-white px-5 py-4 border-b border-gray-100"
                     >
                         <View className="flex-row items-center gap-3">
-                            <View className="w-10 h-10 rounded-full bg-white/20 items-center justify-center">
-                                <MaterialIcons name="chat" size={24} color="white" />
+                            <View className="w-9 h-9 rounded-full bg-emerald-50 items-center justify-center">
+                                <MaterialIcons name="chat-bubble-outline" size={20} color="#10b981" />
                             </View>
                             <View>
-                                <Text className="text-xl font-bold text-white">AI Assistant</Text>
-                                <Text className="text-xs text-green-100">Always here to help</Text>
+                                <Text className="text-lg font-semibold text-gray-900">AI Assistant</Text>
+                                <Text className="text-xs text-gray-500">Online</Text>
                             </View>
                         </View>
-                        <TouchableOpacity 
+                        <TouchableOpacity
                             onPress={onClose}
-                            className="w-10 h-10 rounded-full bg-white/20 items-center justify-center active:bg-white/30"
+                            className="w-9 h-9 rounded-full bg-gray-50 items-center justify-center active:bg-gray-100"
                         >
-                            <MaterialIcons name="close" size={24} color="white" />
+                            <MaterialIcons name="close" size={20} color="#6b7280" />
                         </TouchableOpacity>
                     </View>
 
                     {/* Messages Area */}
-                    <View className="flex-1 bg-gray-50">
+                    <View className="flex-1">
                         <FlatList
                             ref={flatListRef}
                             data={messages}
                             renderItem={renderMessage}
                             keyExtractor={(item) => item.id}
-                            contentContainerStyle={{ 
-                                flexGrow: 1, 
-                                paddingTop: 16,
-                                paddingBottom: 8,
+                            contentContainerStyle={{
+                                flexGrow: 1,
+                                paddingTop: 20,
+                                // paddingBottom: 16,
                             }}
                             keyboardShouldPersistTaps="handled"
                             showsVerticalScrollIndicator={false}
+                            ListFooterComponent={
+                                loading ? (
+                                    <View className="flex-row items-center px-4 pb-3">
+                                        <View className="mr-3">
+                                            <View className="w-8 h-8 rounded-full bg-emerald-50 items-center justify-center">
+                                                <MaterialIcons name="more-horiz" size={18} color="#10b981" />
+                                            </View>
+                                        </View>
+                                        <View className="bg-white border border-gray-100 rounded-2xl rounded-tl-sm px-4 py-3">
+                                            <View className="flex-row gap-1.5">
+                                                <View className="w-1.5 h-1.5 bg-gray-300 rounded-full" />
+                                                <View className="w-1.5 h-1.5 bg-gray-300 rounded-full" />
+                                                <View className="w-1.5 h-1.5 bg-gray-300 rounded-full" />
+                                            </View>
+                                        </View>
+                                    </View>
+                                ) : null
+                            }
                         />
-                        
-                        {/* Typing Indicator */}
-                        {loading && (
-                            <View className="flex-row items-center px-4 py-2">
-                                <View className="mr-2">
-                                    <View className="w-9 h-9 rounded-full bg-green-600 items-center justify-center border-2 border-green-200">
-                                        <MaterialIcons name="smart-toy" size={20} color="white" />
-                                    </View>
-                                </View>
-                                <View className="bg-gray-100 rounded-2xl px-4 py-3 rounded-tl-md">
-                                    <View className="flex-row gap-1">
-                                        <View className="w-2 h-2 bg-gray-400 rounded-full animate-pulse" />
-                                        <View className="w-2 h-2 bg-gray-400 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }} />
-                                        <View className="w-2 h-2 bg-gray-400 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }} />
-                                    </View>
-                                </View>
-                            </View>
-                        )}
                     </View>
 
                     {/* Input Area */}
-                    <View className="border-t border-gray-200 px-4 py-3 bg-white">
-                        <View className="flex-row items-end gap-2">
-                            <View className="flex-1 bg-gray-100 rounded-3xl px-4 py-2 border border-gray-200">
+                    <View className="bg-white px-4 pt-3 border-t border-gray-100">
+                        <View className="flex-row items-end gap-2.5">
+                            <View className="flex-1 bg-gray-50 rounded-3xl px-4 py-2 border border-gray-200">
                                 <TextInput
-                                    className="text-base text-gray-800 max-h-24"
-                                    placeholder="Type your message..."
-                                    placeholderTextColor="#9CA3AF"
+                                    className="text-[12px] text-gray-800 max-h-20"
+                                    placeholder="Message..."
+                                    placeholderTextColor="#9ca3af"
                                     value={inputText}
                                     onChangeText={setInputText}
                                     editable={!loading}
@@ -249,25 +266,34 @@ const ChatbotModal = ({ isVisible, onClose }) => {
                             <TouchableOpacity
                                 onPress={handleSendMessage}
                                 disabled={loading || inputText.trim() === ''}
-                                className={`rounded-full p-3.5 items-center justify-center ${
-                                    loading || inputText.trim() === ''
-                                        ? 'bg-gray-300'
-                                        : 'bg-green-600 active:bg-green-700'
-                                }`}
+                                className={`rounded-full w-14 h-14 items-center justify-center ${loading || inputText.trim() === ''
+                                    ? 'bg-gray-200'
+                                    : 'bg-emerald-500 active:bg-emerald-600'
+                                    }`}
                                 style={{
-                                    shadowColor: '#16a34a',
+                                    shadowColor: '#10b981',
                                     shadowOffset: { width: 0, height: 2 },
-                                    shadowOpacity: loading || inputText.trim() === '' ? 0 : 0.3,
-                                    shadowRadius: 3,
-                                    elevation: loading || inputText.trim() === '' ? 0 : 4,
+                                    shadowOpacity: loading || inputText.trim() === '' ? 0 : 0.2,
+                                    shadowRadius: 4,
+                                    elevation: loading || inputText.trim() === '' ? 0 : 3,
                                 }}
                             >
                                 {loading ? (
-                                    <ActivityIndicator size="small" color="white" />
+                                    <ActivityIndicator size="small" color="#9ca3af" />
                                 ) : (
-                                    <MaterialIcons name="send" size={22} color="white" />
+                                    <MaterialIcons
+                                        name="arrow-upward"
+                                        size={24}
+                                        color={inputText.trim() === '' ? '#9ca3af' : 'white'}
+                                    />
                                 )}
                             </TouchableOpacity>
+                        </View>
+
+                        <View className="py-4">
+                            <Text className="text-xs text-gray-400 text-center">
+                                Powered by Google Gemini AI
+                            </Text>
                         </View>
                     </View>
                 </SafeAreaView>

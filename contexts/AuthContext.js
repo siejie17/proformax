@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect } from 'react';
+import { createContext, useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { setAuthToken } from '../services/api';
 
@@ -17,7 +17,9 @@ export const AuthProvider = ({ children }) => {
         const storedUser = await AsyncStorage.getItem('user');
         if (token) {
           setIsLoggedIn(true);
-          if (storedUser) setUser(JSON.parse(storedUser));
+          if (storedUser) {
+            setUser(JSON.parse(storedUser));
+          } 
         }
       } catch (error) {
         console.log('Error checking login status:', error);

@@ -30,6 +30,7 @@ const GreenElementsDisplayScreen = ({ greenElements, selectedProject, ...otherPr
     const slideAnim = useRef(new Animated.Value(50)).current;
 
     const criteriaFlatListRef = useRef(null);
+    const verticalScrollRef = useRef(null); // Ref for vertical ScrollView
 
     const SCREEN_WIDTH = Dimensions.get('window').width;
 
@@ -48,6 +49,9 @@ const GreenElementsDisplayScreen = ({ greenElements, selectedProject, ...otherPr
     const handleSectionPress = useCallback((criterion) => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         setSelectedCriterion(criterion.name);
+
+        // Reset vertical scroll to top
+        verticalScrollRef.current?.scrollTo({ y: 0, animated: true });
 
         fadeAnim.setValue(0);
         slideAnim.setValue(50);
@@ -319,7 +323,7 @@ const GreenElementsDisplayScreen = ({ greenElements, selectedProject, ...otherPr
                             </TouchableOpacity>
                         )}
 
-                        {item.suggestions && (
+                        {(item.suggestions || item.esg) && (
                             <TouchableOpacity
                                 onPress={() => setExpandedItems(prev => ({
                                     ...prev,
@@ -339,20 +343,87 @@ const GreenElementsDisplayScreen = ({ greenElements, selectedProject, ...otherPr
                 </View>
 
                 {/* Expandable Suggestions Accordion */}
-                {item.suggestions && isExpanded && (
-                    <View className="ml-3 mt-2 bg-amber-50 p-4 rounded-xl border-2 border-amber-200">
-                        <Text className="text-amber-900 font-semibold text-sm mb-3">Suggestions:</Text>
-                        <Markdown
-                            style={{
-                                body: { flexWrap: 'wrap', color: '#78350F', fontSize: 13, lineHeight: 20 },
-                                bullet_list: { flexWrap: 'wrap' },
-                                list_item: { flexWrap: 'wrap', color: '#92400E', marginBottom: 4 },
-                                strong: { fontWeight: '600', color: '#78350F' },
-                                em: { fontStyle: 'italic', color: '#A16207' },
-                            }}
-                        >
-                            {item.suggestions}
-                        </Markdown>
+                {isExpanded && (
+                    <View className="ml-3 mt-3 bg-white p-5 rounded-2xl border border-amber-100">
+                        {item.esg && (
+                            <View className="mb-5">
+                                <View className="flex-row items-center mb-3">
+                                    <View className="w-1 h-4 bg-amber-400 rounded-full mr-2" />
+                                    <Text className="text-gray-900 font-semibold text-[14px]">ESG Sarawak</Text>
+                                </View>
+                                <Markdown
+                                    style={{
+                                        body: {
+                                            color: '#374151',
+                                            fontSize: 12,
+                                            lineHeight: 22
+                                        },
+                                        bullet_list: {
+                                            marginLeft: 4
+                                        },
+                                        list_item: {
+                                            color: '#4B5563',
+                                            marginBottom: 6,
+                                            paddingLeft: 4
+                                        },
+                                        strong: {
+                                            fontWeight: '600',
+                                            color: '#1F2937'
+                                        },
+                                        em: {
+                                            fontStyle: 'italic',
+                                            color: '#6B7280'
+                                        },
+                                        paragraph: {
+                                            marginTop: 0,
+                                            marginBottom: 0
+                                        }
+                                    }}
+                                >
+                                    {item.esg}
+                                </Markdown>
+                            </View>
+                        )}
+
+                        {item.suggestions && (
+                            <View className="flex-1">
+                                <View className="flex-row items-center mb-3">
+                                    <View className="w-1 h-4 bg-amber-400 rounded-full mr-2" />
+                                    <Text className="text-gray-900 font-semibold text-[14px]">Suggestions</Text>
+                                </View>
+                                <Markdown
+                                    style={{
+                                        body: {
+                                            color: '#374151',
+                                            fontSize: 12,
+                                            lineHeight: 22
+                                        },
+                                        bullet_list: {
+                                            marginLeft: 4
+                                        },
+                                        list_item: {
+                                            color: '#4B5563',
+                                            marginBottom: 6,
+                                            paddingLeft: 4
+                                        },
+                                        strong: {
+                                            fontWeight: '600',
+                                            color: '#1F2937'
+                                        },
+                                        em: {
+                                            fontStyle: 'italic',
+                                            color: '#6B7280'
+                                        },
+                                        paragraph: {
+                                            marginTop: 0,
+                                            marginBottom: 0
+                                        }
+                                    }}
+                                >
+                                    {item.suggestions}
+                                </Markdown>
+                            </View>
+                        )}
                     </View>
                 )}
 
@@ -524,6 +595,8 @@ const GreenElementsDisplayScreen = ({ greenElements, selectedProject, ...otherPr
                                         setCurrentCriteriaIndex(index);
                                         if (criteria[index]) {
                                             setSelectedCriterion(criteria[index].name);
+                                            // Reset vertical scroll to top
+                                            verticalScrollRef.current?.scrollTo({ y: 0, animated: true });
                                         }
                                     }}
                                     bounces={false}
@@ -546,6 +619,8 @@ const GreenElementsDisplayScreen = ({ greenElements, selectedProject, ...otherPr
                                                 setCurrentCriteriaIndex(index);
                                                 if (criteria[index]) {
                                                     setSelectedCriterion(criteria[index].name);
+                                                    // Reset vertical scroll to top
+                                                    verticalScrollRef.current?.scrollTo({ y: 0, animated: true });
                                                 }
                                             }}
                                             activeOpacity={0.7}
@@ -572,6 +647,7 @@ const GreenElementsDisplayScreen = ({ greenElements, selectedProject, ...otherPr
 
                     <View className="flex-1 pt-2">
                         <ScrollView
+                            ref={verticalScrollRef}
                             className="flex-1"
                             showsVerticalScrollIndicator={false}
                             contentContainerStyle={{ paddingBottom: 20 }}

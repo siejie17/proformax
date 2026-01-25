@@ -6,6 +6,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { AuthContext } from '../contexts/AuthContext';
 import api from '../services/api';
 import LoadingIndicator from '../components/LoadingIndicator';
+import AIAssistantWrapper from '../components/AIAssistantWrapper';
+import AIButton from '../components/AIButton';
 
 const HistoryScreen = ({ navigation }) => {
     const [histories, setHistories] = useState([]);
@@ -14,6 +16,8 @@ const HistoryScreen = ({ navigation }) => {
 
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 5;
+
+    const [aiModalVisible, setAIModalVisible] = useState(false);
 
     const { user } = useContext(AuthContext);
 
@@ -98,15 +102,22 @@ const HistoryScreen = ({ navigation }) => {
 
             {/* Header */}
             <View className="px-4 py-2 w-full">
-                <View className="flex-row mb-3">
-                    <TouchableOpacity
-                        onPress={() => navigation.goBack()}
-                        className="size-10 rounded-2xl items-center justify-center"
-                    >
-                        <Ionicons name="arrow-back" size={24} color="#374151" />
-                    </TouchableOpacity>
-                    <View className="px-5 pt-1.5">
-                        <Text className="text-gray-800 font-bold text-xl mb-1">Project History</Text>
+                <View className="flex-row items-center justify-between mb-3 w-full">
+                    <View className="flex-row items-center">
+                        <TouchableOpacity
+                            onPress={() => navigation.goBack()}
+                            className="size-10 rounded-2xl items-center justify-center"
+                        >
+                            <Ionicons name="arrow-back" size={24} color="#374151" />
+                        </TouchableOpacity>
+
+                        <View className="px-5 pt-1.5">
+                            <Text className="text-gray-800 font-bold text-xl mb-1">Project History</Text>
+                        </View>
+                    </View>
+
+                    <View>
+                        <AIButton onPress={() => setAIModalVisible(true)} />
                     </View>
                 </View>
 
@@ -361,6 +372,8 @@ const HistoryScreen = ({ navigation }) => {
                     </Text>
                 </View>
             )}
+
+            <AIAssistantWrapper isVisible={aiModalVisible} onClose={() => setAIModalVisible(false)} />
         </SafeAreaView>
     );
 };

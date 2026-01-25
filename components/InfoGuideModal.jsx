@@ -1,5 +1,4 @@
-import { View, Text, Modal, TouchableOpacity, StatusBar, ScrollView } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { View, Text, Modal, TouchableOpacity, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Markdown from '@ronradtke/react-native-markdown-display';
 
@@ -11,12 +10,8 @@ const InfoGuideModal = ({ isVisible, info, onClose }) => {
             animationType="slide"
             statusBarTranslucent
         >
-            <View className="flex-1 bg-black/40 justify-center items-center px-6">
-                <SafeAreaView>
-                    <StatusBar backgroundColor="rgba(0,0,0,0.4)" barStyle="light-content" />
-                </SafeAreaView>
-
-                <View className="bg-white w-[90%] max-w-[340px] max-h-[80%] rounded-3xl shadow-2xl">
+            <View className="flex-1 bg-black/20 justify-center items-center px-6">
+                <View className="bg-white w-[90%] max-w-[340px] max-h-[80%] rounded-3xl shadow-3xl">
                     {/* Header with close button */}
                     <View className="flex-row justify-between items-center px-5 pt-5 pb-3 bg-gray-50/50 border-b border-gray-100">
                         <Text className="text-lg font-semibold text-gray-900">Information</Text>

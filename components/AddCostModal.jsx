@@ -4,29 +4,55 @@ import { Ionicons } from '@expo/vector-icons';
 
 const AddCostModal = ({ visible, onClose, onAdd, parentPath, parentDescription, isCreatingNewSection = false }) => {
     const [description, setDescription] = useState('');
-    const [cost, setCost] = useState('');
+    // Store cost as integer cents, e.g. 1234 for RM12.34
+    const [costCents, setCostCents] = useState(0);
     const [sectionName, setSectionName] = useState('');
     const [errors, setErrors] = useState({ description: '', cost: '', sectionName: '' });
 
-    const formatCost = (value) => {
-        // Remove non-numeric characters except decimal point
-        const cleaned = value.replace(/[^0-9.]/g, '');
-
-        // Prevent multiple decimal points
-        const parts = cleaned.split('.');
-        if (parts.length > 2) {
-            return parts[0] + '.' + parts.slice(1).join('');
-        }
-
-        return cleaned;
+    // Format cents to currency string with thousand separators
+    const formatCurrency = (cents) => {
+        const value = (cents / 100).toFixed(2);
+        // Add thousand separators
+        const parts = value.split('.');
+        parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        return parts.join('.');
     };
 
+    // Handle digit input, always insert from right
     const handleCostChange = (value) => {
-        const formatted = formatCost(value);
-        setCost(formatted);
+        // Only allow digits
+        const digits = value.replace(/\D/g, '');
+        // If empty, reset to 0
+        let newCents = costCents;
+        if (digits.length === 0) {
+            newCents = 0;
+        } else {
+            // If user pasted, use all digits as new value
+            newCents = parseInt(digits, 10);
+        }
+        setCostCents(newCents);
         if (errors.cost) {
             setErrors(prev => ({ ...prev, cost: '' }));
         }
+    };
+
+    // Handle key press to insert from right
+    const handleCostKeyPress = (e) => {
+        const { key } = e.nativeEvent;
+        if (/\d/.test(key)) {
+            // Add digit to right
+            setCostCents(prev => {
+                const next = prev * 10 + parseInt(key, 10);
+                return next;
+            });
+            if (errors.cost) {
+                setErrors(prev => ({ ...prev, cost: '' }));
+            }
+        } else if (key === 'Backspace') {
+            setCostCents(prev => Math.floor(prev / 10));
+        }
+        // Prevent default input
+        e.preventDefault?.();
     };
 
     const validate = () => {
@@ -49,10 +75,10 @@ const AddCostModal = ({ visible, onClose, onAdd, parentPath, parentDescription, 
             isValid = false;
         }
 
-        if (!cost.trim()) {
+        if (costCents === 0) {
             newErrors.cost = 'Cost is required';
             isValid = false;
-        } else if (isNaN(parseFloat(cost)) || parseFloat(cost) <= 0) {
+        } else if ((costCents / 100) <= 0) {
             newErrors.cost = 'Please enter a valid cost amount';
             isValid = false;
         }
@@ -65,12 +91,12 @@ const AddCostModal = ({ visible, onClose, onAdd, parentPath, parentDescription, 
         if (validate()) {
             onAdd({
                 description: description.trim(),
-                cost: parseFloat(cost),
+                cost: costCents / 100,
                 sectionName: !parentPath ? sectionName.trim() : undefined
             });
             // Reset fields
             setDescription('');
-            setCost('');
+            setCostCents(0);
             setSectionName('');
             setErrors({ description: '', cost: '', sectionName: '' });
         }
@@ -78,7 +104,7 @@ const AddCostModal = ({ visible, onClose, onAdd, parentPath, parentDescription, 
 
     const handleCancel = () => {
         setDescription('');
-        setCost('');
+        setCostCents(0);
         setSectionName('');
         setErrors({ description: '', cost: '', sectionName: '' });
         onClose();
@@ -195,9 +221,11 @@ const AddCostModal = ({ visible, onClose, onAdd, parentPath, parentDescription, 
                                         className="flex-1 text-sm text-slate-800 font-semibold"
                                         placeholder="0.00"
                                         placeholderTextColor="#94A3B8"
-                                        value={cost}
+                                        value={formatCurrency(costCents)}
                                         onChangeText={handleCostChange}
-                                        keyboardType="decimal-pad"
+                                        onKeyPress={handleCostKeyPress}
+                                        keyboardType="number-pad"
+                                        maxLength={15}
                                     />
                                 </View>
                                 {errors.cost ? (

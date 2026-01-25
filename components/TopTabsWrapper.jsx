@@ -1,13 +1,17 @@
 import { View, Text, StatusBar, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useEffect } from 'react';
+import { useState } from 'react';
 
 import TabBar from './TabBar';
+import AIButton from './AIButton';
+import AIAssistantWrapper from './AIAssistantWrapper';
 
 const TopBar = createMaterialTopTabNavigator();
 
 const TopTabsWrapper = ({ title, tabs, params, onSubmit, criteriaTotalMarks = 0, mappedFormData, submitLoading, newProjectCosts, ...props }) => {
+    const [aiModalVisible, setAIModalVisible] = useState(false);
+    
     // Certification scale ranges
     const certifiedScaleRange = {
         'Platinum': [85, 100],
@@ -64,18 +68,15 @@ const TopTabsWrapper = ({ title, tabs, params, onSubmit, criteriaTotalMarks = 0,
 
     const isSubmitDisabled = !targetMet || isCostBreakdownEmpty;
     const pointsNeeded = (hasTargetRating && !targetMet) ? certifiedScaleRange[mappedFormData.certifiedRatingScale]?.[0] - criteriaTotalMarks : 0;
-
-    useEffect(() => {
-        // You can add any side effects here if needed
-        console.log(isSubmitDisabled);
-    }, []);
     
     return (
         <SafeAreaView className="flex-1 bg-gray-100">
             <StatusBar barStyle="dark-content" backgroundColor="#F9FAFB" />
 
-            <View className="px-6 pt-6 pb-2">
-                <Text className="text-gray-900 text-2xl font-bold mb-2">{title}</Text>
+            <View className="flex-row items-center justify-between px-6 pt-6 pb-4 w-full">
+                <Text className="text-gray-900 text-2xl font-bold">{title}</Text>
+
+                <AIButton onPress={() => setAIModalVisible(true)} />
             </View>
 
             <View className="flex-1">
@@ -211,6 +212,7 @@ const TopTabsWrapper = ({ title, tabs, params, onSubmit, criteriaTotalMarks = 0,
                     </TouchableOpacity>
                 </View>
             </View>
+            <AIAssistantWrapper isVisible={aiModalVisible} onClose={() => setAIModalVisible(false)} />
         </SafeAreaView>
     )
 }

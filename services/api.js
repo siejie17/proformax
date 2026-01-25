@@ -1,7 +1,7 @@
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const API_BASE_URL = "https://myproformax.com/api";
+const API_BASE_URL = "http://192.168.0.92:8000/api";
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -37,7 +37,7 @@ export const updateUserField = async (fieldName, fieldValue) => {
     const response = await api.patch('/user/profile', {
       [fieldName]: fieldValue
     });
-    console.log('User field update response:', response.data);
+
     return response;
   } catch (error) {
     throw error.response?.data || { message: `Failed to update ${fieldName}` };

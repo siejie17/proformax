@@ -12,75 +12,11 @@ import api from '../services/api';
 import FormInputField from '../components/FormInputField';
 import LoadingIndicator from '../components/LoadingIndicator';
 import SelectionItem from '../components/SelectionItem';
+import AIButton from '../components/AIButton';
+import AIAssistantWrapper from '../components/AIAssistantWrapper';
 
 const GBSCalculatorScreen = ({ navigation }) => {
-    const locationMapping = {
-        "Pulau Pinang": { code: "A" },
-        "Kedah": { code: "A" },
-        "Perlis": { code: "A" },
-        "Perak": { code: "B" },
-        "Selangor": { code: "C" },
-        "W.P. Kuala Lumpur": { code: "C" },
-        "Melaka": { code: "C" },
-        "Negeri Sembilan": { code: "C" },
-        "Johor": { code: "D" },
-        "Pahang": { code: "E" },
-        "Kelantan": { code: "F" },
-        "Terengganu": { code: "F" },
-
-        "Sabah": {
-            code: "Sabah",
-            regions: {
-                "Kota Kinabalu": "G",
-                "Sandakan": "H",
-                "Tawau": "I",
-            },
-        },
-        "Sarawak": {
-            code: "Sarawak",
-            regions: {
-                "Kuching": "J",
-                "Sibu": "K",
-                "Miri": "L",
-            },
-        },
-    };
-
-    const RNCStructures = [
-        "Single Storey (R.C.) Building",
-        "2-4 Storey (R.C.) Building (Flat Roof)",
-        "2-4 Storey (R.C.) Building (Pitched Roof)",
-        "5 Storey and Above (R.C.) Building (For Accommodation)"
-    ];
-
-    const NRNCBaseStructures = [
-        "5 Storey and Above (R.C.) Building (For Office)",
-        "Timber Building",
-        "Timber Piling",
-        "R.C. Piling"
-    ];
-
-    const NRNCSpecialCases = {
-        Sarawak: [...NRNCBaseStructures, "Single Storey Steel (Building)"],
-        Sabah: [
-            ...NRNCBaseStructures,
-            "Single Storey Steel (Building)",
-            "Single Storey Steel (Tower Only)"
-        ]
-    };
-
-    const structuresMapping = {
-        "Single Storey (R.C.) Building": "1",
-        "2-4 Storey (R.C.) Building (Flat Roof)": "2",
-        "2-4 Storey (R.C.) Building (Pitched Roof)": "3",
-        "5 Storey and Above (R.C.) Building (For Accommodation)": "4",
-        "5 Storey and Above (R.C.) Building (For Office)": "5",
-        "Timber Building": "6",
-        "Timber Piling": "7",
-        "R.C. Piling": "8",
-        "Single Storey Steel (Building)": "9",
-        "Single Storey Steel (Tower Only)": "10"
-    };
+    const scrollRef = useRef(null);
 
     const ratingScaleMapping = {
         "Platinum (86 - 100)": "Platinum",
@@ -97,8 +33,13 @@ const GBSCalculatorScreen = ({ navigation }) => {
     const [buildingTypes, setBuildingTypes] = useState([]);
     const [selectedBuildingType, setSelectedBuildingType] = useState(null);
     const [selectedCategory, setSelectedCategory] = useState(null);
+    const [mappedCategories, setMappedCategories] = useState(null);
+    const [mappedRegions, setMappedRegions] = useState(null);
+    const [mappedStructures, setMappedStructures] = useState(null);
     const [categories, setCategories] = useState([]);
     const [structures, setStructures] = useState([]);
+    const [states, setStates] = useState([]);
+    const [regions, setRegions] = useState([]);
 
     const [loading, setLoading] = useState(false);
 
@@ -127,6 +68,7 @@ const GBSCalculatorScreen = ({ navigation }) => {
     const [projectBudgetDisplay, setProjectBudgetDisplay] = useState("0"); // in cents
 
     const [activeSheet, setActiveSheet] = useState(null);
+    const [aiModalVisible, setAIModalVisible] = useState(false);
 
     // Error states for form validation
     const [errors, setErrors] = useState({
@@ -152,14 +94,18 @@ const GBSCalculatorScreen = ({ navigation }) => {
     const structureBottomSheetRef = useRef(null);
     const previewWayBottomSheetRef = useRef(null);
 
-    const snapPoints = useMemo(() => ['25%', '50%'], []);
+    const snapPoints = useMemo(() => ['10%'], []);
 
     useEffect(() => {
         const fetchCategories = async () => {
             try {
                 setLoading(true);
-                const response = await api.get('/categories');
-                setBuildingTypes(response.data);
+                const formInputFields = await api.get('/form-inputs');
+                setBuildingTypes(formInputFields.data.buildingTypes);
+                setMappedCategories(formInputFields.data.categories);
+                setStates(formInputFields.data.states);
+                setMappedRegions(formInputFields.data.regions);
+                setMappedStructures(formInputFields.data.structures);
             } catch (error) {
                 console.error('Error fetching categories:', error);
             } finally {
@@ -199,31 +145,34 @@ const GBSCalculatorScreen = ({ navigation }) => {
                 previewWay: '',
                 certifiedRatingScale: ''
             });
+            // Scroll to top when screen is focused
+            scrollRef.current?.scrollTo({ y: 0, animated: false });
         }, [])
     );
 
     // Update categories when building type changes
     useEffect(() => {
         if (selectedBuildingType) {
-            const bt = buildingTypes.find((b) => b.building_type === selectedBuildingType);
-            setCategories(bt ? bt.categories : []);
+            const categories = mappedCategories[selectedBuildingType];
+            setCategories(categories || []);
             setSelectedCategory(null); // reset category when type changes
         } else {
             setCategories([]);
         }
-    }, [selectedBuildingType]);
+    }, [selectedBuildingType, mappedCategories]);
 
     useEffect(() => {
         if (selectedBuildingType && selectedState) {
+            console.log(mappedStructures)
             if (selectedBuildingType === "Residential New Construction (RNC)") {
                 setSelectedStructure(null);
-                setStructures(RNCStructures);
+                setStructures(mappedStructures?.[selectedBuildingType]?.["ALL"] || []);
             } else if (selectedBuildingType === "Non-Residential New Construction (NRNC)") {
                 setSelectedStructure(null);
                 if (selectedState === "Sabah" || selectedState === "Sarawak") {
-                    setStructures(NRNCSpecialCases[selectedState]);
+                    setStructures(mappedStructures[selectedBuildingType][selectedState.toUpperCase()]);
                 } else {
-                    setStructures(NRNCBaseStructures);
+                    setStructures(mappedStructures[selectedBuildingType]["SMSIA"]);
                 }
             }
         } else {
@@ -231,6 +180,16 @@ const GBSCalculatorScreen = ({ navigation }) => {
             setStructures([]);
         }
     }, [selectedBuildingType, selectedState]);
+
+    useEffect(() => {
+        if (selectedState === "Sabah" || selectedState === "Sarawak") {
+            setSelectedRegion(null);
+            setRegions(mappedRegions[selectedState] || []);
+        } else {
+            setSelectedRegion(null);
+            setRegions([]);
+        }
+    }, [selectedState, mappedRegions]);
 
     const handleBuildingTypePress = useCallback(() => {
         Keyboard.dismiss();
@@ -250,7 +209,7 @@ const GBSCalculatorScreen = ({ navigation }) => {
         clearError('category');
         setActiveSheet('category');
         categoryBottomSheetRef.current?.snapToIndex(1);
-    }, []);
+    }, [categories]);
 
     const handleCategorySelect = useCallback((category) => {
         setSelectedCategory(category);
@@ -670,13 +629,17 @@ const GBSCalculatorScreen = ({ navigation }) => {
             <StatusBar barStyle="dark-content" backgroundColor="#F9FAFB" />
             <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
                 <GestureHandlerRootView className="flex-1">
-                    <View className="px-4 py-3 w-full">
+                    <View className="px-4 py-3 w-full flex-row items-center justify-between">
                         <TouchableOpacity
                             onPress={() => navigation.goBack()}
-                            className="size-10 mr-4 rounded-2xl items-center justify-center"
+                            className="size-10 rounded-2xl items-center justify-center"
                         >
                             <Ionicons name="arrow-back" size={24} color="#374151" />
                         </TouchableOpacity>
+
+                        <View className="items-end">
+                            <AIButton onPress={() => setAIModalVisible(true)} />
+                        </View>
                     </View>
 
                     <View className="px-6 pt-2 pb-6">
@@ -687,6 +650,7 @@ const GBSCalculatorScreen = ({ navigation }) => {
                     </View>
 
                     <ScrollView
+                        ref={scrollRef}
                         className="flex-1 px-4"
                         showsVerticalScrollIndicator={false}
                         keyboardShouldPersistTaps="handled"
@@ -766,7 +730,7 @@ const GBSCalculatorScreen = ({ navigation }) => {
                                 error={errors.state}
                             />
 
-                            {selectedState && locationMapping[selectedState]?.regions && (
+                            {selectedState && regions.length !== 0 && (
                                 <FormInputField
                                     label="Region"
                                     value={selectedRegion}
@@ -791,7 +755,7 @@ const GBSCalculatorScreen = ({ navigation }) => {
 
                             <FormInputField
                                 label="Cost Preview Way"
-                                value={previewWays[selectedPreviewWay] ?? ''}
+                                value={selectedPreviewWay ?? ''}
                                 placeholder="Select Cost Preview Way"
                                 showChevron={true}
                                 disabled={activeSheet && activeSheet !== 'previewWay'}
@@ -801,7 +765,7 @@ const GBSCalculatorScreen = ({ navigation }) => {
 
                             <FormInputField
                                 label="Target Certified Rating Scale"
-                                value={ratingScaleMapping[selectedCertifiedRatingScale]}
+                                value={selectedCertifiedRatingScale ?? ''}
                                 placeholder="Select Target Certified Rating Scale"
                                 showChevron={true}
                                 disabled={activeSheet && activeSheet !== 'ratingScale'}
@@ -822,16 +786,18 @@ const GBSCalculatorScreen = ({ navigation }) => {
                         </TouchableOpacity>
                     </View>
 
+                    <AIAssistantWrapper isVisible={aiModalVisible} onClose={() => setAIModalVisible(false)} />
+
                     {renderBottomSheet(
                         buildingTypeBottomSheetRef,
-                        buildingTypes.map((bt) => bt.building_type),
+                        buildingTypes,
                         selectedBuildingType,
                         handleBuildingTypeSelect,
                         "Building Type"
                     )}
                     {renderBottomSheet(
                         categoryBottomSheetRef,
-                        categories.map((cat) => cat.category),
+                        categories,
                         selectedCategory,
                         handleCategorySelect,
                         "Building Category"
@@ -845,14 +811,14 @@ const GBSCalculatorScreen = ({ navigation }) => {
                     )}
                     {renderBottomSheet(
                         stateBottomSheetRef,
-                        Object.keys(locationMapping),
+                        states,
                         selectedState,
                         handleStateSelect,
                         "State"
                     )}
                     {renderBottomSheet(
                         regionBottomSheetRef,
-                        Object.keys(locationMapping[selectedState]?.regions || {}),
+                        regions,
                         selectedRegion,
                         handleRegionSelect,
                         "Region"
