@@ -163,7 +163,6 @@ const GBSCalculatorScreen = ({ navigation }) => {
 
     useEffect(() => {
         if (selectedBuildingType && selectedState) {
-            console.log(mappedStructures)
             if (selectedBuildingType === "Residential New Construction (RNC)") {
                 setSelectedStructure(null);
                 setStructures(mappedStructures?.[selectedBuildingType]?.["ALL"] || []);

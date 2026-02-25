@@ -1,6 +1,6 @@
 import { createContext, useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { setAuthToken } from '../services/api';
+import { setAuthToken, setLogoutFunc } from '../services/api';
 
 export const AuthContext = createContext();
 
@@ -19,7 +19,9 @@ export const AuthProvider = ({ children }) => {
           setIsLoggedIn(true);
           if (storedUser) {
             setUser(JSON.parse(storedUser));
-          } 
+          }
+          // Ensure axios has the correct Authorization header
+          await setAuthToken();
         }
       } catch (error) {
         console.log('Error checking login status:', error);
@@ -48,6 +50,11 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
     setIsLoggedIn(false);
   };
+
+  // Register logout function for axios interceptor
+  useEffect(() => {
+    setLogoutFunc(logout);
+  }, []);
 
   const updateUser = async (userData) => {
     let userBefore = await AsyncStorage.getItem('user');

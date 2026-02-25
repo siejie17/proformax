@@ -11,6 +11,7 @@ import {
 
 import InfoGuideModal from '../components/InfoGuideModal';
 import SkeletonLoader from '../components/SkeletonLoader';
+import ThreeDItemUpdatedToast from '../components/ThreeDItemUpdatedToast';
 
 // This is the default configuration
 configureReanimatedLogger({
@@ -18,7 +19,7 @@ configureReanimatedLogger({
     strict: false, // Reanimated runs in strict mode by default
 });
 
-const GreenElementsScreen = ({ greenElements, setGreenElements = () => { }, criteriaTotalMarks, setCriteriaTotalMarks = () => { }, criteriaMarks, setCriteriaMarks = () => { }, checkedItems, setCheckedItems, checkedSubitems, setCheckedSubitems, customItems, setCustomItems, ...otherProps }) => {
+const GreenElementsScreen = ({ greenElements, setGreenElements = () => { }, criteriaTotalMarks, setCriteriaTotalMarks = () => { }, criteriaMarks, setCriteriaMarks = () => { }, checkedItems, setCheckedItems, checkedSubitems, setCheckedSubitems, customItems, setCustomItems, objectsConfig, visibleObjects, setVisibleObjects, user3DVisibility, setUser3DVisibility, ...otherProps }) => {
     const [criteria, setCriteria] = useState([]);
     const [currentCriteriaIndex, setCurrentCriteriaIndex] = useState(0);
     const [selectedCriterion, setSelectedCriterion] = useState(null);
@@ -36,6 +37,8 @@ const GreenElementsScreen = ({ greenElements, setGreenElements = () => { }, crit
     const [infoGuideText, setInfoGuideText] = useState('');
 
     const SCREEN_WIDTH = Dimensions.get('window').width;
+
+    const [showToast, setShowToast] = useState(false);
 
     const handleInfoGuideOpen = (text) => {
         setInfoGuideText(text);
@@ -73,9 +76,39 @@ const GreenElementsScreen = ({ greenElements, setGreenElements = () => { }, crit
         ]).start();
     }, [fadeAnim, slideAnim]);
 
+    const evaluateVisibility = (checkedItems, checkedSubitems) => {
+        const newVisibility = {};
+        const newUser3DVisibility = { ...user3DVisibility };
+
+        objectsConfig.forEach(obj => {
+            const visible = obj.triggers.some(trigger => {
+                if (trigger.trigger_type === 'ITEM') {
+                    return checkedItems[trigger.trigger_id] === true;
+                }
+                if (trigger.trigger_type === 'SUBITEM') {
+                    return checkedSubitems[trigger.trigger_id] === true;
+                }
+                return false;
+            });
+
+            newVisibility[obj.obj_name] = visible;
+            newUser3DVisibility[obj.name] = visible;
+        });
+
+        setVisibleObjects(newVisibility);
+        setUser3DVisibility(newUser3DVisibility);
+    }
+
     const handleCheckboxToggle = useCallback((itemId, parentId = null, itemData) => {
         // Add haptic feedback for checkbox interactions
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+
+        const hasRelated3DObject = objectsConfig.some(obj =>
+            obj.triggers.some(trigger =>
+                (trigger.trigger_type === 'ITEM' && trigger.trigger_id === itemId) ||
+                (trigger.trigger_type === 'SUBITEM' && trigger.trigger_id === itemId)
+            )
+        );
 
         if (itemData == "subitems") {
             // Use checkedSubitems for subitems checkbox state
@@ -188,6 +221,13 @@ const GreenElementsScreen = ({ greenElements, setGreenElements = () => { }, crit
                             [targetCriterion]: Math.max(0, currentMarks + marksDifference)
                         };
                     });
+                }
+
+                evaluateVisibility(checkedItems, Object.values(newCheckedState)[0]);
+
+                if (hasRelated3DObject) {
+                    setShowToast(true);
+                    setTimeout(() => setShowToast(false), 2000);
                 }
 
                 return newCheckedState;
@@ -334,6 +374,13 @@ const GreenElementsScreen = ({ greenElements, setGreenElements = () => { }, crit
                             };
                         }
                     });
+                }
+
+                evaluateVisibility(newCheckedState, checkedSubitems);
+
+                if (hasRelated3DObject) {
+                    setShowToast(true);
+                    setTimeout(() => setShowToast(false), 2000);
                 }
 
                 return newCheckedState;
@@ -1183,6 +1230,8 @@ const GreenElementsScreen = ({ greenElements, setGreenElements = () => { }, crit
                         info={infoGuideText}
                         onClose={() => setIsInfoGuideVisible(false)}
                     />
+
+                    <ThreeDItemUpdatedToast visible={showToast} />
                 </>
             )}
         </View>

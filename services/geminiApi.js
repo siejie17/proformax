@@ -1,7 +1,7 @@
 import { GoogleGenAI } from "@google/genai";
 
 const ai = new GoogleGenAI({
-  apiKey: "AIzaSyCe3KijuHaZtY1Jd05hps3AMjKaEWftXqU",
+  apiKey: process.env.EXPO_PUBLIC_GEMINI_API_KEY,
 });
 
 export const sendMessageToGemini = async (message) => {

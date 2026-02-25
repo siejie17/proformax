@@ -13,7 +13,33 @@ const HistoryTopTabs = ({ navigation, route }) => {
 
     const [selectedProject, setSelectedProject] = useState(null);
     const [greenElements, setGreenElements] = useState([]);
+    const [objectsConfig, setObjectsConfig] = useState([]);
+    const [user3DVisibility, setUser3DVisibility] = useState({});
+    const [visibleObjects, setVisibleObjects] = useState({});
     const [loading, setLoading] = useState(true);
+
+    const evaluateVisibility = (objCfg, checkedItems, checkedSubitems) => {
+        const newVisibility = {};
+        const newUser3DVisibility = { ...user3DVisibility };
+        
+        objCfg.forEach(obj => {
+            const visible = obj.triggers.some(trigger => {
+                if (trigger.trigger_type === 'ITEM') {
+                    return checkedItems.includes(trigger.trigger_id);
+                }
+                if (trigger.trigger_type === 'SUBITEM') {
+                    return checkedSubitems.includes(trigger.trigger_id);
+                }
+                return false;
+            });
+
+            newVisibility[obj.obj_name] = visible;
+            newUser3DVisibility[obj.name] = visible;
+        });
+
+        setVisibleObjects(newVisibility);
+        setUser3DVisibility(newUser3DVisibility);
+    }
 
     useEffect(() => {
         const fetchSelectedProject = async () => {
@@ -26,6 +52,15 @@ const HistoryTopTabs = ({ navigation, route }) => {
                     if (apiData.success) {
                         setSelectedProject(apiData.data);
                         setGreenElements(apiData.green_elements || []);
+
+                        const objectsCfg = apiData.three_d_objects;
+                        setObjectsConfig(objectsCfg);
+                        
+                        evaluateVisibility(
+                            objectsCfg, 
+                            apiData.data?.checked_items, 
+                            Object.values(apiData.data?.checked_subitems)
+                        );
                     }
                 } catch (error) {
                     console.error('Error fetching project:', error);
@@ -67,6 +102,10 @@ const HistoryTopTabs = ({ navigation, route }) => {
                     displayOnly={displayOnly}
                     selectedProject={selectedProject}
                     greenElements={greenElements}
+                    user3DVisibility={user3DVisibility}
+                    objectsConfig={objectsConfig}
+                    visibleObjects={visibleObjects}
+                    setVisibleObjects={setVisibleObjects}
                 />
             )}
         </>

@@ -20,6 +20,9 @@ const ResultsTopTabs = ({ navigation }) => {
 
     const [greenElements, setGreenElements] = useState([]);
     const [newProjectCosts, setNewProjectCosts] = useState({ cost_breakdown: {}, total_cost: 0 });
+    const [objectsConfig, setObjectsConfig] = useState([]);
+    const [user3DVisibility, setUser3DVisibility] = useState({});
+    const [visibleObjects, setVisibleObjects] = useState({});
     const [mappedFormData, setMappedFormData] = useState(null);
     const [criteriaMarks, setCriteriaMarks] = useState({});
     const [criteriaTotalMarks, setCriteriaTotalMarks] = useState(0);
@@ -346,6 +349,21 @@ const ResultsTopTabs = ({ navigation }) => {
                     const response = await api.post('/results', formData);
                     setGreenElements(response.data.green_elements);
                     setNewProjectCosts(response.data.cost || { cost_breakdown: {}, total_cost: 0 });
+                    setObjectsConfig(response.data.three_d_objects);
+
+                    const initialVisibility = {};
+                    response.data.three_d_objects.forEach(obj => {
+                        initialVisibility[obj.obj_name] = false; // default all to visible
+                    });
+                    setVisibleObjects(initialVisibility);
+
+                    const userVisibility = response.data.three_d_objects.reduce((acc, obj) => {
+                        acc[obj.name] = false;
+                        return acc;
+                    }, {});
+
+                    setUser3DVisibility(userVisibility);
+
                     setMappedFormData(response.data.mapped_form_data || null);
                 } catch (error) {
                     console.error("API Error:", error);
@@ -440,6 +458,11 @@ const ResultsTopTabs = ({ navigation }) => {
                     setCriteriaTotalMarks={wrappedSetCriteriaTotalMarks}
                     criteriaMarks={criteriaMarks}
                     setCriteriaMarks={setCriteriaMarks}
+                    objectsConfig={objectsConfig}
+                    user3DVisibility={user3DVisibility}
+                    setUser3DVisibility={setUser3DVisibility}
+                    visibleObjects={visibleObjects}
+                    setVisibleObjects={setVisibleObjects}
                     mappedFormData={mappedFormData}
                     checkedItems={checkedItems}
                     setCheckedItems={setCheckedItems}
