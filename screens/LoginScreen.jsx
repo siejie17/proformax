@@ -1,4 +1,4 @@
-import { View, Text, Image, KeyboardAvoidingView, TouchableOpacity, TouchableWithoutFeedback, Keyboard, Alert, StatusBar, ScrollView } from 'react-native';
+import { View, Text, Image, KeyboardAvoidingView, TouchableOpacity, TouchableWithoutFeedback, Keyboard, StatusBar, ScrollView } from 'react-native';
 import { useRef, useState, useContext } from 'react';
 import { TextInput as PaperTextInput } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
@@ -20,6 +20,7 @@ const LoginScreen = () => {
     const [showPassword, setShowPassword] = useState(false);
 
     const [isNotVerifiedYetModalVisible, setIsNotVerifiedYetModalVisible] = useState(false);
+    const [isSentModalVisible, setIsSentModalVisible] = useState(false);
 
     // Refs for the input fields
     const emailInputRef = useRef(null);
@@ -170,7 +171,7 @@ const LoginScreen = () => {
 
                             {/* Forgot password */}
                             <View className="w-full items-end mb-8">
-                                <TouchableOpacity onPress={() => navigation.navigate("ForgotPassword")}>
+                                <TouchableOpacity onPress={() => navigation.navigate("ForgotPassword", { setIsSentModalVisible: setIsSentModalVisible })}>
                                     <Text className="text-emerald-500 text-sm font-medium">
                                         Forgot your password?
                                     </Text>
@@ -196,6 +197,15 @@ const LoginScreen = () => {
                             title="Email Verification Required"
                             description="Your email isn't verified yet. Please check your inbox to continue."
                             onClose={() => setIsNotVerifiedYetModalVisible(false)}
+                            buttonText="Got it"
+                        />
+
+                        <MessageModal
+                            isVisible={isSentModalVisible}
+                            imgSource={require('../assets/auth/email-sent.png')}
+                            title="Password Reset Email Sent"
+                            description="Password reset instructions have been sent to your email."
+                            onClose={() => setIsSentModalVisible(false)}
                             buttonText="Got it"
                         />
                     </KeyboardAvoidingView>

@@ -5,7 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import CostNode from '../components/CostNode';
 import AddCostModal from '../components/AddCostModal';
 
-const CostBreakdownScreen = ({ route, navigation, newProjectCosts, setNewProjectCosts, mappedFormData, selectedProject = null, displayOnly = false }) => {
+const CostBreakdownScreen = ({ newProjectCosts, setNewProjectCosts, mappedFormData, selectedProject = null, displayOnly = false }) => {
     const projectCosts = newProjectCosts || { cost_breakdown: {}, total_cost: 0 };
     const initializedRef = useRef(false);
     const scrollViewRef = useRef(null);

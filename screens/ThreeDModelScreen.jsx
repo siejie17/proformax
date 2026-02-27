@@ -1,6 +1,6 @@
 import { ActivityIndicator, InteractionManager, Text, TouchableOpacity, View } from 'react-native';
-import { Suspense, useCallback, useEffect, useState } from 'react';
-import { OrbitControls, useGLTF } from '@react-three/drei/native';
+import { Suspense, useCallback, useState } from 'react';
+import { OrbitControls } from '@react-three/drei/native';
 import { Canvas } from '@react-three/fiber/native';
 
 import Model from '../src/components/Model';
@@ -39,7 +39,18 @@ const ThreeDModelScreen = ({ user3DVisibility, objectsConfig, visibleObjects, se
                             setVisibleObjects={setVisibleObjects}
                             onLoaded={() => setIsLoading(false)}
                         />
-                        <OrbitControls enablePan enableZoom enableRotate />
+                        <OrbitControls
+                            enablePan
+                            enableZoom
+                            enableRotate
+                            dampingFactor={0.08}
+                            autoRotate={false}
+                            minDistance={2}
+                            maxDistance={20}
+                            rotateSpeed={0.8}
+                            panSpeed={0.8}
+                            zoomSpeed={0.8}
+                        />
                     </Suspense>
                 </Canvas>
             )}

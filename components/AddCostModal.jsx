@@ -2,7 +2,7 @@ import { View, Text, Modal, TextInput, TouchableOpacity, KeyboardAvoidingView, P
 import { useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 
-const AddCostModal = ({ visible, onClose, onAdd, parentPath, parentDescription, isCreatingNewSection = false }) => {
+const AddCostModal = ({ visible, onClose, onAdd, parentPath, parentDescription }) => {
     const [description, setDescription] = useState('');
     // Store cost as integer cents, e.g. 1234 for RM12.34
     const [costCents, setCostCents] = useState(0);

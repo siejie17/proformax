@@ -1,6 +1,7 @@
 {
   "expo": {
     "name": "ProFormaX",
+    "owner": "proformax",
     "slug": "ProFormaX",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -30,7 +31,7 @@
     },
     "extra": {
       "eas": {
-        "projectId": "a9168505-9a40-48cb-97ba-8d06f62ffa3e"
+        "projectId": "42d43de3-f75a-4912-9993-acc3cdd1719e"
       }
     }
   }

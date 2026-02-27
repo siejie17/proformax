@@ -802,17 +802,18 @@ const GreenElementsScreen = ({ greenElements, setGreenElements = () => { }, crit
                 {/* Main Item Card */}
                 <View className="flex-row items-center py-4 px-5 bg-white rounded-2xl shadow-md border-2 border-gray-100">
                     {!hasSubitems && (
-                        <Animated.View style={{
-                            transform: [{ scale: checkedItems[item.id] ? 1.15 : 1.1 }]
-                        }}>
+                        <TouchableOpacity
+                            onPress={() => handleCheckboxToggle(item.id)}
+                            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                            activeOpacity={0.7}
+                        >
                             <Checkbox
                                 value={checkedItems[item.id] || false}
                                 onValueChange={() => handleCheckboxToggle(item.id)}
                                 color={checkedItems[item.id] ? '#10B981' : undefined}
                                 className="mr-3"
-                                style={{ transform: [{ scaleX: 0.8 }, { scaleY: 0.8 }] }}
                             />
-                        </Animated.View>
+                        </TouchableOpacity>
                     )}
 
                     <TouchableOpacity
@@ -833,24 +834,20 @@ const GreenElementsScreen = ({ greenElements, setGreenElements = () => { }, crit
 
                     <View className="flex-row items-center gap-2">
                         {item.marks && !hasSubitems && (
-                            <Animated.View style={{
-                                transform: [{ scale: checkedItems[item.id] ? 1.05 : 1 }]
-                            }}>
-                                <TouchableOpacity
-                                    onPress={() => handleCheckboxToggle(item.id)}
-                                    activeOpacity={0.7}
-                                    className={`px-3 py-1.5 rounded-xl shadow-sm ${checkedItems[item.id]
-                                        ? 'border-emerald-500 border bg-emerald-500'
-                                        : 'bg-emerald-50 border border-emerald-200'
-                                        }`}
-                                    style={{ minWidth: 50 }}
-                                >
-                                    <Text className={`text-xs font-bold text-center ${checkedItems[item.id] ? 'text-white' : 'text-emerald-700'
-                                        }`}>
-                                        {item.marks} pts
-                                    </Text>
-                                </TouchableOpacity>
-                            </Animated.View>
+                            <TouchableOpacity
+                                onPress={() => handleCheckboxToggle(item.id)}
+                                activeOpacity={0.7}
+                                className={`px-3 py-1.5 rounded-xl shadow-sm ${checkedItems[item.id]
+                                    ? 'border-emerald-500 border bg-emerald-500'
+                                    : 'bg-emerald-50 border border-emerald-200'
+                                    }`}
+                                style={{ minWidth: 50 }}
+                            >
+                                <Text className={`text-xs font-bold text-center ${checkedItems[item.id] ? 'text-white' : 'text-emerald-700'
+                                    }`}>
+                                    {item.marks} pts
+                                </Text>
+                            </TouchableOpacity>
                         )}
 
                         {item.info && (

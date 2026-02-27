@@ -15,17 +15,18 @@ export default function Model({ objectsConfig, visibleObjects, setVisibleObjects
     }
   );
 
-  // Notify parent when loaded
   useEffect(() => {
     if (onLoaded) onLoaded();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
+    if (!scene) return;
     scene.traverse((child) => {
-        child.visible = visibleObjects[child.name] !== undefined ? visibleObjects[child.name] : true;
+        if (child.isMesh) {
+          child.visible = visibleObjects[child.name] !== undefined ? visibleObjects[child.name] : true;
+        }
     });
-  }, [visibleObjects]);
+  }, [visibleObjects, scene]);
 
   return (
     <group ref={group} {...props} dispose={null}>
