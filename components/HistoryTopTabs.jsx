@@ -93,10 +93,10 @@ const HistoryTopTabs = ({ navigation, route }) => {
                             name: 'Green Elements',
                             component: GreenElementsDisplayScreen
                         },
-                        {
-                            name: '3D View',
-                            component: ThreeDModelScreen
-                        }
+                        // {
+                        //     name: '3D View',
+                        //     component: ThreeDModelScreen
+                        // }
                     ]}
                     navigation={navigation}
                     displayOnly={displayOnly}

@@ -349,7 +349,7 @@ const GreenElementsDisplayScreen = ({ greenElements, selectedProject, ...otherPr
                             <View className="mb-5">
                                 <View className="flex-row items-center mb-3">
                                     <View className="w-1 h-4 bg-amber-400 rounded-full mr-2" />
-                                    <Text className="text-gray-900 font-semibold text-[14px]">ESG Sarawak</Text>
+                                    <Text className="text-gray-900 font-semibold text-[13px]">Environmental, Social, and Governance (ESG) Sarawak</Text>
                                 </View>
                                 <Markdown
                                     style={{
@@ -389,7 +389,7 @@ const GreenElementsDisplayScreen = ({ greenElements, selectedProject, ...otherPr
                             <View className="flex-1">
                                 <View className="flex-row items-center mb-3">
                                     <View className="w-1 h-4 bg-amber-400 rounded-full mr-2" />
-                                    <Text className="text-gray-900 font-semibold text-[14px]">Suggestions</Text>
+                                    <Text className="text-gray-900 font-semibold text-[13px]">Materials & Suggestions</Text>
                                 </View>
                                 <Markdown
                                     style={{

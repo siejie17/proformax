@@ -166,6 +166,40 @@ const CostBreakdownScreen = ({ newProjectCosts, setNewProjectCosts, mappedFormDa
                     }
                 }
             });
+
+            // Check if parent node has no children left and delete parent if needed
+            if (Object.keys(current).length === 0 && keys.length > 1) {
+                // Navigate to parent and delete it
+                let parentCurrent = updatedProjectCosts.cost_breakdown;
+                for (let i = 0; i < keys.length - 2; i++) {
+                    parentCurrent = parentCurrent[keys[i]].children;
+                }
+                const parentKey = keys[keys.length - 2];
+                delete parentCurrent[parentKey];
+
+                // Rename parent's siblings if they were deleted from top level
+                if (keys.length === 2) {
+                    const topLevelEntries = Object.entries(updatedProjectCosts.cost_breakdown);
+                    const renamedBreakdown = {};
+                    topLevelEntries.forEach((entry, index) => {
+                        const newKey = String.fromCharCode(65 + index); // A, B, C, ...
+                        renamedBreakdown[newKey] = entry[1];
+                    });
+                    updatedProjectCosts.cost_breakdown = renamedBreakdown;
+                } else {
+                    // Rename siblings at the parent's level
+                    const siblingEntries = Object.entries(parentCurrent);
+                    siblingEntries.forEach((entry, index) => {
+                        const newKey = String(index + 1); // 1, 2, 3, ...
+                        if (newKey !== entry[0]) {
+                            parentCurrent[newKey] = entry[1];
+                            if (newKey !== entry[0]) {
+                                delete parentCurrent[entry[0]];
+                            }
+                        }
+                    });
+                }
+            }
         }
 
         // Recalculate all costs from top level

@@ -35,6 +35,8 @@ const ResultsTopTabs = ({ navigation }) => {
     });
     const [submitLoading, setSubmitLoading] = useState(false);
 
+    const [showCostUpdatedToast, setShowCostUpdatedToast] = useState(false);
+
     const [checkedItems, setCheckedItems] = useState({});
     const [checkedSubitems, setCheckedSubitems] = useState({});
     const [customItems, setCustomItems] = useState({});
@@ -42,6 +44,7 @@ const ResultsTopTabs = ({ navigation }) => {
     const [showBackModal, setShowBackModal] = useState(false);
     const [pendingAction, setPendingAction] = useState(null);
     const isNavigatingFromSubmissionRef = useRef(false);
+    const previousCertificationLevelRef = useRef(null);
 
     const certifiedScaleRange = {
         'Platinum': [85, 100],
@@ -134,6 +137,7 @@ const ResultsTopTabs = ({ navigation }) => {
                 multiplierPercent: multiplierPercent,
                 total_cost: baseTotal + multiplierCost
             };
+
             return updatedCosts;
         }
 
@@ -392,6 +396,16 @@ const ResultsTopTabs = ({ navigation }) => {
         const total = Object.values(criteriaMarks).reduce((sum, value) => sum + Number(value || 0), 0);
         setCriteriaTotalMarks(total);
 
+        // Check if certification level changed
+        const currentCertLevel = getCertificationLevel(total);
+        if (previousCertificationLevelRef.current !== null && 
+            previousCertificationLevelRef.current !== currentCertLevel && 
+            currentCertLevel !== 'Not Certified') {
+            setShowCostUpdatedToast(true);
+            setTimeout(() => setShowCostUpdatedToast(false), 2000);
+        }
+        previousCertificationLevelRef.current = currentCertLevel;
+
         // Apply certification multiplier to costs when criteria marks change
         if (newProjectCosts && setNewProjectCosts) {
             setNewProjectCosts(prevCosts => {
@@ -445,10 +459,10 @@ const ResultsTopTabs = ({ navigation }) => {
                             name: 'Green Elements',
                             component: GreenElementsScreen,
                         },
-                        {
-                            name: '3D View',
-                            component: ThreeDModelScreen
-                        }
+                        // {
+                        //     name: '3D View',
+                        //     component: ThreeDModelScreen
+                        // }
                     ]}
                     greenElements={greenElements}
                     setGreenElements={setGreenElements}
@@ -458,6 +472,8 @@ const ResultsTopTabs = ({ navigation }) => {
                     setCriteriaTotalMarks={wrappedSetCriteriaTotalMarks}
                     criteriaMarks={criteriaMarks}
                     setCriteriaMarks={setCriteriaMarks}
+                    showCostUpdatedToast={showCostUpdatedToast}
+                    setShowCostUpdatedToast={setShowCostUpdatedToast}
                     objectsConfig={objectsConfig}
                     user3DVisibility={user3DVisibility}
                     setUser3DVisibility={setUser3DVisibility}
