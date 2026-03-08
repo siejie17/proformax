@@ -250,7 +250,7 @@ const HistoryScreen = ({ navigation }) => {
                                             Budget
                                         </Text>
                                         <Text className="text-gray-800 text-xs font-bold">
-                                            RM {parseFloat(item.budget).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                                            {item.budget ? `RM ${parseFloat(item.budget).toLocaleString('en-US', { minimumFractionDigits: 2 })}` : 'N/A'}
                                         </Text>
                                     </View>
                                     <View className="flex-1">

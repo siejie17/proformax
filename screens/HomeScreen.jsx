@@ -56,6 +56,9 @@ const HomeScreen = () => {
                     setCurrentUser(apiData);
                 } catch (error) {
                     console.error('Error fetching current user:', error);
+
+                    await api.post('/logout');
+                    delete api.defaults.headers.common['Authorization'];
                 } finally {
                     setIsLoading(false);
                 }

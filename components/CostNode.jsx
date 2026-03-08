@@ -1,8 +1,19 @@
 import { View, Text, TextInput, TouchableOpacity, Animated, Modal } from 'react-native';
 import React, { useRef, useState } from 'react';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, Entypo } from '@expo/vector-icons';
 
 const CostNode = ({ code, node, level = 0, onCostChange, path, onDelete = () => {}, isDeleteMode = null, isAddMode = null, onAddCost = () => {}, highlightedItem = null, displayOnly }) => {
+    // Helper function to convert numeric code to letter for level 2
+    const getDisplayCode = () => {
+        if (level === 2) {
+            const numCode = parseInt(code);
+            if (!isNaN(numCode)) {
+                return String.fromCharCode(96 + numCode); // a = 1, b = 2, c = 3, etc.
+            }
+        }
+        return code;
+    };
+
     // Helper function to format number with thousands separators
     const formatWithCommas = (value) => {
         if (value === null || value === undefined || value === '') return '';
@@ -185,7 +196,7 @@ const CostNode = ({ code, node, level = 0, onCostChange, path, onDelete = () => 
                     {!isLocked && (
                         <View className="flex-row items-center gap-2 ml-2">
                             {/* Add Child Button for top-level items */}
-                            {isAddMode && hasChildren&& !displayOnly && (
+                            {isAddMode && hasChildren && !displayOnly && level < 2 && (
                                 <TouchableOpacity
                                     onPress={() => onAddCost(currentPath)}
                                     className="bg-emerald-50 border border-emerald-200 rounded-lg p-2 active:bg-emerald-100"
@@ -196,7 +207,7 @@ const CostNode = ({ code, node, level = 0, onCostChange, path, onDelete = () => 
                             )}
 
                             {/* Delete Button for top-level items */}
-                            {isDeleteMode && !displayOnly && (
+                            {isDeleteMode && !displayOnly && !hasChildren && (
                                 <TouchableOpacity
                                     onPress={handleDelete}
                                     className="bg-red-50 border border-red-200 rounded-lg p-2 active:bg-red-100"
@@ -251,20 +262,26 @@ const CostNode = ({ code, node, level = 0, onCostChange, path, onDelete = () => 
                     // Items with children - accordion
                     <>
                         <TouchableOpacity
-                            className="bg-blue-50/40 border-b border-slate-100"
+                            className={`border-b border-slate-100 ${level === 1 ? 'bg-blue-100/50 pr-2' : 'bg-blue-50/40'}`}
                             onPress={toggleExpanded}
                             activeOpacity={0.7}
                         >
-                            <View className="px-5 py-3.5 flex-row items-center justify-between">
+                            <View className={`py-3.5 flex-row items-center justify-between ${level === 1 ? 'px-5' : 'px-5'}`}>
                                 <View className="flex-row items-center flex-1 mr-3">
-                                    <Animated.View
-                                        className="w-6 h-6 rounded-lg bg-blue-100 items-center justify-center mr-2.5"
-                                        style={{ transform: [{ rotate: rotateInterpolate }] }}
-                                    >
-                                        <Ionicons name="chevron-forward" size={13} color="#3b82f6" />
-                                    </Animated.View>
+                                    {level === 2 ? (
+                                        <View className="w-5 mr-2.5 items-center justify-center">
+                                            <Entypo name="level-down" size={10} color="#000000" />
+                                        </View>
+                                    ) : (
+                                        <Animated.View
+                                            className="w-6 h-6 rounded-lg bg-blue-100 items-center justify-center mr-2.5"
+                                            style={{ transform: [{ rotate: rotateInterpolate }] }}
+                                        >
+                                            <Ionicons name="chevron-forward" size={13} color="#3b82f6" />
+                                        </Animated.View>
+                                    )}
                                     <Text className="text-slate-700 font-semibold text-[11px] leading-4 flex-1" numberOfLines={2}>
-                                        {code}. {node.description || 'No description'}
+                                        {level === 2 ? `${getDisplayCode()}. ` : `${code}. `}{node.description || 'No description'}
                                     </Text>
                                 </View>
                                 <View className="bg-blue-50 rounded-lg px-2.5 py-1.5 min-w-[85px]">
@@ -274,7 +291,7 @@ const CostNode = ({ code, node, level = 0, onCostChange, path, onDelete = () => 
                                 </View>
 
                                 {/* Add Child Button */}
-                                {isAddMode && hasChildren && !displayOnly && (
+                                {isAddMode && hasChildren && !displayOnly && level < 2 && (
                                     <TouchableOpacity
                                         onPress={() => onAddCost(currentPath)}
                                         className="bg-emerald-50 border border-emerald-200 rounded-lg p-2 active:bg-emerald-100"
@@ -285,7 +302,7 @@ const CostNode = ({ code, node, level = 0, onCostChange, path, onDelete = () => 
                                 )}
 
                                 {/* Delete Button */}
-                                {isDeleteMode && !displayOnly && (
+                                {isDeleteMode && !displayOnly && !hasChildren && (
                                     <TouchableOpacity
                                         onPress={handleDelete}
                                         className="bg-red-50 border border-red-200 rounded-lg p-2 active:bg-red-100"
@@ -329,14 +346,21 @@ const CostNode = ({ code, node, level = 0, onCostChange, path, onDelete = () => 
                 ) : (
                     // Regular table row for items without children (innermost items - can be deleted)
                     <Animated.View
-                        className={`px-5 py-3.5 flex-row items-center justify-between border-b border-slate-50 ${level > 1 ? 'pl-14 bg-slate-50/30' : 'bg-white'}`}
+                        className={`py-3.5 flex-row items-center justify-between border-b border-slate-100 ${level === 1 ? 'px-6 bg-blue-50/60 pl-8' : level > 1 ? 'px-5 pl-14 bg-slate-50/40' : 'px-5 bg-white'}`}
                         style={{
                             backgroundColor: isHighlighted ? highlightBackgroundColor : undefined
                         }}
                     >
-                        <Text className={`flex-1 mr-3 leading-4 ${level > 1 ? 'text-slate-500 text-[10px]' : 'text-slate-600 text-[11px]'} font-medium`} numberOfLines={2}>
-                            {code}. {node.description || 'No description'}
-                        </Text>
+                        <View className="flex-row items-center flex-1 mr-3">
+                            {level === 2 && (
+                                <View className="w-5 mr-2 items-center justify-center">
+                                    <Entypo name="level-down" size={10} color="#000000" />
+                                </View>
+                            )}
+                            <Text className={`flex-1 leading-4 ${level > 1 ? 'text-slate-500 text-[10px]' : level === 1 ? 'text-blue-700 text-[10px] font-semibold' : 'text-slate-600 text-[11px]'} font-medium`} numberOfLines={2}>
+                                {level === 2 ? `${getDisplayCode()}. ` : `${code}. `}{node.description || 'No description'}
+                            </Text>
+                        </View>
 
                         <View className="flex-row items-center gap-2">
                             {/* Input Field or Display Only */}
@@ -364,6 +388,17 @@ const CostNode = ({ code, node, level = 0, onCostChange, path, onDelete = () => 
                                         placeholderTextColor="#94a3b8"
                                     />
                                 </View>
+                            )}
+
+                            {/* Add Child Button */}
+                            {isAddMode && !displayOnly && level < 2 && (
+                                <TouchableOpacity
+                                    onPress={() => onAddCost(currentPath)}
+                                    className="bg-emerald-50 border border-emerald-200 rounded-lg p-2 active:bg-emerald-100"
+                                    activeOpacity={0.7}
+                                >
+                                    <Ionicons name="add" size={14} color="#059669" />
+                                </TouchableOpacity>
                             )}
 
                             {/* Delete Button */}

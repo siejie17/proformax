@@ -155,11 +155,11 @@ const TopTabsWrapper = ({ title, tabs, params, onSubmit, criteriaTotalMarks = 0,
                                         <Text className="text-white text-xs font-bold">✓</Text>
                                     </View>
                                     <Text className="text-emerald-700 text-[10px] font-semibold">
-                                        Target Achieved
+                                        Target Reached
                                     </Text>
                                 </View>
-                                <Text className="text-emerald-600 text-[9px]">
-                                    {mappedFormData.certifiedRatingScale} reached
+                                <Text className="text-emerald-600 text-[9px] font-medium">
+                                    Check each criterion meets minimum points
                                 </Text>
                             </View>
                         </View>

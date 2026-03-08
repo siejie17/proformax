@@ -52,11 +52,11 @@ const ProjectDetailsScreen = ({ selectedProject }) => {
 
                 <DisplayField
                     label="Project Budget"
-                    value={`RM ` +
+                    value={selectedProject?.budget ? `RM ` +
                         parseFloat(selectedProject?.budget).toLocaleString('en-US', {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2
-                        })
+                        }) : 'Not Available'
                     }
                 />
 
@@ -73,6 +73,11 @@ const ProjectDetailsScreen = ({ selectedProject }) => {
                 <DisplayField
                     label="Structure"
                     value={selectedProject?.structure}
+                />
+
+                <DisplayField
+                    label="Targeted Certification Scale"
+                    value={selectedProject?.target_certification}
                 />
 
                 <DisplayField

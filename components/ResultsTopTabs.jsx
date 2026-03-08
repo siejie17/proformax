@@ -302,7 +302,9 @@ const ResultsTopTabs = ({ navigation }) => {
             checked_items: checked_items,
         };
 
-        const response = await api.post('/submit-assessment', projectData);
+        // console.log("Submitting costs data:", JSON.stringify(projectData.costs, null, 2));
+
+        const response = await api.post('/v2/submit-assessment', projectData);
 
         if (response.status === 201) {
             setValidationModal({
@@ -350,18 +352,18 @@ const ResultsTopTabs = ({ navigation }) => {
             setLoading(true);
             if (formData) {
                 try {
-                    const response = await api.post('/results', formData);
-                    setGreenElements(response.data.green_elements);
+                    const response = await api.post('/v2/results', formData);
+                    setGreenElements(response.data.green_elements || []);
                     setNewProjectCosts(response.data.cost || { cost_breakdown: {}, total_cost: 0 });
-                    setObjectsConfig(response.data.three_d_objects);
+                    setObjectsConfig(response.data.three_d_objects || []);
 
                     const initialVisibility = {};
-                    response.data.three_d_objects.forEach(obj => {
+                    (response.data.three_d_objects || []).forEach(obj => {
                         initialVisibility[obj.obj_name] = false; // default all to visible
                     });
                     setVisibleObjects(initialVisibility);
 
-                    const userVisibility = response.data.three_d_objects.reduce((acc, obj) => {
+                    const userVisibility = (response.data.three_d_objects || []).reduce((acc, obj) => {
                         acc[obj.name] = false;
                         return acc;
                     }, {});

@@ -15,6 +15,28 @@ const CostBreakdownScreen = ({ newProjectCosts, setNewProjectCosts, mappedFormDa
     const [highlightedItem, setHighlightedItem] = useState(null);
     const [modalParentPath, setModalParentPath] = useState(null);
 
+    // Helper function to get node description from nested path
+    const getNodeDescriptionFromPath = (path) => {
+        if (!path || path === 'OTHERS_NEW') return 'OTHERS';
+        
+        const keys = path.split('.');
+        let current = projectCosts.cost_breakdown;
+        
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            if (!current || !current[key]) return null;
+            
+            current = current[key];
+            
+            // If not the last key, navigate to children
+            if (i < keys.length - 1) {
+                current = current.children;
+            }
+        }
+        
+        return current?.description || null;
+    };
+
     // Get budget from mappedFormData (adjust the property name based on your data structure)
     const projectBudget = mappedFormData?.projectBudget || parseFloat(selectedProject?.budget) || 0;
     const totalCost = displayOnly ? (selectedProject?.adjusted_cost || 0) : (projectCosts?.total_cost || 0);
@@ -23,43 +45,6 @@ const CostBreakdownScreen = ({ newProjectCosts, setNewProjectCosts, mappedFormDa
     const isOverBudget = projectBudget > 0 && totalCost > projectBudget;
     const budgetDifference = Math.abs(totalCost - projectBudget);
     const budgetPercentage = projectBudget > 0 ? ((totalCost / projectBudget) * 100).toFixed(1) : 0;
-
-    // Reverse-engineer multiplier cost for Simplified view (display only)
-    const getSimplifiedMultiplierInfo = () => {
-        if (!displayOnly || selectedProject?.cost_preview_way !== 'Simplified' || !selectedProject?.adjusted_cost) {
-            return null;
-        }
-
-        const adjustedCost = parseFloat(selectedProject.adjusted_cost);
-        const certificationMultipliers = [
-            { level: 'Certified', multiplier: 1.87 },
-            { level: 'Silver', multiplier: 2.97 },
-            { level: 'Gold', multiplier: 4.54 },
-            { level: 'Platinum', multiplier: 8.7 }
-        ];
-
-        // Try to reverse-engineer: baseCost = adjustedCost / (1 + multiplier/100)
-        // Check in order from smallest to largest multiplier for better accuracy
-        for (const { level, multiplier } of certificationMultipliers) {
-            const baseCost = adjustedCost / (1 + multiplier / 100);
-            const calculatedAdjusted = baseCost * (1 + multiplier / 100);
-            
-            // Check if this matches (with small tolerance for rounding)
-            if (Math.abs(calculatedAdjusted - adjustedCost) < 1) {
-                const multiplierCost = adjustedCost - baseCost;
-                return {
-                    certificationLevel: level,
-                    multiplierPercent: multiplier,
-                    baseCost: baseCost,
-                    multiplierCost: multiplierCost
-                };
-            }
-        }
-
-        return null;
-    };
-
-    const simplifiedMultiplierInfo = getSimplifiedMultiplierInfo();
 
     const recalculateCosts = (node) => {
         if (!node || !node.children) return node?.cost ?? 0;
@@ -246,6 +231,16 @@ const CostBreakdownScreen = ({ newProjectCosts, setNewProjectCosts, mappedFormDa
                 // Initialize children if not exists
                 if (!parentNode.children) {
                     parentNode.children = {};
+                    
+                    // If parent has a direct cost and we're creating the first child,
+                    // move the parent's cost to the first child
+                    if (parentNode.cost && parentNode.cost > 0) {
+                        parentNode.children['1'] = {
+                            description: parentNode.description + ' (Direct)',
+                            cost: parentNode.cost
+                        };
+                        parentNode.cost = 0;
+                    }
                 }
 
                 // Find next numeric key
@@ -275,6 +270,16 @@ const CostBreakdownScreen = ({ newProjectCosts, setNewProjectCosts, mappedFormDa
                 // Initialize children if not exists
                 if (!current.children) {
                     current.children = {};
+                    
+                    // If current node has a direct cost and we're creating the first child,
+                    // move the node's cost to the first child
+                    if (current.cost && current.cost > 0) {
+                        current.children['1'] = {
+                            description: current.description + ' (Direct)',
+                            cost: current.cost
+                        };
+                        current.cost = 0;
+                    }
                 }
 
                 // Find next numeric key
@@ -408,11 +413,7 @@ const CostBreakdownScreen = ({ newProjectCosts, setNewProjectCosts, mappedFormDa
                 }}
                 onAdd={handleAddCostSubmit}
                 parentPath={modalParentPath}
-                parentDescription={
-                    modalParentPath && modalParentPath !== 'OTHERS_NEW'
-                        ? projectCosts.cost_breakdown?.[modalParentPath]?.description
-                        : 'OTHERS'
-                }
+                parentDescription={getNodeDescriptionFromPath(modalParentPath)}
             />
 
             {/* Header Section */}
@@ -466,7 +467,7 @@ const CostBreakdownScreen = ({ newProjectCosts, setNewProjectCosts, mappedFormDa
                     </View>
 
                     {/* Budget Indicator */}
-                    {projectBudget > 0 && (
+                    {(mappedFormData?.projectBudget || selectedProject?.budget) && (
                         <View className={`rounded-2xl p-2.5 px-4 mt-3 flex-row items-center justify-between ${isOverBudget ? 'bg-red-500/20' : 'bg-emerald-500/20'
                             }`}>
                             <View className="flex-row items-center flex-1">
@@ -501,60 +502,6 @@ const CostBreakdownScreen = ({ newProjectCosts, setNewProjectCosts, mappedFormDa
                                 </Text>
                                 <Text className="text-slate-400 text-[9px]">
                                     {budgetPercentage}%
-                                </Text>
-                            </View>
-                        </View>
-                    )}
-
-                    {/* Certification Multiplier for Simplified */}
-                    {mappedFormData?.costPreviewWay === 'Simplified' && projectCosts.multiplierCost && projectCosts.multiplierCost > 0 && (
-                        <View className="rounded-2xl p-2.5 px-4 mt-3 flex-row items-center justify-between bg-amber-500/20">
-                            <View className="flex-row items-center flex-1">
-                                <View className="w-6 h-6 rounded-lg items-center justify-center mr-2 bg-amber-500">
-                                    <Ionicons name="star" size={14} color="#FFFFFF" />
-                                </View>
-                                <View className="flex-1">
-                                    <Text className="font-bold text-[10px] text-amber-300">
-                                        {projectCosts.certificationLevel} Certification
-                                    </Text>
-                                    <Text className="text-slate-300 text-[9px]">
-                                        +{projectCosts.multiplierPercent}% multiplier applied
-                                    </Text>
-                                </View>
-                            </View>
-                            <View className="items-end">
-                                <Text className="font-bold text-xs text-amber-300">
-                                    +RM {projectCosts.multiplierCost.toLocaleString('en-US', {
-                                        minimumFractionDigits: 2,
-                                        maximumFractionDigits: 2
-                                    })}
-                                </Text>
-                            </View>
-                        </View>
-                    )}
-
-                    {/* Certification Multiplier for Simplified (Display Only - Reverse Engineered) */}
-                    {selectedProject?.cost_preview_way === 'Simplified' && simplifiedMultiplierInfo && simplifiedMultiplierInfo.multiplierCost > 0 && (
-                        <View className="rounded-2xl p-2.5 px-4 mt-3 flex-row items-center justify-between bg-amber-500/20">
-                            <View className="flex-row items-center flex-1">
-                                <View className="w-6 h-6 rounded-lg items-center justify-center mr-2 bg-amber-500">
-                                    <Ionicons name="star" size={14} color="#FFFFFF" />
-                                </View>
-                                <View className="flex-1">
-                                    <Text className="font-bold text-[10px] text-amber-300">
-                                        {simplifiedMultiplierInfo.certificationLevel} Certification
-                                    </Text>
-                                    <Text className="text-slate-300 text-[9px]">
-                                        +{simplifiedMultiplierInfo.multiplierPercent}% multiplier applied
-                                    </Text>
-                                </View>
-                            </View>
-                            <View className="items-end">
-                                <Text className="font-bold text-xs text-amber-300">
-                                    +RM {simplifiedMultiplierInfo.multiplierCost.toLocaleString('en-US', {
-                                        minimumFractionDigits: 2,
-                                        maximumFractionDigits: 2
-                                    })}
                                 </Text>
                             </View>
                         </View>

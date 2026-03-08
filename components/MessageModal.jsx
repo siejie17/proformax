@@ -27,7 +27,8 @@ const MessageModal = ({ isVisible, imgSource, title, description, subtitle, onCl
                             </Text>
                         </View>
                     ) : null}
-                    {description ? <Text className="text-gray-600 text-[16px] mb-7 text-center">{description}</Text> : null}
+                    {description ? 
+                        <Text className="text-gray-600 text-[16px] mb-7 text-center">{description}</Text> : null}
                     <TouchableOpacity 
                         onPress={onClose} 
                         className="bg-green-500 rounded-lg py-4 px-6 w-full items-center"
@@ -39,7 +40,7 @@ const MessageModal = ({ isVisible, imgSource, title, description, subtitle, onCl
                             onPress={() => setModalVisible(false)} 
                             className="bg-gray-300 rounded-lg py-4 px-6 w-full items-center mt-4"
                         >
-                            <Text className="text-slate-700 text-center font-semibold">Go Back</Text>
+                            <Text className="text-slate-700 text-center font-semibold">Cancel</Text>
                         </TouchableOpacity>
                     )}
                 </View>

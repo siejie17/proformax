@@ -69,6 +69,9 @@ const LoginScreen = () => {
         } catch (err) {
             // Try to extract field errors from response
             const message = err.response?.data?.message || 'Network or server error';
+
+            await api.post('/logout');
+            delete api.defaults.headers.common['Authorization'];
             let emailFieldError = '';
             let passwordFieldError = '';
 

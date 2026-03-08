@@ -22,12 +22,8 @@ const GBSCalculatorScreen = ({ navigation }) => {
         "Platinum (86 - 100)": "Platinum",
         "Gold (76 - 85)": "Gold",
         "Silver (66 - 75)": "Silver",
-        "Certified (50 - 65)": "Certified"
-    };
-
-    const previewWays = {
-        "Simplified (fast, general cost overview)": "Simplified",
-        "Detailed (thorough, itemized cost breakdown)": "Detailed"
+        "Certified (50 - 65)": "Certified",
+        "Not Certified (0 - 49)": "Not Certified"
     };
 
     const [buildingTypes, setBuildingTypes] = useState([]);
@@ -61,11 +57,10 @@ const GBSCalculatorScreen = ({ navigation }) => {
     const [selectedState, setSelectedState] = useState(null);
     const [selectedRegion, setSelectedRegion] = useState(null);
     const [selectedStructure, setSelectedStructure] = useState(null);
-    const [selectedPreviewWay, setSelectedPreviewWay] = useState(null);
     const [selectedCertifiedRatingScale, setSelectedCertifiedRatingScale] = useState(null);
 
     const [buildingSizeDisplay, setBuildingSizeDisplay] = useState('');
-    const [projectBudgetDisplay, setProjectBudgetDisplay] = useState("0"); // in cents
+    const [projectBudgetDisplay, setProjectBudgetDisplay] = useState(""); // in cents
 
     const [activeSheet, setActiveSheet] = useState(null);
     const [aiModalVisible, setAIModalVisible] = useState(false);
@@ -81,7 +76,6 @@ const GBSCalculatorScreen = ({ navigation }) => {
         state: '',
         region: '',
         structure: '',
-        previewWay: '',
         certifiedRatingScale: ''
     });
 
@@ -92,7 +86,6 @@ const GBSCalculatorScreen = ({ navigation }) => {
     const regionBottomSheetRef = useRef(null);
     const ratingScaleBottomSheetRef = useRef(null);
     const structureBottomSheetRef = useRef(null);
-    const previewWayBottomSheetRef = useRef(null);
 
     const snapPoints = useMemo(() => ['10%'], []);
 
@@ -128,10 +121,9 @@ const GBSCalculatorScreen = ({ navigation }) => {
             setSelectedState(null);
             setSelectedRegion(null);
             setSelectedStructure(null);
-            setSelectedPreviewWay(null);
             setSelectedCertifiedRatingScale(null);
             setBuildingSizeDisplay('');
-            setProjectBudgetDisplay('0');
+            setProjectBudgetDisplay('');
             setErrors({
                 projectName: '',
                 buildingType: '',
@@ -142,7 +134,6 @@ const GBSCalculatorScreen = ({ navigation }) => {
                 state: '',
                 region: '',
                 structure: '',
-                previewWay: '',
                 certifiedRatingScale: ''
             });
             // Scroll to top when screen is focused
@@ -268,19 +259,6 @@ const GBSCalculatorScreen = ({ navigation }) => {
         structureBottomSheetRef.current?.close();
     }, []);
 
-    const handlePreviewWayPress = useCallback(() => {
-        Keyboard.dismiss();
-        clearError('previewWay');
-        setActiveSheet('previewWay');
-        previewWayBottomSheetRef.current?.snapToIndex(1);
-    }, []);
-
-    const handlePreviewWaySelect = useCallback((previewWay) => {
-        setSelectedPreviewWay(previewWay);
-        clearError('previewWay');
-        previewWayBottomSheetRef.current?.close();
-    }, []);
-
     const handleRatingPress = useCallback(() => {
         Keyboard.dismiss();
         clearError('certifiedRatingScale');
@@ -371,9 +349,6 @@ const GBSCalculatorScreen = ({ navigation }) => {
                     break;
                 case 'structure':
                     structureBottomSheetRef.current?.close();
-                    break;
-                case 'previewWay':
-                    previewWayBottomSheetRef.current?.close();
                     break;
                 case 'ratingScale':
                     ratingScaleBottomSheetRef.current?.close();
@@ -520,6 +495,22 @@ const GBSCalculatorScreen = ({ navigation }) => {
         setProjectBudget(parseFloat(formatted)); // store decimal in state
     };
 
+    const handleBudgetFocus = () => {
+        closeActiveBottomSheet();
+        // Show 0.00 on focus if field is empty
+        if (projectBudgetDisplay === "") {
+            setProjectBudgetDisplay("0");
+        }
+    };
+
+    const handleBudgetBlur = () => {
+        // Reset to empty if value is still 0.00
+        if (projectBudgetDisplay === "0" || formatCurrency(projectBudgetDisplay) === "0.00") {
+            setProjectBudgetDisplay("");
+            setProjectBudget(0.00);
+        }
+    };
+
     const validateForm = () => {
         const newErrors = {
             projectName: '',
@@ -531,7 +522,6 @@ const GBSCalculatorScreen = ({ navigation }) => {
             state: '',
             region: '',
             structure: '',
-            previewWay: '',
             certifiedRatingScale: ''
         };
 
@@ -560,9 +550,9 @@ const GBSCalculatorScreen = ({ navigation }) => {
             newErrors.buildingSize = 'Please enter a valid building size';
         }
 
-        // Validate project budget
-        if (!projectBudget || projectBudget <= 0) {
-            newErrors.projectBudget = 'Please enter a valid project budget';
+        // Validate project budget - allow 0 or null (system will predict), but not negative
+        if (projectBudget < 0) {
+            newErrors.projectBudget = 'Project budget cannot be negative';
         }
 
         // Validate state
@@ -578,10 +568,6 @@ const GBSCalculatorScreen = ({ navigation }) => {
         // Validate structure
         if (!selectedStructure) {
             newErrors.structure = 'Please select a structure';
-        }
-
-        if (!selectedPreviewWay) {
-            newErrors.previewWay = 'Please select a cost preview way';
         }
 
         // Validate certified rating scale
@@ -606,12 +592,12 @@ const GBSCalculatorScreen = ({ navigation }) => {
             category: selectedCategory,
             year: selectedYear,
             buildingSize: buildingSize,
-            projectBudget: projectBudget,
+            projectBudget: projectBudget > 0 ? projectBudget : null,
             state: selectedState,
             region: selectedRegion || '',
             structure: selectedStructure,
-            certifiedRatingScale: selectedCertifiedRatingScale,
-            costPreviewWay: previewWays[selectedPreviewWay]
+            costPreviewWay: "Detailed",
+            certifiedRatingScale: selectedCertifiedRatingScale
         };
 
         navigation.navigate('Results', { formData });
@@ -700,13 +686,15 @@ const GBSCalculatorScreen = ({ navigation }) => {
 
                             <FormInputField
                                 label="Project/Building Budget (in RM)"
-                                value={formatCurrency(projectBudgetDisplay)}
-                                placeholder="Enter Project/Building Budget"
+                                value={projectBudgetDisplay === "" ? "" : formatCurrency(projectBudgetDisplay)}
+                                placeholder="Enter budget or leave empty"
                                 onChangeText={handleCurrencyInput}
-                                onFocus={closeActiveBottomSheet}
+                                onFocus={handleBudgetFocus}
+                                onBlur={handleBudgetBlur}
                                 keyboardType="numeric"
                                 inputMode="numeric"
                                 error={errors.projectBudget}
+                                required={false}
                             />
 
                             <FormInputField
@@ -750,16 +738,6 @@ const GBSCalculatorScreen = ({ navigation }) => {
                                 onPress={handleStructurePress}
                                 onDisabledPress={handleDisabledStructurePress}
                                 error={errors.structure}
-                            />
-
-                            <FormInputField
-                                label="Cost Preview Way"
-                                value={selectedPreviewWay ?? ''}
-                                placeholder="Select Cost Preview Way"
-                                showChevron={true}
-                                disabled={activeSheet && activeSheet !== 'previewWay'}
-                                onPress={handlePreviewWayPress}
-                                error={errors.previewWay}
                             />
 
                             <FormInputField
@@ -828,13 +806,6 @@ const GBSCalculatorScreen = ({ navigation }) => {
                         selectedStructure,
                         handleStructureSelect,
                         "Structure"
-                    )}
-                    {renderBottomSheet(
-                        previewWayBottomSheetRef,
-                        Object.keys(previewWays),
-                        selectedPreviewWay,
-                        handlePreviewWaySelect,
-                        "Cost Preview Way"
                     )}
                     {renderBottomSheet(
                         ratingScaleBottomSheetRef,

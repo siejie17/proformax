@@ -46,7 +46,7 @@ const HistoryTopTabs = ({ navigation, route }) => {
             if (projectId) {
                 try {
                     setLoading(true);
-                    const response = await api.get(`/projects/${projectId}`);
+                    const response = await api.get(`/v2/projects/${projectId}`);
                     const apiData = response.data;
 
                     if (apiData.success) {
