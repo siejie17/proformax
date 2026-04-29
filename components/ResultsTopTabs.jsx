@@ -2,14 +2,14 @@ import { useRoute } from '@react-navigation/native';
 import { useEffect, useState, useCallback, useContext, useRef } from 'react';
 import { BackHandler } from 'react-native';
 
-import ThreeDModelScreen from '../screens/ThreeDModelScreen';
-import CostBreakdownScreen from '../screens/CostBreakdownScreen';
-import GreenElementsScreen from '../screens/GreenElementsScreen';
 import LoadingIndicator from './LoadingIndicator';
 import TopTabsWrapper from './TopTabsWrapper';
 import MessageModal from './MessageModal';
+import CostBreakdownScreen from '../screens/CostBreakdownScreen';
+import GreenElementsScreen from '../screens/GreenElementsScreen';
 
 import api from '../services/api';
+
 import { AuthContext } from '../contexts/AuthContext';
 
 const ResultsTopTabs = ({ navigation }) => {
@@ -20,12 +20,11 @@ const ResultsTopTabs = ({ navigation }) => {
 
     const [greenElements, setGreenElements] = useState([]);
     const [newProjectCosts, setNewProjectCosts] = useState({ cost_breakdown: {}, total_cost: 0 });
-    const [objectsConfig, setObjectsConfig] = useState([]);
-    const [user3DVisibility, setUser3DVisibility] = useState({});
-    const [visibleObjects, setVisibleObjects] = useState({});
     const [mappedFormData, setMappedFormData] = useState(null);
     const [criteriaMarks, setCriteriaMarks] = useState({});
     const [criteriaTotalMarks, setCriteriaTotalMarks] = useState(0);
+    const [selectedDropdowns, setSelectedDropdowns] = useState({});
+    const [selectionMarks, setSelectionMarks] = useState({});
     const [loading, setLoading] = useState(false);
     const [validationModal, setValidationModal] = useState({
         isVisible: false,
@@ -38,6 +37,7 @@ const ResultsTopTabs = ({ navigation }) => {
     const [showCostUpdatedToast, setShowCostUpdatedToast] = useState(false);
 
     const [checkedItems, setCheckedItems] = useState({});
+    const [checkedOptions, setCheckedOptions] = useState({});
     const [checkedSubitems, setCheckedSubitems] = useState({});
     const [customItems, setCustomItems] = useState({});
 
@@ -46,22 +46,10 @@ const ResultsTopTabs = ({ navigation }) => {
     const isNavigatingFromSubmissionRef = useRef(false);
     const previousCertificationLevelRef = useRef(null);
 
-    const certifiedScaleRange = {
-        'Platinum': [85, 100],
-        'Gold': [75, 84],
-        'Silver': [65, 74],
-        'Certified': [55, 64],
-        'Not Certified': [0, 54]
-    }
+    const [certifiedScaleRange, setCertifiedScaleRange] = useState({});
 
     // Certification cost multiplier percentages
-    const certificationMultipliers = {
-        'Platinum': 8.7,
-        'Gold': 4.54,
-        'Silver': 2.97,
-        'Certified': 1.87,
-        'Not Certified': 0
-    };
+    const [certificationMultipliers, setCertificationMultipliers] = useState({});
 
     // Calculate certification level based on total marks
     const getCertificationLevel = useCallback((marks) => {
@@ -71,10 +59,10 @@ const ResultsTopTabs = ({ navigation }) => {
             }
         }
         return 'Not Certified';
-    }, []);
+    }, [certifiedScaleRange]);
 
     // Apply certification multiplier to costs (pure function, no useCallback)
-    const applyMultiplierToCosts = (costs, totalMarks) => {
+    const applyMultiplierToCosts = useCallback((costs, totalMarks) => {
         if (!costs) return costs;
 
         const certLevel = getCertificationLevel(totalMarks);
@@ -82,23 +70,7 @@ const ResultsTopTabs = ({ navigation }) => {
 
         // Only apply if certification is "Certified" or above
         if (multiplierPercent === 0) {
-            // If not certified, remove any existing multiplier
-            if (mappedFormData?.costPreviewWay === 'Simplified') {
-                // For Simplified, just return with no multiplier cost added
-                const updatedCosts = JSON.parse(JSON.stringify(costs));
-                delete updatedCosts.multiplierCost;
-                delete updatedCosts.certificationLevel;
-                delete updatedCosts.multiplierPercent;
-                // Recalculate total without multiplier
-                if (typeof updatedCosts === 'object' && updatedCosts.cost_breakdown) {
-                    updatedCosts.total_cost = updatedCosts.cost_breakdown;
-                } else if (typeof updatedCosts === 'number') {
-                    // Already a number, keep it
-                }
-                return updatedCosts;
-            }
-
-            // For Detailed, remove the multiplier node from cost_breakdown
+            // Remove the multiplier node from cost_breakdown
             if (!costs || !costs.cost_breakdown) return costs;
 
             const updatedCosts = JSON.parse(JSON.stringify(costs));
@@ -117,27 +89,6 @@ const ResultsTopTabs = ({ navigation }) => {
                 }
                 updatedCosts.total_cost = total;
             }
-            return updatedCosts;
-        }
-
-        // For Simplified cost preview, apply multiplier to the total cost directly
-        if (mappedFormData?.costPreviewWay === 'Simplified') {
-            // If multiplier properties already exist, just return as-is to avoid infinite loops
-            if (costs.multiplierCost !== undefined && costs.certificationLevel === certLevel) {
-                return costs;
-            }
-            
-            const baseTotal = typeof costs === 'number' ? costs : (costs?.total_cost || costs?.cost_breakdown || 0);
-            const multiplierCost = (baseTotal * multiplierPercent) / 100;
-            
-            const updatedCosts = {
-                ...costs,
-                multiplierCost: multiplierCost,
-                certificationLevel: certLevel,
-                multiplierPercent: multiplierPercent,
-                total_cost: baseTotal + multiplierCost
-            };
-
             return updatedCosts;
         }
 
@@ -177,16 +128,21 @@ const ResultsTopTabs = ({ navigation }) => {
 
             multiplierSectionKey = nextKey;
             multiplierSection = {
-                description: `${certLevel} Certification (${multiplierPercent}%)`,
+                description: 'Certification',
                 cost: multiplierCost,
                 isMultiplier: true,
+                is_certification: true,
+                certification_level: certLevel,
+                multiplier_percent: multiplierPercent,
                 locked: true
             };
             updatedCosts.cost_breakdown[multiplierSectionKey] = multiplierSection;
         } else {
             // Update existing multiplier
-            multiplierSection.description = `${certLevel} Certification (${multiplierPercent}%)`;
             multiplierSection.cost = multiplierCost;
+            multiplierSection.is_certification = true;
+            multiplierSection.certification_level = certLevel;
+            multiplierSection.multiplier_percent = multiplierPercent;
         }
 
         // Recalculate total
@@ -197,40 +153,21 @@ const ResultsTopTabs = ({ navigation }) => {
         updatedCosts.total_cost = total;
 
         return updatedCosts;
-    };
+    }, [certificationMultipliers, getCertificationLevel]);
+
+    const updateProjectCostsWithMultiplier = useCallback((totalMarks) => {
+        setNewProjectCosts(prevCosts => {
+            const updatedCosts = applyMultiplierToCosts(prevCosts, totalMarks);
+            return JSON.stringify(updatedCosts) === JSON.stringify(prevCosts)
+                ? prevCosts
+                : updatedCosts;
+        });
+    }, [applyMultiplierToCosts]);
 
     // Create a wrapped setCriteriaTotalMarks function for debugging
     const wrappedSetCriteriaTotalMarks = useCallback((value) => {
         setCriteriaTotalMarks(value);
     }, []);
-
-    // Validation function to check if all criteria meet minimum marks
-    const validateCriteria = useCallback(() => {
-        if (!greenElements) {
-            return { isValid: false, failedCriteria: [] };
-        }
-
-        const failedCriteria = [];
-
-        greenElements.forEach(criterion => {
-            const earnedMarks = criteriaMarks[criterion.name] || 0;
-            const minMarks = criterion.min_marks || 0;
-
-            if (earnedMarks < minMarks) {
-                failedCriteria.push({
-                    name: criterion.name,
-                    earnedMarks,
-                    minMarks,
-                    needed: minMarks - earnedMarks
-                });
-            }
-        });
-
-        return {
-            isValid: failedCriteria.length === 0,
-            failedCriteria
-        };
-    }, [greenElements, criteriaMarks]);
 
     // Validate target certification rating scale
     const validateTargetCertification = useCallback(() => {
@@ -252,24 +189,7 @@ const ResultsTopTabs = ({ navigation }) => {
     const handleSubmit = useCallback(async () => {
         setSubmitLoading(true);
 
-        const criteriaValidation = validateCriteria();
         const targetValidation = validateTargetCertification();
-
-        // Check criteria validation first
-        if (!criteriaValidation.isValid) {
-            const criteriaNamesAndMarks = criteriaValidation.failedCriteria
-                .map(criteria => `• ${criteria.name}: Need ${criteria.needed} more point${criteria.needed > 1 ? 's' : ''}`)
-                .join('\n');
-
-            setValidationModal({
-                isVisible: true,
-                title: 'Minimum Marks Not Achieved',
-                subtitle: `The following criteria need more points to meet minimum requirements:\n\n${criteriaNamesAndMarks}`,
-                imgSource: require('../assets/components/error.png')
-            });
-            setSubmitLoading(false);
-            return;
-        }
 
         // Check target certification validation
         if (!targetValidation.isValid) {
@@ -286,25 +206,36 @@ const ResultsTopTabs = ({ navigation }) => {
         // All validations passed
         const checked_items = {
             checkedItems: Object.keys(checkedItems).filter(key => checkedItems[key]),
+            checkedOptions: Object.fromEntries(
+                Object.entries(checkedOptions).map(([groupId, options]) => [
+                    groupId,
+                    Object.entries(options)
+                        .filter(([optionId, checked]) => checked)
+                        .map(([optionId]) => Number(optionId))
+                ]).filter(([groupId, options]) => options.length > 0)
+            ),
             checkedSubitems: Object.entries(checkedSubitems).reduce((acc, [parentId, subitems]) => {
                 const trueSubitems = Object.keys(subitems).filter(key => subitems[key] === true);
                 if (trueSubitems.length > 0) acc[parentId] = trueSubitems;
                 return acc;
             }, {}),
             customItems: customItems,
+            selections: Object.fromEntries(
+                Object.entries(selectedDropdowns)
+                    .filter(([key, value]) => value !== undefined && value?.marks !== 0 && value?.id !== undefined)
+                    .map(([key, value]) => [key, value.id])
+            )
         }
 
         const projectData = {
             user_id: user.id,
             rating: criteriaTotalMarks,
-            costs: newProjectCosts,
+            costs: verifiedProjectCosts,
             form_data: mappedFormData,
             checked_items: checked_items,
         };
 
-        // console.log("Submitting costs data:", JSON.stringify(projectData.costs, null, 2));
-
-        const response = await api.post('/v2/submit-assessment', projectData);
+        const response = await api.post('/submit-assessment', projectData);
 
         if (response.status === 201) {
             setValidationModal({
@@ -323,7 +254,7 @@ const ResultsTopTabs = ({ navigation }) => {
         }
 
         setSubmitLoading(false);
-    }, [validateCriteria, validateTargetCertification]);
+    }, [criteriaTotalMarks, customItems, checkedItems, checkedOptions, checkedSubitems, mappedFormData, newProjectCosts, selectedDropdowns, user?.id, validateTargetCertification]);
 
     // Close validation modal
     const closeValidationModal = useCallback(() => {
@@ -352,25 +283,15 @@ const ResultsTopTabs = ({ navigation }) => {
             setLoading(true);
             if (formData) {
                 try {
-                    const response = await api.post('/v2/results', formData);
-                    setGreenElements(response.data.green_elements || []);
-                    setNewProjectCosts(response.data.cost || { cost_breakdown: {}, total_cost: 0 });
-                    setObjectsConfig(response.data.three_d_objects || []);
+                    const response = await api.post('/results', formData);
 
-                    const initialVisibility = {};
-                    (response.data.three_d_objects || []).forEach(obj => {
-                        initialVisibility[obj.obj_name] = false; // default all to visible
-                    });
-                    setVisibleObjects(initialVisibility);
+                    const certifications = response.data?.certifications || {};
 
-                    const userVisibility = (response.data.three_d_objects || []).reduce((acc, obj) => {
-                        acc[obj.name] = false;
-                        return acc;
-                    }, {});
-
-                    setUser3DVisibility(userVisibility);
-
-                    setMappedFormData(response.data.mapped_form_data || null);
+                    setGreenElements(response.data?.green_elements || []);
+                    setNewProjectCosts(response.data?.cost || { cost_breakdown: {}, total_cost: 0 });
+                    setMappedFormData(response.data?.mapped_form_data || null);
+                    setCertifiedScaleRange(certifications.certifiedScaleRange || {});
+                    setCertificationMultipliers(certifications.certificationMultipliers || {});
                 } catch (error) {
                     console.error("API Error:", error);
                 }
@@ -400,8 +321,8 @@ const ResultsTopTabs = ({ navigation }) => {
 
         // Check if certification level changed
         const currentCertLevel = getCertificationLevel(total);
-        if (previousCertificationLevelRef.current !== null && 
-            previousCertificationLevelRef.current !== currentCertLevel && 
+        if (previousCertificationLevelRef.current !== null &&
+            previousCertificationLevelRef.current !== currentCertLevel &&
             currentCertLevel !== 'Not Certified') {
             setShowCostUpdatedToast(true);
             setTimeout(() => setShowCostUpdatedToast(false), 2000);
@@ -409,24 +330,15 @@ const ResultsTopTabs = ({ navigation }) => {
         previousCertificationLevelRef.current = currentCertLevel;
 
         // Apply certification multiplier to costs when criteria marks change
-        if (newProjectCosts && setNewProjectCosts) {
-            setNewProjectCosts(prevCosts => {
-                const updatedCosts = applyMultiplierToCosts(prevCosts, total);
-                return updatedCosts;
-            });
-        }
-    }, [criteriaMarks]);
+        updateProjectCostsWithMultiplier(total);
+    }, [criteriaMarks, getCertificationLevel, updateProjectCostsWithMultiplier]);
 
     // Recalculate multiplier whenever costs change (addition, deletion, or editing of cost nodes)
-    // Only for Detailed view - Simplified doesn't need this as it's handled in the criteriaMarks effect
     useEffect(() => {
-        if (newProjectCosts && setNewProjectCosts && mappedFormData?.costPreviewWay === 'Detailed') {
-            setNewProjectCosts(prevCosts => {
-                const updatedCosts = applyMultiplierToCosts(prevCosts, criteriaTotalMarks);
-                return updatedCosts;
-            });
+        if (newProjectCosts && mappedFormData?.costPreviewWay === 'Detailed') {
+            updateProjectCostsWithMultiplier(criteriaTotalMarks);
         }
-    }, [newProjectCosts.total_cost, mappedFormData?.costPreviewWay]);
+    }, [criteriaTotalMarks, mappedFormData?.costPreviewWay, newProjectCosts?.total_cost, updateProjectCostsWithMultiplier]);
 
     // Handle navigation (swipe or header back)
     useEffect(() => {
@@ -454,17 +366,13 @@ const ResultsTopTabs = ({ navigation }) => {
                     title="Results"
                     tabs={[
                         {
-                            name: 'Cost Breakdown',
+                            name: 'Costs',
                             component: CostBreakdownScreen,
                         },
                         {
-                            name: 'Green Elements',
+                            name: 'GBI Assessment',
                             component: GreenElementsScreen,
                         },
-                        // {
-                        //     name: '3D View',
-                        //     component: ThreeDModelScreen
-                        // }
                     ]}
                     greenElements={greenElements}
                     setGreenElements={setGreenElements}
@@ -474,22 +382,25 @@ const ResultsTopTabs = ({ navigation }) => {
                     setCriteriaTotalMarks={wrappedSetCriteriaTotalMarks}
                     criteriaMarks={criteriaMarks}
                     setCriteriaMarks={setCriteriaMarks}
+                    selectedDropdowns={selectedDropdowns}
+                    setSelectedDropdowns={setSelectedDropdowns}
+                    selectionMarks={selectionMarks}
+                    setSelectionMarks={setSelectionMarks}
                     showCostUpdatedToast={showCostUpdatedToast}
                     setShowCostUpdatedToast={setShowCostUpdatedToast}
-                    objectsConfig={objectsConfig}
-                    user3DVisibility={user3DVisibility}
-                    setUser3DVisibility={setUser3DVisibility}
-                    visibleObjects={visibleObjects}
-                    setVisibleObjects={setVisibleObjects}
                     mappedFormData={mappedFormData}
                     checkedItems={checkedItems}
                     setCheckedItems={setCheckedItems}
+                    checkedOptions={checkedOptions}
+                    setCheckedOptions={setCheckedOptions}
                     checkedSubitems={checkedSubitems}
                     setCheckedSubitems={setCheckedSubitems}
                     customItems={customItems}
                     setCustomItems={setCustomItems}
                     onSubmit={handleSubmit}
                     submitLoading={submitLoading}
+                    certifiedScaleRange={certifiedScaleRange}
+                    certificationMultipliers={certificationMultipliers}
                 />
             )}
 

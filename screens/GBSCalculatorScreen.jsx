@@ -13,26 +13,25 @@ import FormInputField from '../components/FormInputField';
 import LoadingIndicator from '../components/LoadingIndicator';
 import SelectionItem from '../components/SelectionItem';
 import AIButton from '../components/AIButton';
-import AIAssistantWrapper from '../components/AIAssistantWrapper';
+import ChatbotModal from '../components/ChatbotModal';
 
 const GBSCalculatorScreen = ({ navigation }) => {
     const scrollRef = useRef(null);
 
-    const ratingScaleMapping = {
-        "Platinum (86 - 100)": "Platinum",
-        "Gold (76 - 85)": "Gold",
-        "Silver (66 - 75)": "Silver",
-        "Certified (50 - 65)": "Certified",
-        "Not Certified (0 - 49)": "Not Certified"
-    };
-
     const [buildingTypes, setBuildingTypes] = useState([]);
     const [selectedBuildingType, setSelectedBuildingType] = useState(null);
     const [selectedCategory, setSelectedCategory] = useState(null);
-    const [mappedCategories, setMappedCategories] = useState(null);
-    const [mappedRegions, setMappedRegions] = useState(null);
-    const [mappedStructures, setMappedStructures] = useState(null);
+    const [selectedClassification, setSelectedClassification] = useState(null);
+    const [selectedManagementOption, setSelectedManagementOption] = useState(null);
+    const [mappedCategories, setMappedCategories] = useState({});
+    const [mappedClassifications, setMappedClassifications] = useState({});
+    const [ratingScales, setRatingScales] = useState({});
+    const [mappedRegions, setMappedRegions] = useState({});
+    const [mappedStructures, setMappedStructures] = useState({});
+    const [mappedRatingScales, setMappedRatingScales] = useState({});
     const [categories, setCategories] = useState([]);
+    const [classifications, setClassifications] = useState([]);
+    const [managementOptions, setManagementOptions] = useState([]);
     const [structures, setStructures] = useState([]);
     const [states, setStates] = useState([]);
     const [regions, setRegions] = useState([]);
@@ -43,7 +42,7 @@ const GBSCalculatorScreen = ({ navigation }) => {
     const currentYear = new Date().getFullYear();
     const [yearList] = useState(() => {
         const years = [];
-        for (let i = 0; i <= 10; i++) {
+        for (let i = 0; i <= 5; i++) {
             years.push(currentYear + i);
         }
         return years;
@@ -70,6 +69,8 @@ const GBSCalculatorScreen = ({ navigation }) => {
         projectName: '',
         buildingType: '',
         category: '',
+        classification: '',
+        managementOption: '',
         year: '',
         buildingSize: '',
         projectBudget: '',
@@ -81,6 +82,8 @@ const GBSCalculatorScreen = ({ navigation }) => {
 
     const buildingTypeBottomSheetRef = useRef(null);
     const categoryBottomSheetRef = useRef(null);
+    const classificationBottomSheetRef = useRef(null);
+    const managementOptionBottomSheetRef = useRef(null);
     const yearBottomSheetRef = useRef(null);
     const stateBottomSheetRef = useRef(null);
     const regionBottomSheetRef = useRef(null);
@@ -89,16 +92,31 @@ const GBSCalculatorScreen = ({ navigation }) => {
 
     const snapPoints = useMemo(() => ['10%'], []);
 
+    const filteredClassifications = useMemo(() => {
+        if (!selectedCategory) {
+            return classifications;
+        }
+
+        if (selectedCategory === "Apartments") {
+            return classifications.filter(item => item?.name !== "Landed");
+        }
+
+        return classifications.filter(item => item?.name === "Landed");
+    }, [classifications, selectedCategory]);
+
     useEffect(() => {
         const fetchCategories = async () => {
             try {
                 setLoading(true);
                 const formInputFields = await api.get('/form-inputs');
+
                 setBuildingTypes(formInputFields.data.buildingTypes);
                 setMappedCategories(formInputFields.data.categories);
+                setMappedClassifications(formInputFields.data.classifications);
                 setStates(formInputFields.data.states);
                 setMappedRegions(formInputFields.data.regions);
                 setMappedStructures(formInputFields.data.structures);
+                setMappedRatingScales(formInputFields.data.ratingScales);
             } catch (error) {
                 console.error('Error fetching categories:', error);
             } finally {
@@ -116,6 +134,8 @@ const GBSCalculatorScreen = ({ navigation }) => {
             setSelectedBuildingType(null);
             setSelectedCategory(null);
             setSelectedYear(null);
+            setSelectedClassification(null);
+            setSelectedManagementOption(null);
             setBuildingSize(0.00);
             setProjectBudget(0.00);
             setSelectedState(null);
@@ -129,6 +149,8 @@ const GBSCalculatorScreen = ({ navigation }) => {
                 buildingType: '',
                 category: '',
                 year: '',
+                classification: '',
+                managementOption: '',
                 buildingSize: '',
                 projectBudget: '',
                 state: '',
@@ -144,32 +166,60 @@ const GBSCalculatorScreen = ({ navigation }) => {
     // Update categories when building type changes
     useEffect(() => {
         if (selectedBuildingType) {
-            const categories = mappedCategories[selectedBuildingType];
+            const categories = mappedCategories?.[selectedBuildingType];
             setCategories(categories || []);
             setSelectedCategory(null); // reset category when type changes
+
+            const classifications = mappedClassifications?.[selectedBuildingType];
+            setClassifications(classifications || []);
+
+            const ratingScales = mappedRatingScales?.[selectedBuildingType];
+            setRatingScales(ratingScales || []);
         } else {
             setCategories([]);
+            setClassifications([]);
+            setRatingScales({});
         }
-    }, [selectedBuildingType, mappedCategories]);
+    }, [selectedBuildingType, mappedCategories, mappedClassifications, mappedRatingScales]);
 
     useEffect(() => {
-        if (selectedBuildingType && selectedState) {
-            if (selectedBuildingType === "Residential New Construction (RNC)") {
-                setSelectedStructure(null);
-                setStructures(mappedStructures?.[selectedBuildingType]?.["ALL"] || []);
-            } else if (selectedBuildingType === "Non-Residential New Construction (NRNC)") {
-                setSelectedStructure(null);
-                if (selectedState === "Sabah" || selectedState === "Sarawak") {
-                    setStructures(mappedStructures[selectedBuildingType][selectedState.toUpperCase()]);
-                } else {
-                    setStructures(mappedStructures[selectedBuildingType]["SMSIA"]);
-                }
-            }
-        } else {
+        if (filteredClassifications.length === 0) {
+            setSelectedClassification(null);
+            setSelectedManagementOption(null);
+            setManagementOptions([]);
+            return;
+        }
+
+        const hasValidSelectedClassification = filteredClassifications.some(
+            item => item?.name === selectedClassification
+        );
+
+        if (!hasValidSelectedClassification) {
+            setSelectedClassification(null);
+            setSelectedManagementOption(null);
+            setManagementOptions([]);
+        }
+    }, [filteredClassifications, selectedCategory, selectedClassification]);
+
+    useEffect(() => {
+        if (!selectedBuildingType || !selectedState) {
             setSelectedStructure(null);
             setStructures([]);
+            return;
         }
-    }, [selectedBuildingType, selectedState]);
+
+        const structureMap = mappedStructures?.[selectedBuildingType] || {};
+
+        const regionKey =
+            selectedBuildingType === "Residential New Construction (RNC)"
+                ? "ALL"
+                : (selectedState === "Sabah" || selectedState === "Sarawak")
+                    ? selectedState.toUpperCase()
+                    : "SMSIA";
+
+        setSelectedStructure(null);
+        setStructures(structureMap[regionKey] || []);
+    }, [selectedBuildingType, selectedState, mappedStructures]);
 
     useEffect(() => {
         if (selectedState === "Sabah" || selectedState === "Sarawak") {
@@ -205,6 +255,44 @@ const GBSCalculatorScreen = ({ navigation }) => {
         setSelectedCategory(category);
         clearError('category');
         categoryBottomSheetRef.current?.close();
+    }, []);
+
+    const handleClassificationPress = useCallback(() => {
+        Keyboard.dismiss();
+        clearError('classification');
+        setActiveSheet('classification');
+        classificationBottomSheetRef.current?.snapToIndex(1);
+    }, []);
+
+    const handleClassificationSelect = useCallback((classification) => {
+        const classificationName = typeof classification === 'string'
+            ? classification
+            : classification?.name;
+
+        setSelectedClassification(classificationName);
+        if (classificationName === "Landed") {
+            setManagementOptions(["No"]);
+            setSelectedManagementOption(null);
+        } else {
+            setManagementOptions(["Yes", "No"]);
+            setSelectedManagementOption(null);
+        }
+        clearError('classification');
+        clearError('managementOption');
+        classificationBottomSheetRef.current?.close();
+    }, []);
+
+    const handleManagementOptionPress = useCallback(() => {
+        Keyboard.dismiss();
+        clearError('managementOption');
+        setActiveSheet('managementOption');
+        managementOptionBottomSheetRef.current?.snapToIndex(1);
+    }, [managementOptions]);
+
+    const handleManagementOptionSelect = useCallback((option) => {
+        setSelectedManagementOption(option);
+        clearError('managementOption');
+        managementOptionBottomSheetRef.current?.close();
     }, []);
 
     const handleYearPress = useCallback(() => {
@@ -259,15 +347,15 @@ const GBSCalculatorScreen = ({ navigation }) => {
         structureBottomSheetRef.current?.close();
     }, []);
 
-    const handleRatingPress = useCallback(() => {
+    const handleCertificationPress = useCallback(() => {
         Keyboard.dismiss();
         clearError('certifiedRatingScale');
         setActiveSheet('ratingScale');
         ratingScaleBottomSheetRef.current?.snapToIndex(1);
     }, []);
 
-    const handleRatingSelect = useCallback((rating) => {
-        setSelectedCertifiedRatingScale(rating);
+    const handleCertificationSelect = useCallback((certification) => {
+        setSelectedCertifiedRatingScale(certification);
         clearError('certifiedRatingScale');
         ratingScaleBottomSheetRef.current?.close();
     }, []);
@@ -298,6 +386,40 @@ const GBSCalculatorScreen = ({ navigation }) => {
                 setErrors(prevErrors => ({
                     ...prevErrors,
                     category: ''
+                }));
+            }, 3000);
+        }
+    }, [selectedBuildingType]);
+
+    const handleDisabledManagementOptionPress = useCallback(() => {
+        if (!selectedClassification) {
+            setErrors(prevErrors => ({
+                ...prevErrors,
+                managementOption: 'Please select a building type first'
+            }));
+
+            // Clear error after 3 seconds
+            setTimeout(() => {
+                setErrors(prevErrors => ({
+                    ...prevErrors,
+                    managementOption: ''
+                }));
+            }, 3000);
+        }
+    }, [selectedClassification]);
+
+    const handleDisabledRatingPress = useCallback(() => {
+        if (!selectedBuildingType) {
+            setErrors(prevErrors => ({
+                ...prevErrors,
+                certifiedRatingScale: 'Please select a building type first'
+            }));
+
+            // Clear error after 3 seconds
+            setTimeout(() => {
+                setErrors(prevErrors => ({
+                    ...prevErrors,
+                    certifiedRatingScale: ''
                 }));
             }, 3000);
         }
@@ -337,6 +459,12 @@ const GBSCalculatorScreen = ({ navigation }) => {
                     break;
                 case 'category':
                     categoryBottomSheetRef.current?.close();
+                    break;
+                case 'managementOption':
+                    managementOptionBottomSheetRef.current?.close();
+                    break;
+                case 'classification':
+                    classificationBottomSheetRef.current?.close();
                     break;
                 case 'year':
                     yearBottomSheetRef.current?.close();
@@ -381,7 +509,7 @@ const GBSCalculatorScreen = ({ navigation }) => {
                         </View>
                         <FlatList
                             data={data}
-                            keyExtractor={(item) => item}
+                            keyExtractor={(item, index) => item?.name || item?.id?.toString() || item?.toString() || index.toString()}
                             renderItem={({ item }) => (
                                 <SelectionItem
                                     item={item}
@@ -516,6 +644,8 @@ const GBSCalculatorScreen = ({ navigation }) => {
             projectName: '',
             buildingType: '',
             category: '',
+            classification: '',
+            managementOption: '',
             year: '',
             buildingSize: '',
             projectBudget: '',
@@ -538,6 +668,18 @@ const GBSCalculatorScreen = ({ navigation }) => {
         // Validate category
         if (!selectedCategory) {
             newErrors.category = 'Please select a building category';
+        }
+
+        if (selectedBuildingType === "Residential New Construction (RNC)") {
+            // Validate classification
+            if (!selectedClassification) {
+                newErrors.classification = 'Please select a building classification';
+            }
+
+            // Validate management option
+            if (!selectedManagementOption) {
+                newErrors.managementOption = 'Please select a management option';
+            }
         }
 
         // Validate year
@@ -582,25 +724,44 @@ const GBSCalculatorScreen = ({ navigation }) => {
     };
 
     const handleFormSubmit = () => {
-        if (!validateForm()) {
-            return;
-        }
+        // if (!validateForm()) {
+        //     return;
+        // }
+
+        // const formData = {
+        //     projectName: projectName,
+        //     buildingType: selectedBuildingType,
+        //     category: selectedCategory,
+        //     year: selectedYear,
+        //     buildingSize: buildingSize,
+        //     projectBudget: projectBudget > 0 ? projectBudget : null,
+        //     state: selectedState,
+        //     region: selectedRegion || '',
+        //     structure: selectedStructure,
+        //     costPreviewWay: "Detailed",
+        //     certifiedRatingScale: selectedCertifiedRatingScale
+        // };
+
+        // if (selectedBuildingType === "Residential New Construction (RNC)") {
+        //     formData.buildingClassification = selectedClassification;
+        //     formData.hasManagement = selectedManagementOption === "Yes";
+        // }
 
         const formData = {
-            projectName: projectName,
-            buildingType: selectedBuildingType,
-            category: selectedCategory,
-            year: selectedYear,
-            buildingSize: buildingSize,
-            projectBudget: projectBudget > 0 ? projectBudget : null,
-            state: selectedState,
-            region: selectedRegion || '',
-            structure: selectedStructure,
-            costPreviewWay: "Detailed",
-            certifiedRatingScale: selectedCertifiedRatingScale
-        };
+            "projectName": "Example",
+            "buildingType": "Non-Residential Existing Building (NREB)",
+            "category": "Mosques",
+            "year": 2027,
+            "buildingSize": 2000,
+            "projectBudget": 50000000,
+            "state": "Sarawak",
+            "region": "Miri",
+            "structure": "Single Storey (R.C.) Building",
+            "costPreviewWay": "Detailed",
+            "certifiedRatingScale": "Not Certified (0 - 49)"
+        }
 
-        navigation.navigate('Results', { formData });
+        navigation.navigate('Results', { formData: formData, admin: false });
     }
 
     if (loading) {
@@ -673,6 +834,31 @@ const GBSCalculatorScreen = ({ navigation }) => {
                                 error={errors.category}
                             />
 
+                            {classifications.length > 0 && (
+                                <>
+                                    <FormInputField
+                                        label="Building Classification"
+                                        value={selectedClassification}
+                                        placeholder={filteredClassifications.length > 0 ? "Select Building Classification" : "No classification available for this category"}
+                                        showChevron={true}
+                                        disabled={filteredClassifications.length === 0 || (activeSheet && activeSheet !== 'classification')}
+                                        onPress={handleClassificationPress}
+                                        error={errors.classification}
+                                    />
+
+                                    <FormInputField
+                                        label="Existence of Common Management"
+                                        value={selectedManagementOption}
+                                        placeholder="Select Management Option"
+                                        showChevron={true}
+                                        disabled={!selectedClassification || (activeSheet && activeSheet !== 'managementOption')}
+                                        onPress={handleManagementOptionPress}
+                                        onDisabledPress={handleDisabledManagementOptionPress}
+                                        error={errors.managementOption}
+                                    />
+                                </>
+                            )}
+
                             <FormInputField
                                 label="Project/Building Size (m²)"
                                 value={formatWithThousandSeparator(buildingSizeDisplay)}
@@ -743,10 +929,11 @@ const GBSCalculatorScreen = ({ navigation }) => {
                             <FormInputField
                                 label="Target Certified Rating Scale"
                                 value={selectedCertifiedRatingScale ?? ''}
-                                placeholder="Select Target Certified Rating Scale"
+                                placeholder={!selectedBuildingType ? "Please Select Building Type First" : "Select Target Certified Rating Scale"}
                                 showChevron={true}
-                                disabled={activeSheet && activeSheet !== 'ratingScale'}
-                                onPress={handleRatingPress}
+                                disabled={!selectedBuildingType || (activeSheet && activeSheet !== 'ratingScale')}
+                                onPress={handleCertificationPress}
+                                onDisabledPress={handleDisabledRatingPress}
                                 error={errors.certifiedRatingScale}
                             />
                         </View>
@@ -763,7 +950,7 @@ const GBSCalculatorScreen = ({ navigation }) => {
                         </TouchableOpacity>
                     </View>
 
-                    <AIAssistantWrapper isVisible={aiModalVisible} onClose={() => setAIModalVisible(false)} />
+                    <ChatbotModal isVisible={aiModalVisible} onClose={() => setAIModalVisible(false)} />
 
                     {renderBottomSheet(
                         buildingTypeBottomSheetRef,
@@ -778,6 +965,20 @@ const GBSCalculatorScreen = ({ navigation }) => {
                         selectedCategory,
                         handleCategorySelect,
                         "Building Category"
+                    )}
+                    {renderBottomSheet(
+                        classificationBottomSheetRef,
+                        filteredClassifications,
+                        selectedClassification,
+                        handleClassificationSelect,
+                        "Building Classification"
+                    )}
+                    {renderBottomSheet(
+                        managementOptionBottomSheetRef,
+                        managementOptions,
+                        selectedManagementOption,
+                        handleManagementOptionSelect,
+                        "Management Option"
                     )}
                     {renderBottomSheet(
                         yearBottomSheetRef,
@@ -809,9 +1010,9 @@ const GBSCalculatorScreen = ({ navigation }) => {
                     )}
                     {renderBottomSheet(
                         ratingScaleBottomSheetRef,
-                        Object.keys(ratingScaleMapping),
+                        Object.keys(ratingScales || {}),
                         selectedCertifiedRatingScale,
-                        handleRatingSelect,
+                        handleCertificationSelect,
                         "Target Certified Rating Scale"
                     )}
                 </GestureHandlerRootView>

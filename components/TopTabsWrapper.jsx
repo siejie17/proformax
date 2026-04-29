@@ -5,21 +5,12 @@ import { useState } from 'react';
 
 import TabBar from './TabBar';
 import AIButton from './AIButton';
-import AIAssistantWrapper from './AIAssistantWrapper';
+import ChatbotModal from './ChatbotModal';
 
 const TopBar = createMaterialTopTabNavigator();
 
-const TopTabsWrapper = ({ title, tabs, params, onSubmit, criteriaTotalMarks = 0, mappedFormData, submitLoading, newProjectCosts, ...props }) => {
+const TopTabsWrapper = ({ title, tabs, params, onSubmit, criteriaTotalMarks = 0, mappedFormData, submitLoading, newProjectCosts, certifiedScaleRange = {}, ...props }) => {
     const [aiModalVisible, setAIModalVisible] = useState(false);
-    
-    // Certification scale ranges
-    const certifiedScaleRange = {
-        'Platinum': [85, 100],
-        'Gold': [75, 84],
-        'Silver': [65, 74],
-        'Certified': [55, 64],
-        'Not Certified': [0, 54]
-    };
 
     // Determine certification level based on total marks
     const getCertificationLevel = (marks) => {
@@ -146,25 +137,6 @@ const TopTabsWrapper = ({ title, tabs, params, onSubmit, criteriaTotalMarks = 0,
                         </View>
                     )}
 
-                    {/* Target Met - Compact */}
-                    {hasTargetRating && targetMet && (
-                        <View className="mb-2.5 px-3 py-2 bg-emerald-50 rounded-xl border border-emerald-200">
-                            <View className="flex-row items-center justify-between">
-                                <View className="flex-row items-center flex-1">
-                                    <View className="w-4 h-4 bg-emerald-500 rounded-full items-center justify-center mr-2">
-                                        <Text className="text-white text-xs font-bold">✓</Text>
-                                    </View>
-                                    <Text className="text-emerald-700 text-[10px] font-semibold">
-                                        Target Reached
-                                    </Text>
-                                </View>
-                                <Text className="text-emerald-600 text-[9px] font-medium">
-                                    Check each criterion meets minimum points
-                                </Text>
-                            </View>
-                        </View>
-                    )}
-
                     {/* Cost Breakdown Empty Warning - Detailed Preview */}
                     {isCostBreakdownEmpty && (
                         <View className="mb-2.5 px-3 py-2 bg-red-50 rounded-xl border border-red-200">
@@ -212,7 +184,8 @@ const TopTabsWrapper = ({ title, tabs, params, onSubmit, criteriaTotalMarks = 0,
                     </TouchableOpacity>
                 </View>
             </View>
-            <AIAssistantWrapper isVisible={aiModalVisible} onClose={() => setAIModalVisible(false)} />
+            <ChatbotModal isVisible={aiModalVisible} onClose={() => setAIModalVisible(false)} />
+            
         </SafeAreaView>
     )
 }

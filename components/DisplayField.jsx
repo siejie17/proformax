@@ -1,7 +1,7 @@
-import React from 'react';
+import { memo } from 'react';
 import { View, Text } from 'react-native';
 
-const DisplayField = React.memo(({ label, value, certifiedScaleRange = null }) => {
+const DisplayField = memo(({ label, value, certifiedScaleRange = null }) => {
     const getCertificationColors = (level) => {
         const colors = {
             'Platinum': { bg: 'bg-slate-900', border: 'border-slate-700', text: 'text-white', badge: 'bg-slate-100', badgeText: 'text-slate-900' },

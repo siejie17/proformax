@@ -1,8 +1,9 @@
-import { View, TouchableWithoutFeedback, KeyboardAvoidingView, Keyboard, Image, Alert, StatusBar, ScrollView, Text, TouchableOpacity } from 'react-native'
+import { View, TouchableWithoutFeedback, KeyboardAvoidingView, Keyboard, Image, Alert, StatusBar, ScrollView, Text, TouchableOpacity, Platform } from 'react-native'
 import { useState } from 'react';
 import { TextInput as PaperTextInput } from 'react-native-paper';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
 
 import api from '../services/api';
 
@@ -25,6 +26,9 @@ const RegisterScreen = () => {
     const [successModalVisible, setSuccessModalVisible] = useState(false);
 
     const navigation = useNavigation();
+    const hasMinLength = password.value.length >= 6;
+    const hasMixedCase = /[a-z]/.test(password.value) && /[A-Z]/.test(password.value);
+    const hasSpecialCharacter = /[^A-Za-z0-9]/.test(password.value);
 
     const validateFields = () => {
         let valid = true;
@@ -118,23 +122,26 @@ const RegisterScreen = () => {
                 <ScrollView
                     contentContainerStyle={{ flexGrow: 1 }}
                     showsVerticalScrollIndicator={false}
+                    keyboardShouldPersistTaps="handled"
+                    bounces={false}
+                    alwaysBounceVertical={false}
                 >
                     <BackButton goBack={() => navigation.goBack()} />
                     <KeyboardAvoidingView
                         className="flex-1 justify-center px-8 py-12"
-                        behavior="padding"
+                        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
                     >
                         {/* Logo */}
-                        <View className="items-center mb-8">
+                        <View className="items-center mb-6">
                             <Image
                                 source={require('../assets/logo/proformax-logo.png')}
-                                className="w-40 h-40"
+                                className="w-36 h-36"
                                 resizeMode="contain"
                             />
                         </View>
 
                         {/* Title */}
-                        <View className="items-center mb-8">
+                        <View className="items-center mb-6">
                             <Text className="text-3xl font-bold text-gray-900 text-center mb-2">
                                 Let's Sign Up
                             </Text>
@@ -194,6 +201,45 @@ const RegisterScreen = () => {
                                 disabled={loading}
                                 required
                             />
+
+                            <View className="bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-2 mb-4">
+                                <Text className="text-slate-600 font-semibold text-[10px] mb-1">
+                                    Password guide
+                                </Text>
+                                <View className="flex-row items-center mb-1">
+                                    <Ionicons
+                                        name={hasMinLength ? 'checkmark-circle' : 'ellipse-outline'}
+                                        size={14}
+                                        color={hasMinLength ? '#059669' : '#94A3B8'}
+                                        style={{ marginRight: 8 }}
+                                    />
+                                    <Text className={`text-[10px] ${hasMinLength ? 'text-emerald-700' : 'text-slate-600'}`}>
+                                        Min 6 chars
+                                    </Text>
+                                </View>
+                                <View className="flex-row items-center mb-1">
+                                    <Ionicons
+                                        name={hasMixedCase ? 'checkmark-circle' : 'ellipse-outline'}
+                                        size={14}
+                                        color={hasMixedCase ? '#059669' : '#94A3B8'}
+                                        style={{ marginRight: 8 }}
+                                    />
+                                    <Text className={`text-[10px] ${hasMixedCase ? 'text-emerald-700' : 'text-slate-600'}`}>
+                                        Recommended: upper + lower case
+                                    </Text>
+                                </View>
+                                <View className="flex-row items-center">
+                                    <Ionicons
+                                        name={hasSpecialCharacter ? 'checkmark-circle' : 'ellipse-outline'}
+                                        size={14}
+                                        color={hasSpecialCharacter ? '#059669' : '#94A3B8'}
+                                        style={{ marginRight: 8 }}
+                                    />
+                                    <Text className={`text-[10px] ${hasSpecialCharacter ? 'text-emerald-700' : 'text-slate-600'}`}>
+                                        Recommended: special character
+                                    </Text>
+                                </View>
+                            </View>
 
                             <TextInput
                                 label="Confirm Password"

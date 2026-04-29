@@ -24,10 +24,11 @@ const UpdatedToastMessage = ({ visible, toastMessage }) => {
 
     return (
         <Animated.View
+            pointerEvents="none"
             style={{ opacity }}
-            className="absolute bottom-10 self-center bg-gray-900/95 px-5 py-3.5 rounded-2xl z-50 shadow-lg border border-gray-800"
+            className="absolute bottom-12 self-center mx-8 bg-gray-900/95 px-3 py-3 rounded-2xl z-50 shadow-lg border border-gray-800"
         >
-            <Text className="text-white text-sm font-medium tracking-wide">
+            <Text className="text-white text-center text-sm font-medium tracking-wide">
                 {toastMessage}
             </Text>
         </Animated.View>

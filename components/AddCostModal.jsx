@@ -4,7 +4,6 @@ import { Ionicons } from '@expo/vector-icons';
 
 const AddCostModal = ({ visible, onClose, onAdd, parentPath, parentDescription }) => {
     const [description, setDescription] = useState('');
-    // Store cost as integer cents, e.g. 1234 for RM12.34
     const [costCents, setCostCents] = useState(0);
     const [sectionName, setSectionName] = useState('');
     const [errors, setErrors] = useState({ description: '', cost: '', sectionName: '' });

@@ -1,14 +1,14 @@
 import { View, Text, Image, KeyboardAvoidingView, TouchableOpacity, TouchableWithoutFeedback, Keyboard, StatusBar, ScrollView } from 'react-native';
-import { useRef, useState, useContext } from 'react';
+import { useRef, useState, useContext, useEffect } from 'react';
 import { TextInput as PaperTextInput } from 'react-native-paper';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 
 import { AuthContext } from '../contexts/AuthContext';
 
+import api from '../services/api';
+
 import TextInput from '../components/TextInput';
 import MessageModal from '../components/MessageModal';
-
-import api from '../services/api';
 import BackButton from '../components/BackButton';
 
 const LoginScreen = () => {
@@ -27,6 +27,14 @@ const LoginScreen = () => {
     const passwordInputRef = useRef(null);
 
     const navigation = useNavigation();
+    const route = useRoute();
+
+    useEffect(() => {
+        if (route.params?.passwordResetEmailSent) {
+            setIsSentModalVisible(true);
+            navigation.setParams({ passwordResetEmailSent: false });
+        }
+    }, [navigation, route.params?.passwordResetEmailSent]);
 
     const dismissEverything = () => {
         if (emailInputRef.current) {
@@ -111,7 +119,7 @@ const LoginScreen = () => {
                     contentContainerStyle={{ flexGrow: 1 }}
                     showsVerticalScrollIndicator={false}
                 >
-                    <BackButton goBack={() => navigation.goBack()} />
+                    <BackButton goBack={() => navigation.replace("Onboarding")} />
                     <KeyboardAvoidingView
                         className="flex-1 justify-center px-8 py-12"
                         behavior="padding"
@@ -120,7 +128,7 @@ const LoginScreen = () => {
                         <View className="items-center mb-8">
                             <Image
                                 source={require('../assets/logo/proformax-logo.png')}
-                                className="w-40 h-40"
+                                className="w-36 h-36"
                                 resizeMode="contain"
                             />
                         </View>
@@ -174,7 +182,7 @@ const LoginScreen = () => {
 
                             {/* Forgot password */}
                             <View className="w-full items-end mb-8">
-                                <TouchableOpacity onPress={() => navigation.navigate("ForgotPassword", { setIsSentModalVisible: setIsSentModalVisible })}>
+                                <TouchableOpacity onPress={() => navigation.navigate("ForgotPassword")}>
                                     <Text className="text-emerald-500 text-sm font-medium">
                                         Forgot your password?
                                     </Text>

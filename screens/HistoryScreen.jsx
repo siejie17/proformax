@@ -1,12 +1,14 @@
-import { View, Text, ScrollView, TouchableOpacity, StatusBar, TextInput } from 'react-native';
-import { useContext, useEffect, useState } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, StatusBar, TextInput, Animated } from 'react-native';
+import { useContext, useEffect, useRef, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
 import { AuthContext } from '../contexts/AuthContext';
+
 import api from '../services/api';
+
 import LoadingIndicator from '../components/LoadingIndicator';
-import AIAssistantWrapper from '../components/AIAssistantWrapper';
+import ChatbotModal from '../components/ChatbotModal';
 import AIButton from '../components/AIButton';
 
 const HistoryScreen = ({ navigation }) => {
@@ -21,22 +23,18 @@ const HistoryScreen = ({ navigation }) => {
 
     const { user } = useContext(AuthContext);
 
-    const certifiedScaleRange = {
-        'Platinum': [85, 100],
-        'Gold': [75, 84],
-        'Silver': [65, 74],
-        'Certified': [55, 64],
-        'Not Certified': [0, 54]
-    };
+    const verticalScrollRef = useRef(null);
+    const fadeAnim = useRef(new Animated.Value(0)).current;
+    const slideAnim = useRef(new Animated.Value(50)).current;
 
     useEffect(() => {
         const fetchHistories = async () => {
             setLoading(true);
             try {
                 const response = await api.get(`/users/${user.id}/projects`);
-                setHistories(response.data.apiData);
+                setHistories(response.data.projectsData);
             } catch (error) {
-                console.error('Error fetching histories:', error.response?.data || error.message);
+                console.log('Error fetching histories:', error.response?.data || error.message);
             } finally {
                 setLoading(false);
             }
@@ -58,13 +56,82 @@ const HistoryScreen = ({ navigation }) => {
     const endIndex = startIndex + itemsPerPage;
     const currentItems = filteredHistories.slice(startIndex, endIndex);
 
+    const previousPage = () => {
+        setCurrentPage(prev => Math.max(1, prev - 1));
+
+        // Reset vertical scroll to top
+        verticalScrollRef.current?.scrollTo({ y: 0, animated: true });
+
+        fadeAnim.setValue(0);
+        slideAnim.setValue(50);
+
+        Animated.parallel([
+            Animated.timing(fadeAnim, {
+                toValue: 1,
+                duration: 500,
+                useNativeDriver: true,
+            }),
+            Animated.timing(slideAnim, {
+                toValue: 0,
+                duration: 400,
+                useNativeDriver: true,
+            })
+        ]).start();
+    }
+
+    const navigateToPage = (page) => {
+        setCurrentPage(page);
+
+        // Reset vertical scroll to top
+        verticalScrollRef.current?.scrollTo({ y: 0, animated: true });
+
+        fadeAnim.setValue(0);
+        slideAnim.setValue(50);
+
+        Animated.parallel([
+            Animated.timing(fadeAnim, {
+                toValue: 1,
+                duration: 500,
+                useNativeDriver: true,
+            }),
+            Animated.timing(slideAnim, {
+                toValue: 0,
+                duration: 400,
+                useNativeDriver: true,
+            })
+        ]).start();
+    }
+
+    const nextPage = () => {
+        setCurrentPage(prev => Math.min(totalPages, prev + 1));
+
+        // Reset vertical scroll to top
+        verticalScrollRef.current?.scrollTo({ y: 0, animated: true });
+
+        fadeAnim.setValue(0);
+        slideAnim.setValue(50);
+
+        Animated.parallel([
+            Animated.timing(fadeAnim, {
+                toValue: 1,
+                duration: 500,
+                useNativeDriver: true,
+            }),
+            Animated.timing(slideAnim, {
+                toValue: 0,
+                duration: 400,
+                useNativeDriver: true,
+            })
+        ]).start();
+    }
+
     // Reset to page 1 when search query changes
     useEffect(() => {
         setCurrentPage(1);
     }, [searchQuery]);
 
-    const getAchievedCertification = (rating) => {
-        for (const [level, range] of Object.entries(certifiedScaleRange)) {
+    const getAchievedCertification = (rating, scaleRange) => {
+        for (const [level, range] of Object.entries(scaleRange)) {
             if (rating >= range[0] && rating <= range[1]) {
                 return level;
             }
@@ -144,9 +211,10 @@ const HistoryScreen = ({ navigation }) => {
                 className="flex-1"
                 contentContainerClassName="p-4 pt-2"
                 showsVerticalScrollIndicator={false}
+                ref={verticalScrollRef}
             >
                 {currentItems.map((item, index) => {
-                    const achievedCert = getAchievedCertification(item.rating);
+                    const achievedCert = getAchievedCertification(item.rating, item.certifications?.certifiedScaleRange);
                     const targetCert = item.target_certification;
                     const achievedColors = getCertificationColors(achievedCert);
 
@@ -188,13 +256,25 @@ const HistoryScreen = ({ navigation }) => {
                             {/* Card Content */}
                             <View className="p-4">
                                 {/* Structure Info */}
-                                <View className="mb-3">
-                                    <Text className="text-gray-500 text-[10px] uppercase tracking-wide font-semibold mb-1">
-                                        Structure
-                                    </Text>
-                                    <Text className="text-gray-700 text-xs" numberOfLines={2}>
-                                        {item.structure}
-                                    </Text>
+                                <View className="flex-row gap-2 mb-3 border-gray-100">
+                                    <View className="flex-1">
+                                        <Text className="text-gray-500 text-[10px] uppercase tracking-wide font-semibold mb-1">
+                                            Structure
+                                        </Text>
+                                        <Text className="text-gray-700 text-xs" numberOfLines={2}>
+                                            {item.structure}
+                                        </Text>
+                                    </View>
+                                    {item.classification != null && (
+                                        <View className="flex-1">
+                                            <Text className="text-gray-500 text-[10px] uppercase tracking-wide font-semibold mb-1">
+                                                Classification
+                                            </Text>
+                                            <Text className="text-gray-700 text-xs" numberOfLines={2}>
+                                                {item.classification}
+                                            </Text>
+                                        </View>
+                                    )}
                                 </View>
 
                                 {/* Info Grid */}
@@ -307,7 +387,7 @@ const HistoryScreen = ({ navigation }) => {
                 <View className="bg-white border-t border-gray-200 px-4 py-3">
                     <View className="flex-row items-center justify-between">
                         <TouchableOpacity
-                            onPress={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                            onPress={previousPage}
                             disabled={currentPage === 1}
                             className={`flex-row items-center px-4 py-2.5 rounded-xl ${currentPage === 1
                                 ? 'bg-gray-100'
@@ -330,7 +410,7 @@ const HistoryScreen = ({ navigation }) => {
                             {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
                                 <TouchableOpacity
                                     key={page}
-                                    onPress={() => setCurrentPage(page)}
+                                    onPress={() => navigateToPage(page)}
                                     className={`w-8 h-8 rounded-lg items-center justify-center ${currentPage === page
                                         ? 'bg-gray-800'
                                         : 'bg-gray-100'
@@ -346,7 +426,7 @@ const HistoryScreen = ({ navigation }) => {
                         </View>
 
                         <TouchableOpacity
-                            onPress={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                            onPress={nextPage}
                             disabled={currentPage === totalPages}
                             className={`flex-row items-center px-4 py-2.5 rounded-xl ${currentPage === totalPages
                                 ? 'bg-gray-100'
@@ -373,7 +453,7 @@ const HistoryScreen = ({ navigation }) => {
                 </View>
             )}
 
-            <AIAssistantWrapper isVisible={aiModalVisible} onClose={() => setAIModalVisible(false)} />
+            <ChatbotModal isVisible={aiModalVisible} onClose={() => setAIModalVisible(false)} />
         </SafeAreaView>
     );
 };

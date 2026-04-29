@@ -1,12 +1,13 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+
 import TabStack from './TabStack';
 import HistoryScreen from '../screens/HistoryScreen';
 import GBSCalculatorScreen from '../screens/GBSCalculatorScreen';
 import AboutScreen from '../screens/AboutScreen';
 import TeamScreen from '../screens/TeamScreen';
-import ResultsTopTabs from '../components/ResultsTopTabs';
 import AccountScreen from '../screens/AccountScreen';
 import EditFieldScreen from '../screens/EditFieldScreen';
+import ResultsTopTabs from '../components/ResultsTopTabs';
 import HistoryTopTabs from '../components/HistoryTopTabs';
 
 const AppStack = () => {

@@ -1,8 +1,8 @@
-import React from 'react';
+import { memo } from 'react';
 import { View, Text, TextInput, TouchableOpacity } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 
-const FormInputField = React.memo(({ label, value, placeholder, onChangeText, showChevron = false, onPress, disabled = false, required = true, onFocus, error = null, onDisabledPress, ...props }) => {
+const FormInputField = memo(({ label, value, placeholder, onChangeText, showChevron = false, onPress, disabled = false, required = true, onFocus, error = null, onDisabledPress, ...props }) => {
     return (
         <View className="mb-4">
             <View className="flex-row items-center px-4 mb-2">

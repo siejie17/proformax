@@ -1,15 +1,8 @@
 import { View, Text, ScrollView } from 'react-native';
+
 import DisplayField from '../components/DisplayField';
 
-const ProjectDetailsScreen = ({ selectedProject }) => {
-    const certifiedScaleRange = {
-        'Platinum': [85, 100],
-        'Gold': [75, 84],
-        'Silver': [65, 74],
-        'Certified': [55, 64],
-        'Not Certified': [0, 54]
-    };
-
+const ProjectDetailsScreen = ({ selectedProject, certifiedScaleRange, marksData }) => {
     return (
         <View className="flex-1 bg-gray-100">
             <View className="px-5 pt-2 pb-6 border-b border-slate-100">
@@ -39,6 +32,20 @@ const ProjectDetailsScreen = ({ selectedProject }) => {
                     label="Building Category"
                     value={selectedProject?.category}
                 />
+
+                {selectedProject?.classification && (
+                    <DisplayField
+                        label="Building Classification"
+                        value={selectedProject?.classification}
+                    />
+                )}
+
+                {selectedProject?.has_management !== null && (
+                    <DisplayField
+                        label="Existence of Common Management System"
+                        value={selectedProject?.has_management ? 'Yes' : 'No'}
+                    />
+                )}
 
                 <DisplayField
                     label="Project/Building Size (m²)"
@@ -82,7 +89,7 @@ const ProjectDetailsScreen = ({ selectedProject }) => {
 
                 <DisplayField
                     label="Certified Rating"
-                    value={selectedProject?.rating}
+                    value={typeof marksData?.predicted === 'number' ? marksData.predicted : selectedProject?.rating}
                     certifiedScaleRange={certifiedScaleRange}
                 />
             </ScrollView>

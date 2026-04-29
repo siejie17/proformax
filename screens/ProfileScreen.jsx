@@ -5,9 +5,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+import { AuthContext } from '../contexts/AuthContext';
+
 import api from '../services/api';
 
-import { AuthContext } from '../contexts/AuthContext';
 import LoadingIndicator from '../components/LoadingIndicator';
 
 const ProfileScreen = () => {

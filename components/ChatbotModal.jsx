@@ -1,21 +1,11 @@
 import { useState, useRef, useEffect, useContext } from 'react';
-import {
-    View,
-    Modal,
-    TouchableOpacity,
-    Text,
-    TextInput,
-    FlatList,
-    ActivityIndicator,
-    Platform,
-    KeyboardAvoidingView,
-    Image,
-} from 'react-native';
+import { View, Modal, TouchableOpacity, Text, TextInput, FlatList, ActivityIndicator, Platform, KeyboardAvoidingView, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
+import Markdown from '@ronradtke/react-native-markdown-display';
+
 import { AuthContext } from '../contexts/AuthContext';
 import { sendMessageToGemini } from '../services/geminiApi';
-import Markdown from '@ronradtke/react-native-markdown-display';
 
 const ChatbotModal = ({ isVisible, onClose }) => {
     const { user } = useContext(AuthContext);

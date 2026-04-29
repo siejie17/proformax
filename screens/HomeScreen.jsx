@@ -1,23 +1,17 @@
 import { useCallback, useContext, useState } from 'react';
-import {
-    View,
-    Text,
-    Image,
-    TouchableOpacity,
-    StatusBar,
-    Dimensions,
-    Animated,
-} from 'react-native';
+import { View, Text, Image, TouchableOpacity, StatusBar, Dimensions, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import * as Haptics from 'expo-haptics';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AuthContext } from '../contexts/AuthContext';
+
 import api from '../services/api';
 
 import LoadingIndicator from '../components/LoadingIndicator';
-import AIAssistantWrapper from '../components/AIAssistantWrapper';
+import ChatbotModal from '../components/ChatbotModal';
 import AIButton from '../components/AIButton';
 
 const { height: screenHeight } = Dimensions.get('window');
@@ -26,6 +20,8 @@ const HomeScreen = () => {
     const { user, loading } = useContext(AuthContext);
     const heroHeight = screenHeight * 0.46; // Reduced to make room for content
     const navigation = useNavigation();
+    const tabBarHeight = useBottomTabBarHeight();
+    const insets = useSafeAreaInsets();
 
     const [currentUser, setCurrentUser] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -84,7 +80,6 @@ const HomeScreen = () => {
 
     // Enhanced navigation functions with haptic feedback
     const navigateWithHaptic = (screenName) => {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
         navigation.navigate(screenName);
     };
 
@@ -208,7 +203,8 @@ const HomeScreen = () => {
 
             {/* Enhanced Content Section with ScrollView */}
             <View
-                className="flex-1 bg-gray-100 pb-5"
+                className="flex-1 bg-gray-100"
+                style={{ paddingBottom: tabBarHeight + insets.bottom + 12 }}
             >
                 {/* Welcome Message */}
                 <Animated.View
@@ -255,7 +251,7 @@ const HomeScreen = () => {
                 </View>
 
                 {/* Render AI Assistant modal */}
-                <AIAssistantWrapper isVisible={aiModalVisible} onClose={() => setAIModalVisible(false)} />
+                <ChatbotModal isVisible={aiModalVisible} onClose={() => setAIModalVisible(false)} />
             </View>
         </SafeAreaView>
     );

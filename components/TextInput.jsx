@@ -9,9 +9,16 @@ const TextInput = ({ errorText, description, right, required, label, ...props })
 
     return (
         <View style={styles.container}>
+            {label ? (
+                <Text style={[styles.label, isFocused && styles.labelFocused]}>
+                    {label}
+                    {required ? <Text style={styles.asterisk}> *</Text> : null}
+                </Text>
+            ) : null}
             <Input
                 style={styles.input}
                 selectionColor={theme.colors.primary}
+                placeholderTextColor="#bdbdbd"
                 underlineColor="transparent"
                 mode="outlined"
                 theme={{
@@ -24,18 +31,8 @@ const TextInput = ({ errorText, description, right, required, label, ...props })
                 outlineStyle={styles.outline}
                 contentStyle={styles.contentStyle}
                 right={right}
-                label={
-                    required ? (
-                        <Text style={[styles.label, isFocused && styles.labelFocused]}>
-                            {label}
-                            <Text style={styles.asterisk}> *</Text>
-                        </Text>
-                    ) : (
-                        <Text style={[styles.label, isFocused && styles.labelFocused]}>
-                            {label}
-                        </Text>
-                    )
-                }
+                label={undefined}
+                placeholder={`Enter ${label?.toLowerCase()}`}
                 onFocus={() => setIsFocused(true)}
                 onBlur={() => setIsFocused(false)}
                 {...props}
@@ -51,11 +48,12 @@ export default memo(TextInput);
 const styles = StyleSheet.create({
     container: {
         width: '100%',
-        marginVertical: 8,
+        marginVertical: 6,
     },
     input: {
         backgroundColor: '#fafafa',
         elevation: 0,
+        height: 44
     },
     outline: {
         borderRadius: 12,
@@ -65,6 +63,7 @@ const styles = StyleSheet.create({
     contentStyle: {
         paddingHorizontal: 16,
         paddingVertical: 2,
+        fontSize: 13,
     },
     description: {
         fontSize: 10,
@@ -80,10 +79,13 @@ const styles = StyleSheet.create({
         paddingTop: 6,
     },
     label: {
-        color: '#666', // default label color
+        fontSize: 12,
+        color: '#666',
+        marginBottom: 6,
+        marginLeft: 4,
     },
     labelFocused: {
-        color: 'black', // focused color
+        color: 'black',
     },
     asterisk: {
         color: 'red',

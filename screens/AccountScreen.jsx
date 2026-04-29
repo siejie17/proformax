@@ -10,10 +10,10 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { AuthContext } from '../contexts/AuthContext';
 
+import api, { setAuthToken } from '../services/api';
+
 import LoadingIndicator from '../components/LoadingIndicator';
 import MessageModal from '../components/MessageModal';
-
-import api, { setAuthToken } from '../services/api';
 
 const AccountScreen = ({ navigation, route }) => {
     const { userId } = route.params;

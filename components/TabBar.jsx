@@ -1,6 +1,6 @@
 import { View, Text, TouchableOpacity } from 'react-native';
 
-const TabBar = ({ state, descriptors, navigation }) => {
+const TabBar = ({ state, descriptors, navigation, onTabPress }) => {
     return (
         <View className="bg-white mx-4 mb-4 rounded-2xl p-1.5 flex-row gap-x-1.5 shadow-lg border border-slate-200">
             {state.routes.map((route, index) => {
@@ -15,7 +15,21 @@ const TabBar = ({ state, descriptors, navigation }) => {
                         canPreventDefault: true,
                     });
 
-                    if (!isFocused && !event.defaultPrevented) {
+                    if (event.defaultPrevented) {
+                        return;
+                    }
+
+                    if (onTabPress) {
+                        onTabPress({
+                            route,
+                            isFocused,
+                            navigation,
+                            currentRoute: state.routes[state.index],
+                        });
+                        return;
+                    }
+
+                    if (!isFocused) {
                         navigation.navigate(route.name);
                     }
                 };

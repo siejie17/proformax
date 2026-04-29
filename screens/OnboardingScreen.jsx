@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, StatusBar, Image, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, StatusBar, Image, ScrollView, Linking } from 'react-native';
 import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -104,9 +104,9 @@ const OnboardingScreen = () => {
                         <View className="pt-4">
                             <Text className="text-xs text-gray-400 text-center">
                                 By continuing, you agree to our{' '}
-                                <Text className="text-gray-500">Terms & Conditions</Text>
+                                <Text className="text-gray-500 underline">Terms & Conditions</Text>
                                 {' '}and{' '}
-                                <Text className="text-gray-500">Privacy Policy</Text>
+                                <Text className="text-gray-500 underline" onPress={() => Linking.openURL("https://myproformax.com/privacy-policy")}>Privacy Policy</Text>
                             </Text>
                         </View>
                     </View>

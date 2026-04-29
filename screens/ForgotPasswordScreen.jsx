@@ -1,15 +1,13 @@
 import { View, Keyboard, TouchableWithoutFeedback, KeyboardAvoidingView, Image, Alert, Text, TouchableOpacity } from 'react-native'
 import { useState } from 'react'
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
+
+import api from '../services/api';
 
 import BackButton from '../components/BackButton';
 import TextInput from '../components/TextInput';
 
-import api from '../services/api';
-
 const ForgotPasswordScreen = () => {
-    const route = useRoute();
-    const { setIsSentModalVisible } = route.params || {};
     const [email, setEmail] = useState({ value: '', error: '' });
     const [loading, setLoading] = useState(false);
 
@@ -28,8 +26,7 @@ const ForgotPasswordScreen = () => {
         // Send password reset link
         try {
             await api.post('/forgot-password', { email: email.value });
-            setIsSentModalVisible(true);
-            navigation.navigate('Login');
+            navigation.navigate('Login', { passwordResetEmailSent: true });
         } catch (error) {
             console.error('Error sending password reset link:', error);
             Alert.alert('Error', `Failed to send password reset link ${error.response?.data?.message || error.message}`);
