@@ -37,15 +37,13 @@ const OnboardingScreen = () => {
                                 <Ionicons name="settings-outline" size={20} color="#9ca3af" />
                             </View>
 
-                            {/* Central illustration - Replace with your image */}
+                            {/* Central illustration */}
                             <View className="bg-gray-100 rounded-full p-8 items-center justify-center w-48 h-48">
                                 <Image
                                     source={require('../assets/logo/proformax-logo.png')}
                                     className="w-32 h-32"
                                     resizeMode="contain"
                                 />
-                                {/* <MaterialCommunityIcons name="laptop" size={64} color="#6b7280" />
-                                <Text className="text-gray-400 text-xs mt-2">Person with Laptop</Text> */}
                             </View>
 
                             {/* Bottom decorative icons */}

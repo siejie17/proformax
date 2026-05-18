@@ -18,7 +18,7 @@ const { height: screenHeight } = Dimensions.get('window');
 
 const HomeScreen = () => {
     const { user, loading } = useContext(AuthContext);
-    const heroHeight = screenHeight * 0.46; // Reduced to make room for content
+    const heroHeight = screenHeight * 0.46;
     const navigation = useNavigation();
     const tabBarHeight = useBottomTabBarHeight();
     const insets = useSafeAreaInsets();
@@ -239,7 +239,6 @@ const HomeScreen = () => {
                         title="New Assessment"
                         description="Start green building score calculator"
                         onPress={() => navigateWithHaptic('GBSCalculator')}
-                    // gradient={true}
                     />
 
                     <QuickActionButton

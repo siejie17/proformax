@@ -87,7 +87,7 @@ const RegisterScreen = () => {
 
             const { message, token, user } = response.data;
 
-            // ✅ Store token & user globally
+            // Store token & user globally
             await AsyncStorage.setItem("token", token);
             await AsyncStorage.setItem("user", JSON.stringify(user));
 

@@ -476,8 +476,6 @@ const CostBreakdownScreen = ({
         setChangedNodes({});
         setHasChanges(false);
 
-        console.log('Submitting cost changes:', changedNodes);
-
         const response = await api.post(`/projects/update-actual-cost`, {
             changedNodes: changedNodes
         });
@@ -1081,7 +1079,7 @@ const CostBreakdownScreen = ({
                     ) : (
                         <>
                             {displayOnly ? null : (
-                                <View className="flex-row px-5 pb-4 gap-3">
+                                <View className="flex-row px-5 py-4 gap-3">
                                     <TouchableOpacity
                                         onPress={() => setIsAddMode(!isAddMode)}
                                         className={`flex-1 rounded-xl py-3 flex-row items-center justify-center shadow-sm ${isAddMode
@@ -1173,6 +1171,7 @@ const CostBreakdownScreen = ({
                                             onAddCost={handleAddCost}
                                             highlightedItem={highlightedItem}
                                             displayOnly={displayOnly}
+                                            predictedMarks={criteriaTotalMarks}
                                             certifiedScaleRange={certifiedScaleRange}
                                             certificationMultipliers={certificationMultipliers}
                                         />
@@ -1223,6 +1222,7 @@ const CostBreakdownScreen = ({
                                             originalNode={selectedProject.cost_breakdown?.[code]}
                                             onActualCostChange={handleActualCostChange}
                                             displayOnly={displayOnly}
+                                            predictedMarks={overallScoreSummary.predicted}
                                             marksData={marksData}
                                             setMarksData={setMarksData}
                                             certifiedScaleRange={certifiedScaleRange}

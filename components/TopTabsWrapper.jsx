@@ -92,6 +92,7 @@ const TopTabsWrapper = ({ title, tabs, params, onSubmit, criteriaTotalMarks = 0,
                                     {...params}
                                     {...props}
                                     mappedFormData={mappedFormData}
+                                    criteriaTotalMarks={criteriaTotalMarks}
                                     newProjectCosts={newProjectCosts}
                                 />
                             )}

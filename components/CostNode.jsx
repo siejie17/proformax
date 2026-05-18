@@ -1,8 +1,8 @@
 import { View, Text, TextInput, TouchableOpacity, Animated, Modal } from 'react-native';
-import React, { useRef, useState, useCallback } from 'react';
+import React, { useRef, useState, useCallback, useEffect } from 'react';
 import { Ionicons, Entypo } from '@expo/vector-icons';
 
-const CostNode = ({ code, node, level = 0, onCostChange, path, onDelete = () => { }, isDeleteMode = null, isAddMode = null, onAddCost = () => { }, highlightedItem = null, displayOnly, originalNode = null, onActualCostChange = null, marksData = null, setMarksData = null, certifiedScaleRange, certificationMultipliers = {} }) => {
+const CostNode = ({ code, node, level = 0, onCostChange, path, onDelete = () => { }, isDeleteMode = null, isAddMode = null, onAddCost = () => { }, highlightedItem = null, displayOnly, originalNode = null, onActualCostChange = null, predictedMarks = 0, marksData = null, setMarksData = null, certifiedScaleRange, certificationMultipliers = {} }) => {
     const getCertificationPalette = (level) => {
         const palette = {
             Platinum: {
@@ -41,6 +41,10 @@ const CostNode = ({ code, node, level = 0, onCostChange, path, onDelete = () => 
     };
 
     const getCertificationLevel = useCallback((marks) => {
+        if (node?.is_certification && node?.certification_level && marks === predictedMarks) {
+            return node.certification_level;
+        }
+
         if (!certifiedScaleRange || Object.keys(certifiedScaleRange).length === 0) {
             return 'Not Certified';
         }
@@ -50,7 +54,7 @@ const CostNode = ({ code, node, level = 0, onCostChange, path, onDelete = () => 
             }
         }
         return 'Not Certified';
-    }, [certifiedScaleRange]);
+    }, [certifiedScaleRange, node?.certification_level, node?.is_certification, predictedMarks]);
 
     const getDisplayCode = () => {
         if (level === 2) {
@@ -190,10 +194,12 @@ const CostNode = ({ code, node, level = 0, onCostChange, path, onDelete = () => 
     if (level === 0) {
         const isLocked = node.locked && node.isMultiplier;
         const isCertification = node.is_certification;
-        const predictedCertificationPalette = getCertificationPalette(getCertificationLevel(marksData?.predicted));
-        const predictedCertificationPercent = certificationMultipliers[getCertificationLevel(marksData?.predicted)] || 0;
-        const actualCertificationPalette = getCertificationPalette(getCertificationLevel(marksData?.actual));
-        const actualCertificationPercent = certificationMultipliers[getCertificationLevel(marksData?.actual)] || 0;
+        const predictedCertificationLevel = node?.certification_level || getCertificationLevel(predictedMarks);
+        const predictedCertificationPalette = getCertificationPalette(predictedCertificationLevel);
+        const predictedCertificationPercent = node?.multiplier_percent ?? certificationMultipliers[predictedCertificationLevel] ?? 0;
+        const actualCertificationLevel = getCertificationLevel(marksData?.actual);
+        const actualCertificationPalette = getCertificationPalette(actualCertificationLevel);
+        const actualCertificationPercent = certificationMultipliers[actualCertificationLevel] || 0;
 
         return (
             <View className="bg-white rounded-3xl mb-4 overflow-hidden shadow-md border border-gray-100">
@@ -245,7 +251,7 @@ const CostNode = ({ code, node, level = 0, onCostChange, path, onDelete = () => 
                                             style={{ backgroundColor: predictedCertificationPalette.accentBg }}
                                         >
                                             <Text className="text-[9px] font-semibold" style={{ color: predictedCertificationPalette.accentText }}>
-                                                {getCertificationLevel(marksData?.predicted) || 'Not Certified'}
+                                                {predictedCertificationLevel || 'Not Certified'}
                                             </Text>
                                             <Text className="text-[9px] font-medium" style={{ color: predictedCertificationPalette.accentText, opacity: 0.75 }}>
                                                 +{predictedCertificationPercent}%
@@ -291,7 +297,7 @@ const CostNode = ({ code, node, level = 0, onCostChange, path, onDelete = () => 
                                         style={{ backgroundColor: actualCertificationPalette.accentBg }}
                                     >
                                         <Text className="text-[9px] font-semibold" style={{ color: actualCertificationPalette.accentText }}>
-                                            {getCertificationLevel(marksData?.actual) || 'Not Certified'}
+                                            {actualCertificationLevel || 'Not Certified'}
                                         </Text>
                                         <Text className="text-[9px] font-medium" style={{ color: actualCertificationPalette.accentText, opacity: 0.75 }}>
                                             +{actualCertificationPercent}%
@@ -327,7 +333,7 @@ const CostNode = ({ code, node, level = 0, onCostChange, path, onDelete = () => 
                                         className="font-semibold text-[9px]"
                                         style={{ color: predictedCertificationPalette.chipText }}
                                     >
-                                        {getCertificationLevel(marksData?.predicted) || 'Not Certified'} • +{predictedCertificationPercent}%
+                                        {getCertificationLevel(predictedMarks) || 'Not Certified'} • +{predictedCertificationPercent}%
                                     </Text>
                                 </View>
                             ) : null}
@@ -388,6 +394,11 @@ const CostNode = ({ code, node, level = 0, onCostChange, path, onDelete = () => 
                                 displayOnly={displayOnly}
                                 originalNode={originalNode?.children?.[childCode]}
                                 onActualCostChange={onActualCostChange}
+                                predictedMarks={predictedMarks}
+                                marksData={marksData}
+                                setMarksData={setMarksData}
+                                certifiedScaleRange={certifiedScaleRange}
+                                certificationMultipliers={certificationMultipliers}
                             />
                         )) : null}
                     </Animated.View>
@@ -481,6 +492,11 @@ const CostNode = ({ code, node, level = 0, onCostChange, path, onDelete = () => 
                                     displayOnly={displayOnly}
                                     originalNode={originalNode?.children?.[childCode]}
                                     onActualCostChange={onActualCostChange}
+                                    predictedMarks={predictedMarks}
+                                    marksData={marksData}
+                                    setMarksData={setMarksData}
+                                    certifiedScaleRange={certifiedScaleRange}
+                                    certificationMultipliers={certificationMultipliers}
                                 />
                             ))}
                         </Animated.View>

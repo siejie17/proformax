@@ -97,6 +97,7 @@ const GreenElementsScreen = ({
             setCheckedSubitems(prev => {
                 const wasChecked = prev[parentId]?.[itemId];
                 const newCheckedState = {
+                    ...prev,
                     [parentId]: {
                         ...prev[parentId],
                         [itemId]: !wasChecked
@@ -341,7 +342,7 @@ const GreenElementsScreen = ({
                 return newCheckedState;
             });
         }
-    }, [criteria, customItems]);
+    }, [checkedItems, checkedSubitems, criteria, customItems]);
 
     const handleOptionToggle = useCallback((itemId, optionIndex, option, criterionId) => {
         setCheckedOptions(prev => {
@@ -433,7 +434,7 @@ const GreenElementsScreen = ({
                         return true;
                     }).length;
 
-                    // Calculate marks (max 6 marks per parent, or parentItem.marks if specified)
+                    // Calculate marks
                     const maxMarks = parentItem.marks || 6;
                     const previousMarks = Math.min(previouslyCheckedForThisParent, maxMarks);
                     const newMarks = Math.min(totalCheckedForThisParent, maxMarks);
@@ -790,8 +791,6 @@ const GreenElementsScreen = ({
                     style={{ shadowColor: '#000', shadowOpacity: 0.04, shadowOffset: { width: 0, height: 1 }, shadowRadius: 3, elevation: 1 }}
                 >
                     <View className="px-4 py-3.5">
-
-                        {/* Row 1: Checkbox + Label + Badges + Actions */}
                         <View className="flex-row items-center">
 
                             {/* Checkbox — only for simple items */}
@@ -911,6 +910,8 @@ const GreenElementsScreen = ({
                             const exclusiveGroups = selectionGroups.filter(g => g.exclusive);
                             const normalGroups = selectionGroups.filter(g => !g.exclusive);
 
+                            let isActive = false;
+
                             return (
                                 <>
                                     {/* ── Normal groups (existing behaviour) ── */}
@@ -945,13 +946,19 @@ const GreenElementsScreen = ({
                                                 placeholderStyle={{ color: '#9CA3AF', fontSize: 13 }}
                                                 renderRightIcon={() => (
                                                     <Ionicons
-                                                        name={selectedDropdowns[group.id] ? 'chevron-up' : 'chevron-down'}
+                                                        name={isActive ? 'chevron-up' : 'chevron-down'}
                                                         size={14}
                                                         color="#9CA3AF"
                                                     />
                                                 )}
                                                 data={group.selections}
                                                 value={selectedDropdowns[group.id] || group.selections[0] || null}
+                                                onFocus={() => {
+                                                        isActive = true;
+                                                    }}
+                                                    onBlur={() => {
+                                                        isActive = false;
+                                                    }}
                                                 onChange={(selected) => {
                                                     const targetCriterion = findItemCriterion(item.id);
                                                     if (!targetCriterion) return;
@@ -1258,7 +1265,7 @@ const GreenElementsScreen = ({
 
                     {/* Action suggestions */}
                     <View className="bg-blue-50 p-4 rounded-xl w-full">
-                        <Text className="text-blue-800 text-sm font-medium mb-2">💡 Suggestions:</Text>
+                        <Text className="text-blue-800 text-sm font-medium mb-2">Suggestions:</Text>
                         <Text className="text-blue-700 text-sm leading-5">
                             • Check your project settings{'\n'}
                             • Verify building type selection{'\n'}

@@ -724,41 +724,27 @@ const GBSCalculatorScreen = ({ navigation }) => {
     };
 
     const handleFormSubmit = () => {
-        // if (!validateForm()) {
-        //     return;
-        // }
-
-        // const formData = {
-        //     projectName: projectName,
-        //     buildingType: selectedBuildingType,
-        //     category: selectedCategory,
-        //     year: selectedYear,
-        //     buildingSize: buildingSize,
-        //     projectBudget: projectBudget > 0 ? projectBudget : null,
-        //     state: selectedState,
-        //     region: selectedRegion || '',
-        //     structure: selectedStructure,
-        //     costPreviewWay: "Detailed",
-        //     certifiedRatingScale: selectedCertifiedRatingScale
-        // };
-
-        // if (selectedBuildingType === "Residential New Construction (RNC)") {
-        //     formData.buildingClassification = selectedClassification;
-        //     formData.hasManagement = selectedManagementOption === "Yes";
-        // }
+        if (!validateForm()) {
+            return;
+        }
 
         const formData = {
-            "projectName": "Example",
-            "buildingType": "Non-Residential Existing Building (NREB)",
-            "category": "Mosques",
-            "year": 2027,
-            "buildingSize": 2000,
-            "projectBudget": 50000000,
-            "state": "Sarawak",
-            "region": "Miri",
-            "structure": "Single Storey (R.C.) Building",
-            "costPreviewWay": "Detailed",
-            "certifiedRatingScale": "Not Certified (0 - 49)"
+            projectName: projectName,
+            buildingType: selectedBuildingType,
+            category: selectedCategory,
+            year: selectedYear,
+            buildingSize: buildingSize,
+            projectBudget: projectBudget > 0 ? projectBudget : null,
+            state: selectedState,
+            region: selectedRegion || '',
+            structure: selectedStructure,
+            costPreviewWay: "Detailed",
+            certifiedRatingScale: selectedCertifiedRatingScale
+        };
+
+        if (selectedBuildingType === "Residential New Construction (RNC)") {
+            formData.buildingClassification = selectedClassification;
+            formData.hasManagement = selectedManagementOption === "Yes";
         }
 
         navigation.navigate('Results', { formData: formData, admin: false });

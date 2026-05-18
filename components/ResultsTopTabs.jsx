@@ -224,13 +224,18 @@ const ResultsTopTabs = ({ navigation }) => {
                 Object.entries(selectedDropdowns)
                     .filter(([key, value]) => value !== undefined && value?.marks !== 0 && value?.id !== undefined)
                     .map(([key, value]) => [key, value.id])
-            )
+            ),
+            compulsoryItems: greenElements
+                .flatMap(criterion => criterion.subcriteria || [])
+                .flatMap(subcriteria => subcriteria.items || [])
+                .filter(item => item.is_compulsory === 1)
+                .map(item => item.id)
         }
 
         const projectData = {
             user_id: user.id,
             rating: criteriaTotalMarks,
-            costs: verifiedProjectCosts,
+            costs: newProjectCosts,
             form_data: mappedFormData,
             checked_items: checked_items,
         };

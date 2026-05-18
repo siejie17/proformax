@@ -590,7 +590,6 @@ const GreenElementsDisplayScreen = ({
                 }
 
                 // Extract customValue and itemId from the key
-                // Key format: "${itemId}:value:${normalizedCustomValue}" or "${itemId}:index:${fallbackIndex}"
                 const parts = key.split(':');
                 const itemId = parts[0];
                 const keyType = parts[1]; // 'value' or 'index'
@@ -645,8 +644,6 @@ const GreenElementsDisplayScreen = ({
         }));
 
         // Add to actual answers only (not baseline)
-        // baseline = false (new), actual = true → "add" action recorded
-        // After submit, commitCurrentAuditStateAsBaseline will copy it to baseline
         const customAuditKey = `${itemId}:value:${text.trim()}`;
 
         setActualAnswers(prev => ({
@@ -694,7 +691,6 @@ const GreenElementsDisplayScreen = ({
             const customAuditKey = `${itemId}:value:${customValue}`;
 
             // Mark as deleted by removing from actual (baseline keeps it)
-            // Baseline = true, Actual = false → "delete" action recorded
             setActualAnswers(prev => {
                 const updatedAnswers = { ...prev };
                 delete updatedAnswers.customEntries?.[customAuditKey];
@@ -925,7 +921,6 @@ const GreenElementsDisplayScreen = ({
 
     const handleSubmitAuditChanges = useCallback(async () => {
         if (auditChanges.length === 0) return true;
-        console.log('Submitting audit changes:', auditChanges);
 
         const response = await api.post(`/projects/${selectedProject.id}/save-actual-changes`, {
             actualChanges: auditChanges
@@ -1173,7 +1168,6 @@ const GreenElementsDisplayScreen = ({
     }, []);
 
     // Apply certification multiplier to actual costs when actual marks change
-    // Pass the multiplier info to parent, don't update selectedProject here
     useEffect(() => {
         if (otherProps?.displayOnly && !otherProps?.actualCostBreakdown) {
             return;
@@ -1324,7 +1318,7 @@ const GreenElementsDisplayScreen = ({
         );
     }, []);
 
-    const renderCheckboxComparisonRow = useCallback((predictedChecked, actualChecked, onToggle) => (
+    const renderCheckboxComparisonRow = useCallback((predictedChecked, actualChecked, onToggle, isUnchanged = false) => (
         <View className="flex-row gap-2 mt-3">
             <View className="flex-1 flex-row items-center justify-between rounded-xl bg-white border border-slate-200 px-3 py-2.5">
                 <View className="flex-row items-center">
@@ -1341,20 +1335,20 @@ const GreenElementsDisplayScreen = ({
             </View>
 
             <TouchableOpacity
-                onPress={onToggle}
-                activeOpacity={0.75}
-                className={`flex-1 flex-row items-center justify-between rounded-xl px-3 py-2.5 border ${actualChecked ? 'bg-emerald-50 border-emerald-300' : 'bg-white border-slate-200'}`}
+                onPress={isUnchanged? undefined : onToggle}
+                activeOpacity={isUnchanged? 1 : 0.75}
+                className={`flex-1 flex-row items-center justify-between rounded-xl px-3 py-2.5 border ${(isUnchanged || actualChecked) ? 'bg-emerald-50 border-emerald-300' : 'bg-white border-slate-200'}`}
             >
                 <View className="flex-row items-center">
                     <MaterialCommunityIcons
-                        name={actualChecked ? 'checkbox-marked' : 'checkbox-blank-outline'}
+                        name={(isUnchanged || actualChecked) ? 'checkbox-marked' : 'checkbox-blank-outline'}
                         size={18}
-                        color={actualChecked ? '#10B981' : '#94A3B8'}
+                        color={(isUnchanged || actualChecked) ? '#10B981' : '#94A3B8'}
                     />
                     <Text className="text-[11px] font-semibold text-slate-500 ml-2">ACTUAL</Text>
                 </View>
-                <Text className={`text-xs font-semibold ${actualChecked ? 'text-emerald-600' : 'text-slate-400'}`}>
-                    {actualChecked ? 'Checked' : 'Unchecked'}
+                <Text className={`text-xs font-semibold ${(isUnchanged || actualChecked) ? 'text-emerald-600' : 'text-slate-400'}`}>
+                    {(isUnchanged || actualChecked) ? 'Checked' : 'Unchecked'}
                 </Text>
             </TouchableOpacity>
         </View>
@@ -1396,6 +1390,8 @@ const GreenElementsDisplayScreen = ({
         const showPointsBadge = !!item.marks && !hasOptions && !hasSubitems && !hasSelections;
         const showSelectionBadge = hasSelections || hasOptions;
         const actualItemMarks = calculateActualCumulativeMarks(item) || 0;
+
+        const isUnchanged = item.is_compulsory === 1;
 
         // Display-only mode logic - get data from selectedProject
         let isItemChecked = false;
@@ -1484,7 +1480,8 @@ const GreenElementsDisplayScreen = ({
                             ? renderCheckboxComparisonRow(
                                 isItemChecked,
                                 actualItemChecked,
-                                () => toggleActualAnswer('items', item.id)
+                                () => toggleActualAnswer('items', item.id),
+                                isUnchanged
                             )
                             : null}
 
@@ -1876,9 +1873,6 @@ const GreenElementsDisplayScreen = ({
                                                             search={false}
                                                             maxHeight={240}
                                                         />
-                                                        {/* <View className="mt-2 self-end">
-                                                            {renderActualMarksIndicator(actualSelection?.marks || 0, !!actualSelectionId && (actualSelection?.marks || 0) !== 0, false)}
-                                                        </View> */}
                                                     </View>
                                                 );
                                             })}
