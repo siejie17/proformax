@@ -148,7 +148,6 @@ frontend/
 - **React Navigation** (native stack, bottom tabs, material top tabs)
 - **NativeWind** v4 + **Tailwind CSS** v3
 - **React Native Paper**, **Gesture Handler**, **Reanimated**, **Bottom Sheet**
-- **Three.js** / **React Three Fiber** (3D views)
 - **Axios** + **Async Storage** (API + auth token)
 - **Google GenAI** (`@google/genai`) for Gemini 2.5 Flash
 
