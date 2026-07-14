@@ -16,18 +16,18 @@ const SelectionItemWithMarks = memo(({ item, selectedValue, onSelect }) => {
         >
             <View className="flex-row items-center justify-between">
                 <View className="flex-1">
-                    <Text className={`text-base leading-5 ${isSelected ? 'text-blue-600 font-semibold' : 'text-gray-800'}`}>
+                    <Text allowFontScaling={false} className={`text-base leading-5 ${isSelected ? 'text-blue-600 font-semibold' : 'text-gray-800'}`}>
                         {description}
                     </Text>
                     {marks !== undefined && (
-                        <Text className={`text-xs mt-1 ${isSelected ? 'text-blue-500' : 'text-gray-500'}`}>
+                        <Text allowFontScaling={false} className={`text-xs mt-1 ${isSelected ? 'text-blue-500' : 'text-gray-500'}`}>
                             {marks} points
                         </Text>
                     )}
                 </View>
                 {marks !== undefined && (
                     <View className={`ml-3 px-2.5 py-1.5 rounded-lg ${isSelected ? 'bg-blue-500' : 'bg-gray-100'}`}>
-                        <Text className={`text-xs font-semibold ${isSelected ? 'text-white' : 'text-gray-600'}`}>
+                        <Text allowFontScaling={false} className={`text-xs font-semibold ${isSelected ? 'text-white' : 'text-gray-600'}`}>
                             {marks}
                         </Text>
                     </View>

@@ -126,7 +126,7 @@ const CostNode = ({ code, node, level = 0, onCostChange, path, onDelete = () => 
 
         return (
             <View className="items-end min-w-[18px] ml-1">
-                <Text className={`font-bold text-[10px] ${textColor}`}>
+                <Text allowFontScaling={false} className={`font-bold text-[10px] ${textColor}`}>
                     {workDonePercentage === null ? '--' : `${workDonePercentage.toFixed(1)}`}
                 </Text>
             </View>
@@ -224,7 +224,7 @@ const CostNode = ({ code, node, level = 0, onCostChange, path, onDelete = () => 
                                 <Ionicons name="attach" size={12} color="#FFFFFF" opacity={0.5} />
                             )}
                         </View>
-                        <Text className={`text-white font-bold ${displayOnly ? 'text-[10px] leading-4' : 'text-xs leading-4'} flex-1`} numberOfLines={2}>
+                        <Text allowFontScaling={false} className={`text-white font-bold ${displayOnly ? 'text-[10px] leading-4' : 'text-xs leading-4'} flex-1`} numberOfLines={2}>
                             {code}. {node.description || 'No description'}
                         </Text>
                     </View>
@@ -239,7 +239,7 @@ const CostNode = ({ code, node, level = 0, onCostChange, path, onDelete = () => 
                                     <View className="rounded-xl overflow-hidden min-w-[70px]">
                                         {/* Top layer — value */}
                                         <View className="bg-white/10 px-3 py-1.5 items-end">
-                                            <Text className="text-[11px] font-semibold text-white">
+                                            <Text allowFontScaling={false} className="text-[11px] font-semibold text-white">
                                                 {originalNode?.cost !== null && originalNode?.cost !== undefined
                                                     ? formatWithCommas(originalNode.cost)
                                                     : '—'}
@@ -250,17 +250,17 @@ const CostNode = ({ code, node, level = 0, onCostChange, path, onDelete = () => 
                                             className="px-3 py-1 items-end gap-0.5"
                                             style={{ backgroundColor: predictedCertificationPalette.accentBg }}
                                         >
-                                            <Text className="text-[9px] font-semibold" style={{ color: predictedCertificationPalette.accentText }}>
+                                            <Text allowFontScaling={false} className="text-[9px] font-semibold" style={{ color: predictedCertificationPalette.accentText }}>
                                                 {predictedCertificationLevel || 'Not Certified'}
                                             </Text>
-                                            <Text className="text-[9px] font-medium" style={{ color: predictedCertificationPalette.accentText, opacity: 0.75 }}>
+                                            <Text allowFontScaling={false} className="text-[9px] font-medium" style={{ color: predictedCertificationPalette.accentText, opacity: 0.75 }}>
                                                 +{predictedCertificationPercent}%
                                             </Text>
                                         </View>
                                     </View>
                                 ) : (
                                     <View className="rounded-xl py-1.5 min-w-[80px] items-end">
-                                        <Text className="text-[11px] font-semibold text-white">
+                                        <Text allowFontScaling={false} className="text-[11px] font-semibold text-white">
                                             {originalNode?.cost !== null && originalNode?.cost !== undefined
                                                 ? formatWithCommas(originalNode.cost)
                                                 : '—'}
@@ -273,6 +273,7 @@ const CostNode = ({ code, node, level = 0, onCostChange, path, onDelete = () => 
                                 <View className="bg-white/10 border border-blue-400 rounded-xl px-3 py-1.5 min-w-[75px]">
                                     <TextInput
                                         className="text-blue-300 font-bold text-[11px] text-right p-0"
+                                        allowFontScaling={false}
                                         keyboardType="numeric"
                                         value={getActualInputDisplayValue()}
                                         onChangeText={handleActualInputChange}
@@ -286,6 +287,7 @@ const CostNode = ({ code, node, level = 0, onCostChange, path, onDelete = () => 
                                     {/* Top layer — value */}
                                     <View className="bg-white/10 px-3 py-1.5 items-end">
                                         <Text
+                                            allowFontScaling={false}
                                             className="text-[11px] font-semibold text-white"
                                         >
                                             {formatWithCommas(node.actual_cost) || '0.00'}
@@ -296,10 +298,10 @@ const CostNode = ({ code, node, level = 0, onCostChange, path, onDelete = () => 
                                         className="px-3 py-1 items-end gap-0.5"
                                         style={{ backgroundColor: actualCertificationPalette.accentBg }}
                                     >
-                                        <Text className="text-[9px] font-semibold" style={{ color: actualCertificationPalette.accentText }}>
+                                        <Text allowFontScaling={false} className="text-[9px] font-semibold" style={{ color: actualCertificationPalette.accentText }}>
                                             {actualCertificationLevel || 'Not Certified'}
                                         </Text>
-                                        <Text className="text-[9px] font-medium" style={{ color: actualCertificationPalette.accentText, opacity: 0.75 }}>
+                                        <Text allowFontScaling={false} className="text-[9px] font-medium" style={{ color: actualCertificationPalette.accentText, opacity: 0.75 }}>
                                             +{actualCertificationPercent}%
                                         </Text>
                                     </View>
@@ -307,7 +309,7 @@ const CostNode = ({ code, node, level = 0, onCostChange, path, onDelete = () => 
                             ) : (
                                 /* Plain read-only value */
                                 <View className="bg-white/10 rounded-xl px-3 py-1.5 min-w-[80px] items-end">
-                                    <Text className="text-[11px] font-semibold text-white">
+                                    <Text allowFontScaling={false} className="text-[11px] font-semibold text-white">
                                         {formatWithCommas(node.actual_cost) || '0.00'}
                                     </Text>
                                 </View>
@@ -320,7 +322,7 @@ const CostNode = ({ code, node, level = 0, onCostChange, path, onDelete = () => 
                                 className="rounded-xl px-3.5 py-2 flex-row items-center shadow-sm"
                                 style={{ backgroundColor: isLocked ? '#F59E0B' : '#3B82F6' }}
                             >
-                                <Text className="text-white font-bold text-sm tracking-tight">
+                                <Text allowFontScaling={false} className="text-white font-bold text-sm tracking-tight">
                                     {node.cost !== null && node.cost !== undefined ? formatWithCommas(node.cost) : '—'}
                                 </Text>
                             </View>
@@ -330,6 +332,7 @@ const CostNode = ({ code, node, level = 0, onCostChange, path, onDelete = () => 
                                     style={{ backgroundColor: predictedCertificationPalette.chipBg }}
                                 >
                                     <Text
+                                        allowFontScaling={false}
                                         className="font-semibold text-[9px]"
                                         style={{ color: predictedCertificationPalette.chipText }}
                                     >
@@ -342,6 +345,7 @@ const CostNode = ({ code, node, level = 0, onCostChange, path, onDelete = () => 
                         <View className="bg-white border-2 border-slate-200 rounded-xl px-3 py-2 min-w-[80px] shadow-sm">
                             <TextInput
                                 className="text-slate-800 text-sm font-bold text-right p-0"
+                                allowFontScaling={false}
                                 keyboardType="numeric"
                                 value={node.inputValue !== undefined ? formatInputWithCommas(node.inputValue) : (node.cost !== null && node.cost !== undefined && node.cost !== 0 ? formatWithCommas(node.cost) : '')}
                                 onChangeText={(val) => {
@@ -432,7 +436,7 @@ const CostNode = ({ code, node, level = 0, onCostChange, path, onDelete = () => 
                                             <Ionicons name="chevron-forward" size={13} color="#3b82f6" />
                                         </Animated.View>
                                     )}
-                                    <Text className="text-slate-700 font-semibold text-[11px] leading-4 flex-1" numberOfLines={2}>
+                                    <Text allowFontScaling={false} className="text-slate-700 font-semibold text-[11px] leading-4 flex-1" numberOfLines={2}>
                                         {level === 2 ? `${getDisplayCode()}. ` : `${code}. `}{node.description || 'No description'}
                                     </Text>
                                 </View>
@@ -440,12 +444,12 @@ const CostNode = ({ code, node, level = 0, onCostChange, path, onDelete = () => 
                                 {displayOnly ? (
                                     <View className="flex-row items-center gap-4">
                                         {/* Budget — plain muted text */}
-                                        <Text className="text-slate-400 font-bold text-[10px]">
+                                        <Text allowFontScaling={false} className="text-slate-400 font-bold text-[10px]">
                                             {originalNode?.cost !== null && originalNode?.cost !== undefined ? formatWithCommas(originalNode.cost) : '—'}
                                         </Text>
                                         {/* Actual — subtle filled box */}
                                         <View className="bg-blue-50 rounded-lg px-2.5 py-1.5 min-w-[70px]">
-                                            <Text className="text-blue-600 font-bold text-[10px] text-right">
+                                            <Text allowFontScaling={false} className="text-blue-600 font-bold text-[10px] text-right">
                                                 {formatWithCommas(node.actual_cost) || "0.00"}
                                             </Text>
                                         </View>
@@ -453,7 +457,7 @@ const CostNode = ({ code, node, level = 0, onCostChange, path, onDelete = () => 
                                     </View>
                                 ) : (
                                     <View className="bg-blue-50 rounded-lg px-2.5 py-1.5 min-w-[85px]">
-                                        <Text className="text-blue-600 font-bold text-[11px] text-right">
+                                        <Text allowFontScaling={false} className="text-blue-600 font-bold text-[11px] text-right">
                                             {node.cost !== null && node.cost !== undefined ? formatWithCommas(node.cost) : '—'}
                                         </Text>
                                     </View>
@@ -514,6 +518,7 @@ const CostNode = ({ code, node, level = 0, onCostChange, path, onDelete = () => 
                                 </View>
                             ) : null}
                             <Text
+                                allowFontScaling={false}
                                 className={`flex-1 leading-4 ${level > 1 ? 'text-slate-500 text-[10px]' : level === 1 ? 'text-blue-700 text-[10px] font-semibold' : 'text-slate-600 text-[11px]'} font-medium`}
                                 numberOfLines={2}
                             >
@@ -525,13 +530,14 @@ const CostNode = ({ code, node, level = 0, onCostChange, path, onDelete = () => 
                             {displayOnly ? (
                                 <View className="flex-row items-center gap-4">
                                     {/* Budget — plain muted text, no box */}
-                                    <Text className="text-slate-400 font-bold text-[10px]">
+                                    <Text allowFontScaling={false} className="text-slate-400 font-bold text-[10px]">
                                         {originalNode?.cost !== null && originalNode?.cost !== undefined ? formatWithCommas(originalNode.cost) : '—'}
                                     </Text>
                                     {/* Actual — editable input */}
                                     <View className="bg-white border border-blue-300 rounded-xl px-2.5 py-1.5 min-w-[75px]">
                                         <TextInput
                                             className="text-blue-700 text-[10px] font-bold text-right p-0"
+                                            allowFontScaling={false}
                                             keyboardType="numeric"
                                             value={getActualInputDisplayValue()}
                                             onChangeText={handleActualInputChange}
@@ -546,6 +552,7 @@ const CostNode = ({ code, node, level = 0, onCostChange, path, onDelete = () => 
                                     <View className="bg-white border-2 border-slate-200 rounded-xl px-3 py-2 min-w-[85px] shadow-sm">
                                         <TextInput
                                             className="text-slate-800 text-[11px] font-bold text-right p-0"
+                                            allowFontScaling={false}
                                             keyboardType="numeric"
                                             value={node.inputValue !== undefined ? formatInputWithCommas(node.inputValue) : (node.cost !== null && node.cost !== undefined && node.cost !== 0 ? formatWithCommas(node.cost) : '')}
                                             onChangeText={(val) => {
@@ -586,16 +593,16 @@ const CostNode = ({ code, node, level = 0, onCostChange, path, onDelete = () => 
                                 <Ionicons name="trash-outline" size={32} color="#dc2626" />
                             </View>
                         </View>
-                        <Text className="text-slate-900 font-bold text-lg text-center mb-2">Remove Item</Text>
-                        <Text className="text-slate-600 text-sm text-center mb-6">
+                        <Text allowFontScaling={false} className="text-slate-900 font-bold text-lg text-center mb-2">Remove Item</Text>
+                        <Text allowFontScaling={false} className="text-slate-600 text-sm text-center mb-6">
                             Are you sure you want to remove "{node.description}"?
                         </Text>
                         <View className="flex-row gap-3">
                             <TouchableOpacity onPress={() => setDeleteModalVisible(false)} className="flex-1 bg-slate-100 rounded-xl py-3 active:bg-slate-200" activeOpacity={0.8}>
-                                <Text className="text-slate-700 font-bold text-center text-sm">Cancel</Text>
+                                <Text allowFontScaling={false} className="text-slate-700 font-bold text-center text-sm">Cancel</Text>
                             </TouchableOpacity>
                             <TouchableOpacity onPress={confirmDelete} className="flex-1 bg-red-600 rounded-xl py-3 active:bg-red-700" activeOpacity={0.8}>
-                                <Text className="text-white font-bold text-center text-sm">Remove</Text>
+                                <Text allowFontScaling={false} className="text-white font-bold text-center text-sm">Remove</Text>
                             </TouchableOpacity>
                         </View>
                     </View>

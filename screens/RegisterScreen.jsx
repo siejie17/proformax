@@ -1,9 +1,10 @@
-import { View, TouchableWithoutFeedback, KeyboardAvoidingView, Keyboard, Image, Alert, StatusBar, ScrollView, Text, TouchableOpacity, Platform } from 'react-native'
-import { useState } from 'react';
+import { View, TouchableWithoutFeedback, KeyboardAvoidingView, Keyboard, Image, StatusBar, ScrollView, Text, TouchableOpacity, Platform } from 'react-native'
+import { useState, useContext } from 'react';
 import { TextInput as PaperTextInput } from 'react-native-paper';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
+
+import { AuthContext } from '../contexts/AuthContext';
 
 import api from '../services/api';
 
@@ -12,6 +13,8 @@ import MessageModal from '../components/MessageModal';
 import BackButton from '../components/BackButton';
 
 const RegisterScreen = () => {
+    const { login } = useContext(AuthContext);
+
     const [firstName, setFirstName] = useState({ value: '', error: '' });
     const [lastName, setLastName] = useState({ value: '', error: '' });
     const [email, setEmail] = useState({ value: '', error: '' });
@@ -22,6 +25,7 @@ const RegisterScreen = () => {
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     const [loading, setLoading] = useState(false);
+    const [generalError, setGeneralError] = useState('');
 
     const [successModalVisible, setSuccessModalVisible] = useState(false);
 
@@ -34,44 +38,63 @@ const RegisterScreen = () => {
         let valid = true;
 
         if (!firstName.value.trim()) {
-            setFirstName({ ...firstName, error: 'First name is required' });
+            setFirstName(f => ({ ...f, error: 'First name is required' }));
             valid = false;
         }
 
         if (!lastName.value.trim()) {
-            setLastName({ ...lastName, error: 'Last name is required' });
+            setLastName(l => ({ ...l, error: 'Last name is required' }));
             valid = false;
         }
 
         const emailRegex = /\S+@\S+\.\S+/;
         if (!email.value.trim()) {
-            setEmail({ ...email, error: 'Email is required' });
+            setEmail(e => ({ ...e, error: 'Email is required' }));
             valid = false;
         } else if (!emailRegex.test(email.value)) {
-            setEmail({ ...email, error: 'Invalid email format' });
+            setEmail(e => ({ ...e, error: 'Invalid email format' }));
             valid = false;
         }
 
         if (!password.value) {
-            setPassword({ ...password, error: 'Password is required' });
+            setPassword(p => ({ ...p, error: 'Password is required' }));
             valid = false;
         } else if (password.value.length < 6) {
-            setPassword({ ...password, error: 'Password must be at least 6 characters' });
+            setPassword(p => ({ ...p, error: 'Password must be at least 6 characters' }));
             valid = false;
         }
 
         if (!confirmPassword.value) {
-            setConfirmPassword({ ...confirmPassword, error: 'Confirm password is required' });
+            setConfirmPassword(c => ({ ...c, error: 'Confirm password is required' }));
             valid = false;
         } else if (confirmPassword.value !== password.value) {
-            setConfirmPassword({ ...confirmPassword, error: 'Passwords do not match' });
+            setConfirmPassword(c => ({ ...c, error: 'Passwords do not match' }));
             valid = false;
         }
 
         return valid;
     };
 
+    const clearErrors = () => {
+        setFirstName(f => ({ ...f, error: '' }));
+        setLastName(l => ({ ...l, error: '' }));
+        setEmail(e => ({ ...e, error: '' }));
+        setPassword(p => ({ ...p, error: '' }));
+        setConfirmPassword(c => ({ ...c, error: '' }));
+        setGeneralError('');
+    };
+
+    const applyFieldErrors = (errors = {}) => {
+        let matched = false;
+        if (errors.first_name) { setFirstName(f => ({ ...f, error: errors.first_name[0] })); matched = true; }
+        if (errors.last_name) { setLastName(l => ({ ...l, error: errors.last_name[0] })); matched = true; }
+        if (errors.email) { setEmail(e => ({ ...e, error: errors.email[0] })); matched = true; }
+        if (errors.password) { setPassword(p => ({ ...p, error: errors.password[0] })); matched = true; }
+        return matched;
+    };
+
     const _onSignUpPressed = async () => {
+        clearErrors();
         if (!validateFields()) return;
 
         setLoading(true);
@@ -85,25 +108,44 @@ const RegisterScreen = () => {
                 password_confirmation: confirmPassword.value, // Laravel requires "_confirmation"
             });
 
-            const { message, token, user } = response.data;
+            const { token, user } = response.data;
 
-            // Store token & user globally
-            await AsyncStorage.setItem("token", token);
-            await AsyncStorage.setItem("user", JSON.stringify(user));
+            // Route through the same auth flow as LoginScreen so app-wide
+            // auth state (not just AsyncStorage) knows the user is signed in.
+            await login(token, user);
+            api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 
             setSuccessModalVisible(true);
         } catch (error) {
-            if (error.response) {
-                const errors = error.response.data.errors;
+            // Clear passwords on any failure.
+            setPassword(p => ({ ...p, value: '' }));
+            setConfirmPassword(c => ({ ...c, value: '' }));
 
-                if (errors?.first_name) setFirstName({ ...firstName, error: errors.first_name[0] });
-                if (errors?.last_name) setLastName({ ...lastName, error: errors.last_name[0] });
-                if (errors?.email) setEmail({ ...email, error: errors.email[0] });
-                if (errors?.password) setPassword({ ...password, error: errors.password[0] });
+            if (!error.response) {
+                setGeneralError('Unable to connect. Please check your internet connection and try again.');
+                return;
+            }
 
-                Alert.alert('Error', error.response.data.message || 'Validation failed');
-            } else {
-                Alert.alert('Error', 'Network error, please try again');
+            const status = error.response.status;
+            const data = error.response.data;
+
+            switch (status) {
+                case 422: {
+                    const hadFieldErrors = applyFieldErrors(data?.errors);
+                    if (!hadFieldErrors) {
+                        setGeneralError(data?.message || 'Please check your details and try again.');
+                    }
+                    break;
+                }
+                case 429:
+                    setGeneralError('Too many attempts. Please wait a moment and try again.');
+                    break;
+                default:
+                    if (status >= 500) {
+                        setGeneralError('Something went wrong on our end. Please try again shortly.');
+                    } else {
+                        setGeneralError(data?.message || 'Something went wrong. Please try again.');
+                    }
             }
         } finally {
             setLoading(false);
@@ -142,16 +184,26 @@ const RegisterScreen = () => {
 
                         {/* Title */}
                         <View className="items-center mb-6">
-                            <Text className="text-3xl font-bold text-gray-900 text-center mb-2">
+                            <Text allowFontScaling={false} className="text-3xl font-bold text-gray-900 text-center mb-2">
                                 Let's Sign Up
                             </Text>
-                            <Text className="text-base text-gray-500 text-center">
+                            <Text allowFontScaling={false} className="text-base text-gray-500 text-center">
                                 Create your account to get started
                             </Text>
                         </View>
 
                         <View className="px-2">
+                            {/* Form-level error banner */}
+                            {generalError ? (
+                                <View className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 mb-4">
+                                    <Text allowFontScaling={false} className="text-red-600 text-sm text-center">
+                                        {generalError}
+                                    </Text>
+                                </View>
+                            ) : null}
+
                             <TextInput
+                                allowFontScaling={false}
                                 label="First Name"
                                 returnKeyType="next"
                                 value={firstName.value}
@@ -162,6 +214,7 @@ const RegisterScreen = () => {
                             />
 
                             <TextInput
+                                allowFontScaling={false}
                                 label="Last Name"
                                 returnKeyType="next"
                                 value={lastName.value}
@@ -172,6 +225,7 @@ const RegisterScreen = () => {
                             />
 
                             <TextInput
+                                allowFontScaling={false}
                                 label="Email Address"
                                 returnKeyType="next"
                                 value={email.value}
@@ -186,6 +240,7 @@ const RegisterScreen = () => {
                             />
 
                             <TextInput
+                                allowFontScaling={false}
                                 label="Password"
                                 returnKeyType="done"
                                 value={password.value}
@@ -203,7 +258,7 @@ const RegisterScreen = () => {
                             />
 
                             <View className="bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-2 mb-4">
-                                <Text className="text-slate-600 font-semibold text-[10px] mb-1">
+                                <Text allowFontScaling={false} className="text-slate-600 font-semibold text-[10px] mb-1">
                                     Password guide
                                 </Text>
                                 <View className="flex-row items-center mb-1">
@@ -213,7 +268,7 @@ const RegisterScreen = () => {
                                         color={hasMinLength ? '#059669' : '#94A3B8'}
                                         style={{ marginRight: 8 }}
                                     />
-                                    <Text className={`text-[10px] ${hasMinLength ? 'text-emerald-700' : 'text-slate-600'}`}>
+                                    <Text allowFontScaling={false} className={`text-[10px] ${hasMinLength ? 'text-emerald-700' : 'text-slate-600'}`}>
                                         Min 6 chars
                                     </Text>
                                 </View>
@@ -224,7 +279,7 @@ const RegisterScreen = () => {
                                         color={hasMixedCase ? '#059669' : '#94A3B8'}
                                         style={{ marginRight: 8 }}
                                     />
-                                    <Text className={`text-[10px] ${hasMixedCase ? 'text-emerald-700' : 'text-slate-600'}`}>
+                                    <Text allowFontScaling={false} className={`text-[10px] ${hasMixedCase ? 'text-emerald-700' : 'text-slate-600'}`}>
                                         Recommended: upper + lower case
                                     </Text>
                                 </View>
@@ -235,13 +290,14 @@ const RegisterScreen = () => {
                                         color={hasSpecialCharacter ? '#059669' : '#94A3B8'}
                                         style={{ marginRight: 8 }}
                                     />
-                                    <Text className={`text-[10px] ${hasSpecialCharacter ? 'text-emerald-700' : 'text-slate-600'}`}>
+                                    <Text allowFontScaling={false} className={`text-[10px] ${hasSpecialCharacter ? 'text-emerald-700' : 'text-slate-600'}`}>
                                         Recommended: special character
                                     </Text>
                                 </View>
                             </View>
 
                             <TextInput
+                                allowFontScaling={false}
                                 label="Confirm Password"
                                 returnKeyType="done"
                                 value={confirmPassword.value}
@@ -266,7 +322,7 @@ const RegisterScreen = () => {
                             onPress={_onSignUpPressed}
                             disabled={loading}
                         >
-                            <Text className="text-white text-center text-lg font-semibold">
+                            <Text allowFontScaling={false} className="text-white text-center text-lg font-semibold">
                                 {loading ? 'Creating account...' : 'Sign Up'}
                             </Text>
                         </TouchableOpacity>

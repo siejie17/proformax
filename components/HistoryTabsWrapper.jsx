@@ -95,6 +95,7 @@ const HistoryTabsWrapper = ({ title, tabs, params, navigation, showCostUpdatedTo
 
                     <View className="flex-1 px-5 pt-1.5">
                         <Text
+                            allowFontScaling={false}
                             className="text-gray-900 text-xl font-bold mb-2"
                             numberOfLines={1}
                             ellipsizeMode="tail"
@@ -171,7 +172,7 @@ const HistoryTabsWrapper = ({ title, tabs, params, navigation, showCostUpdatedTo
                         ) : (
                             <Ionicons name="checkmark" size={18} color="#FFFFFF" />
                         )}
-                        <Text className="text-white font-bold text-sm ml-2">
+                        <Text allowFontScaling={false} className="text-white font-bold text-sm ml-2">
                             {props.isSubmitting ? 'Submitting...' : props.hasUnsavedChanges ? 'Submit All Changes' : 'No Changes'}
                         </Text>
                     </TouchableOpacity>

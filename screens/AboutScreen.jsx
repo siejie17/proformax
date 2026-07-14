@@ -60,8 +60,8 @@ const AboutScreen = ({ navigation }) => {
                 className="w-10 h-10 mb-4"
                 style={{ resizeMode: 'contain' }}
             />
-            <Text className="text-gray-900 text-xl font-bold mb-2">{title}</Text>
-            <Text className="text-gray-600 text-sm text-justify leading-6">{description}</Text>
+            <Text allowFontScaling={false} className="text-gray-900 text-xl font-bold mb-2">{title}</Text>
+            <Text allowFontScaling={false} className="text-gray-600 text-sm text-justify leading-6">{description}</Text>
         </View>
     );
 
@@ -69,11 +69,11 @@ const AboutScreen = ({ navigation }) => {
         <View className="mb-4">
             <View className="flex-row items-start">
                 <View className="w-6 h-6 rounded-full bg-green-700 items-center justify-center mr-3 mt-0.5">
-                    <Text className="text-white text-xs font-bold">{number}</Text>
+                    <Text allowFontScaling={false} className="text-white text-xs font-bold">{number}</Text>
                 </View>
                 <View className="flex-1">
-                    <Text className="text-gray-900 text-base font-semibold mb-1">{title}</Text>
-                    <Text className="text-gray-600 text-sm leading-6">{description}</Text>
+                    <Text allowFontScaling={false} className="text-gray-900 text-base font-semibold mb-1">{title}</Text>
+                    <Text allowFontScaling={false} className="text-gray-600 text-sm leading-6">{description}</Text>
                 </View>
             </View>
         </View>
@@ -91,7 +91,7 @@ const AboutScreen = ({ navigation }) => {
                     >
                         <Ionicons name="arrow-back" size={24} color="#374151" />
                     </TouchableOpacity>
-                    <Text className="text-gray-900 text-lg font-semibold ml-2">About</Text>
+                    <Text allowFontScaling={false} className="text-gray-900 text-lg font-semibold ml-2">About</Text>
                 </View>
             </View>
 
@@ -108,8 +108,8 @@ const AboutScreen = ({ navigation }) => {
                             className="w-20 h-20 mb-4"
                             style={{ resizeMode: 'contain' }}
                         />
-                        <Text className="text-gray-900 text-2xl font-bold mb-2">ProFormaX</Text>
-                        <Text className="text-gray-600 text-center text-sm leading-6">
+                        <Text allowFontScaling={false} className="text-gray-900 text-2xl font-bold mb-2">ProFormaX</Text>
+                        <Text allowFontScaling={false} className="text-gray-600 text-center text-sm leading-6">
                             An innovative cost-saving application designed to transform projects to achieve standards at minimum cost.
                         </Text>
                     </View>
@@ -119,10 +119,10 @@ const AboutScreen = ({ navigation }) => {
                 <View className="px-6 pt-3 mb-6">
                     <View className="bg-green-700 rounded-t-2xl self-start flex-row items-center px-3 py-2 mb-0">
                         <Feather name="target" size={20} color="#FAF9F6" />
-                        <Text className="text-[#FAF9F6] text-lg font-bold ml-2">Our Purpose</Text>
+                        <Text allowFontScaling={false} className="text-[#FAF9F6] text-lg font-bold ml-2">Our Purpose</Text>
                     </View>
                     <View className="bg-white rounded-2xl p-5 shadow-sm">
-                        <Text className="text-gray-700 text-sm leading-6">
+                        <Text allowFontScaling={false} className="text-gray-700 text-sm leading-6">
                             To bridge the gap between green construction practices and economic feasibility. By integrating advanced modelling and validated frameworks, the platform empowers stakeholders to make smarter financial and technical decisions that reduce risk, improve cost transparency, and enhance client satisfaction.
                         </Text>
                     </View>
@@ -132,10 +132,10 @@ const AboutScreen = ({ navigation }) => {
                 <View className="px-6 mb-6">
                     <View className="bg-green-700 rounded-t-2xl self-start flex-row items-center px-3 py-2 mb-0">
                         <Feather name="eye" size={20} color="#FAF9F6" />
-                        <Text className="text-[#FAF9F6] text-lg font-bold ml-2">Our Vision</Text>
+                        <Text allowFontScaling={false} className="text-[#FAF9F6] text-lg font-bold ml-2">Our Vision</Text>
                     </View>
                     <View className="bg-white rounded-2xl rounded-tl-none p-5 shadow-sm">
-                        <Text className="text-gray-700 text-sm leading-6">
+                        <Text allowFontScaling={false} className="text-gray-700 text-sm leading-6">
                             To become the leading digital platform that empowers stakeholders to understand and manage green construction costs with clarity, while driving the acceleration of sustainable development in Malaysia and beyond, where sustainability and affordability go hand in hand.
                         </Text>
                     </View>
@@ -145,7 +145,7 @@ const AboutScreen = ({ navigation }) => {
                 <View className="px-6 mb-6">
                     <View className="bg-green-700 rounded-t-2xl self-start flex-row items-center px-3 py-2 mb-0">
                         <Octicons name="sparkles-fill" size={20} color="#FAF9F6" />
-                        <Text className="text-[#FAF9F6] text-lg font-bold ml-2">Key Features</Text>
+                        <Text allowFontScaling={false} className="text-[#FAF9F6] text-lg font-bold ml-2">Key Features</Text>
                     </View>
                     <View className="bg-white rounded-2xl rounded-tl-none p-5 shadow-sm">
                         {features.map((feature, index) => (
@@ -161,7 +161,7 @@ const AboutScreen = ({ navigation }) => {
 
                 {/* Why ProFormaX Matters */}
                 <View className="px-6">
-                    <Text className="text-gray-900 text-lg font-bold mb-3">Why ProFormaX Matters</Text>
+                    <Text allowFontScaling={false} className="text-gray-900 text-lg font-bold mb-3">Why ProFormaX Matters</Text>
                     {whyMatters.map((item) => (
                         <SectionCard
                             key={item.id}
@@ -175,8 +175,8 @@ const AboutScreen = ({ navigation }) => {
                 {/* Footer Info */}
                 <View className="px-5 pt-2">
                     <View className="rounded-2xl pt-3 items-center">
-                        <Text className="text-black text-xs font-medium">Version 1.0.0</Text>
-                        <Text className="text-gray-700 text-xs mt-1">© 2025 ProFormaX. All rights reserved.</Text>
+                        <Text allowFontScaling={false} className="text-black text-xs font-medium">Version 1.0.0</Text>
+                        <Text allowFontScaling={false} className="text-gray-700 text-xs mt-1">© 2025 ProFormaX. All rights reserved.</Text>
                     </View>
                 </View>
             </ScrollView>

@@ -927,7 +927,7 @@ const CostBreakdownScreen = ({
 
             {/* Header Section */}
             <View className="px-6 py-2 border-b border-slate-100">
-                <Text className="text-slate-800 font-bold text-lg mb-1">Construction Cost Breakdown</Text>
+                <Text allowFontScaling={false} className="text-slate-800 font-bold text-lg mb-1">Construction Cost Breakdown</Text>
             </View>
 
             {/* Total Cost */}
@@ -938,29 +938,29 @@ const CostBreakdownScreen = ({
                             {!displayOnly ? (
                                 <View className="ml-1">
                                     <View className="self-start bg-white/10 rounded-full px-2.5 py-1 mb-2">
-                                        <Text className="text-slate-200 font-bold text-[9px] uppercase tracking-wider">
+                                        <Text allowFontScaling={false} className="text-slate-200 font-bold text-[9px] uppercase tracking-wider">
                                             Estimated
                                         </Text>
                                     </View>
-                                    <Text className="text-white font-bold text-base">
+                                    <Text allowFontScaling={false} className="text-white font-bold text-base">
                                         Total Cost
                                     </Text>
-                                    <Text className="text-slate-400 text-[11px] mt-1">
+                                    <Text allowFontScaling={false} className="text-slate-400 text-[11px] mt-1">
                                         Live total from your editable breakdown
                                     </Text>
                                 </View>
                             ) : (
-                                <Text className="text-white font-bold text-sm">
+                                <Text allowFontScaling={false} className="text-white font-bold text-sm">
                                     Summary
                                 </Text>
                             )}
                         </View>
                         {!displayOnly && (
                             <View className="bg-blue-500 rounded-2xl px-4 py-3 min-w-[120px] shadow-sm border border-blue-400/40">
-                                <Text className="text-white font-bold text-[10px] mb-0.5">
+                                <Text allowFontScaling={false} className="text-white font-bold text-[10px] mb-0.5">
                                     RM
                                 </Text>
-                                <Text className="text-white font-bold text-xl tracking-tight">
+                                <Text allowFontScaling={false} className="text-white font-bold text-xl tracking-tight">
                                     {(
                                         mappedFormData?.costPreviewWay === 'Detailed'
                                             ? projectCosts?.total_cost ?? 0
@@ -977,10 +977,10 @@ const CostBreakdownScreen = ({
                     {displayOnly && (
                         <View className="mt-3 flex-row gap-2">
                             <View className="flex-1 rounded-2xl bg-white/10 px-4 py-3">
-                                <Text className="text-slate-300 font-medium text-[9px] uppercase tracking-wider mb-1">
+                                <Text allowFontScaling={false} className="text-slate-300 font-medium text-[9px] uppercase tracking-wider mb-1">
                                     Predicted Cost
                                 </Text>
-                                <Text className="text-white font-bold text-base">
+                                <Text allowFontScaling={false} className="text-white font-bold text-base">
                                     RM {(parseFloat(selectedProject?.adjusted_cost) || 0).toLocaleString('en-US', {
                                         minimumFractionDigits: 2,
                                         maximumFractionDigits: 2
@@ -988,10 +988,10 @@ const CostBreakdownScreen = ({
                                 </Text>
                             </View>
                             <View className={`flex-1 rounded-2xl bg-emerald-500/20 px-4 py-3 border ${isActualOverPredicted ? 'bg-red-500/20 border-red-400/30' : 'border-emerald-400/30 '}`}>
-                                <Text className={`${isActualOverPredicted ? 'text-red-200' : 'text-emerald-200'} font-medium text-[9px] uppercase tracking-wider mb-1`}>
+                                <Text allowFontScaling={false} className={`${isActualOverPredicted ? 'text-red-200' : 'text-emerald-200'} font-medium text-[9px] uppercase tracking-wider mb-1`}>
                                     Actual Cost
                                 </Text>
-                                <Text className="text-white font-bold text-base">
+                                <Text allowFontScaling={false} className="text-white font-bold text-base">
                                     RM {actualTotalCost.toLocaleString('en-US', {
                                         minimumFractionDigits: 2,
                                         maximumFractionDigits: 2
@@ -1018,10 +1018,10 @@ const CostBreakdownScreen = ({
                                     />
                                 </View>
                                 <View className="flex-1">
-                                    <Text className="text-slate-300 font-medium text-[9px] uppercase tracking-wider mb-1">
+                                    <Text allowFontScaling={false} className="text-slate-300 font-medium text-[9px] uppercase tracking-wider mb-1">
                                         Budget Indicator
                                     </Text>
-                                    <Text className={`font-bold text-sm ${!hasBudget
+                                    <Text allowFontScaling={false} className={`font-bold text-sm ${!hasBudget
                                         ? 'text-white'
                                         : isOverBudget
                                             ? 'text-red-300'
@@ -1033,8 +1033,8 @@ const CostBreakdownScreen = ({
                             </View>
 
                             <View className="items-end">
-                                <Text className="text-slate-400 text-[9px] uppercase tracking-wider mb-1">Budget</Text>
-                                <Text className="text-white font-bold text-sm">
+                                <Text allowFontScaling={false} className="text-slate-400 text-[9px] uppercase tracking-wider mb-1">Budget</Text>
+                                <Text allowFontScaling={false} className="text-white font-bold text-sm">
                                     {hasBudget
                                         ? `RM ${projectBudget.toLocaleString('en-US', {
                                             minimumFractionDigits: 2,
@@ -1058,8 +1058,8 @@ const CostBreakdownScreen = ({
                                 <View className="w-20 h-20 bg-slate-200 rounded-full items-center justify-center">
                                     <Ionicons name="document-outline" size={40} color="#94a3b8" />
                                 </View>
-                                <Text className="text-slate-600 font-bold text-base">Unavailable data at the moment</Text>
-                                <Text className="text-slate-400 text-sm text-center px-4">
+                                <Text allowFontScaling={false} className="text-slate-600 font-bold text-base">Unavailable data at the moment</Text>
+                                <Text allowFontScaling={false} className="text-slate-400 text-sm text-center px-4">
                                     {displayOnly ? 'No cost breakdown data available' : 'Start by adding your first cost item'}
                                 </Text>
                                 {!displayOnly && (
@@ -1071,7 +1071,7 @@ const CostBreakdownScreen = ({
                                         <View className="w-5 h-5 bg-white/20 rounded-lg items-center justify-center mr-2">
                                             <Ionicons name="add" size={14} color="#FFFFFF" />
                                         </View>
-                                        <Text className="text-white font-bold text-xs">Add Cost</Text>
+                                        <Text allowFontScaling={false} className="text-white font-bold text-xs">Add Cost</Text>
                                     </TouchableOpacity>
                                 )}
                             </View>
@@ -1096,7 +1096,7 @@ const CostBreakdownScreen = ({
                                                 color={isAddMode ? "#FFFFFF" : "#2563EB"}
                                             />
                                         </View>
-                                        <Text className={`font-bold text-xs ${isAddMode ? 'text-white' : 'text-blue-600'
+                                        <Text allowFontScaling={false} className={`font-bold text-xs ${isAddMode ? 'text-white' : 'text-blue-600'
                                             }`}>
                                             {isAddMode ? 'Done' : 'Add'}
                                         </Text>
@@ -1118,7 +1118,7 @@ const CostBreakdownScreen = ({
                                                 color={isDeleteMode ? "#FFFFFF" : "#DC2626"}
                                             />
                                         </View>
-                                        <Text className={`font-bold text-xs ${isDeleteMode ? 'text-white' : 'text-red-600'
+                                        <Text allowFontScaling={false} className={`font-bold text-xs ${isDeleteMode ? 'text-white' : 'text-red-600'
                                             }`}>
                                             {isDeleteMode ? 'Done' : 'Delete'}
                                         </Text>
@@ -1127,24 +1127,24 @@ const CostBreakdownScreen = ({
                             )}
 
                             <View className="bg-slate-100 px-5 py-3 flex-row border-t border-slate-200">
-                                <Text className="flex-[2.5] text-slate-600 mx-2 font-bold text-[10px] uppercase tracking-wider">
+                                <Text allowFontScaling={false} className="flex-[2.5] text-slate-600 mx-2 font-bold text-[10px] uppercase tracking-wider">
                                     Description
                                 </Text>
 
                                 {displayOnly ? (
                                     <>
-                                        <Text className="flex-[1] text-center text-slate-600 font-bold text-[8px] uppercase tracking-wider">
+                                        <Text allowFontScaling={false} className="flex-[1] text-center text-slate-600 font-bold text-[8px] uppercase tracking-wider">
                                             Predicted{'\n'}(RM)
                                         </Text>
-                                        <Text className="flex-[1] text-center text-slate-600 font-bold text-[8px] uppercase tracking-wider">
+                                        <Text allowFontScaling={false} className="flex-[1] text-center text-slate-600 font-bold text-[8px] uppercase tracking-wider">
                                             Actual{'\n'}(RM)
                                         </Text>
-                                        <Text className="w-[52px] ml-1 text-center text-slate-600 font-bold text-[8px] uppercase tracking-wider">
+                                        <Text allowFontScaling={false} className="w-[52px] ml-1 text-center text-slate-600 font-bold text-[8px] uppercase tracking-wider">
                                             Work{'\n'}Done (%)
                                         </Text>
                                     </>
                                 ) : (
-                                    <Text className="flex-1 text-right text-slate-600 font-bold text-[10px] uppercase tracking-wider">
+                                    <Text allowFontScaling={false} className="flex-1 text-right text-slate-600 font-bold text-[10px] uppercase tracking-wider">
                                         Amount (RM)
                                     </Text>
                                 )}
@@ -1202,7 +1202,7 @@ const CostBreakdownScreen = ({
                                             <View className="w-6 h-6 rounded-lg bg-slate-300 items-center justify-center mr-2">
                                                 <Ionicons name="add" size={16} color="#64748b" />
                                             </View>
-                                            <Text className="text-slate-600 font-bold text-xs">Add "OTHERS" Section</Text>
+                                            <Text allowFontScaling={false} className="text-slate-600 font-bold text-xs">Add "OTHERS" Section</Text>
                                         </TouchableOpacity>
                                     )}
                                 </ScrollView>
@@ -1251,7 +1251,7 @@ const CostBreakdownScreen = ({
                         activeOpacity={0.8}
                     >
                         <Ionicons name="checkmark" size={18} color="#FFFFFF" />
-                        <Text className="text-white font-bold text-sm ml-2">
+                        <Text allowFontScaling={false} className="text-white font-bold text-sm ml-2">
                             {hasChanges ? 'Submit Changes' : 'No Changes'}
                         </Text>
                     </TouchableOpacity>

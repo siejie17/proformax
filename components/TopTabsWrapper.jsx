@@ -65,7 +65,7 @@ const TopTabsWrapper = ({ title, tabs, params, onSubmit, criteriaTotalMarks = 0,
             <StatusBar barStyle="dark-content" backgroundColor="#F9FAFB" />
 
             <View className="flex-row items-center justify-between px-6 pt-6 pb-4 w-full">
-                <Text className="text-gray-900 text-2xl font-bold">{title}</Text>
+                <Text allowFontScaling={false} className="text-gray-900 text-2xl font-bold">{title}</Text>
 
                 <AIButton onPress={() => setAIModalVisible(true)} />
             </View>
@@ -106,15 +106,15 @@ const TopTabsWrapper = ({ title, tabs, params, onSubmit, criteriaTotalMarks = 0,
                 <View className="px-6 py-3 pt-4">
                     {/* GBI Score Indicator - Compact */}
                     <View className="px-1 mb-3 flex-row items-center justify-between">
-                        <Text className="text-gray-600 text-sm font-medium">GBI Score</Text>
+                        <Text allowFontScaling={false} className="text-gray-600 text-sm font-medium">GBI Score</Text>
                         <View className="flex-row items-center gap-1.5">
                             <View className="bg-gray-800 px-2.5 py-1 rounded-lg shadow-sm">
-                                <Text className="text-white text-[12px] font-bold">
+                                <Text allowFontScaling={false} className="text-white text-[12px] font-bold">
                                     {criteriaTotalMarks} pts
                                 </Text>
                             </View>
                             <View className={`px-2.5 py-1 rounded-lg shadow-sm border ${certificationColors.border} ${certificationColors.bg}`}>
-                                <Text className={`text-[12px] font-bold ${certificationColors.text}`}>
+                                <Text allowFontScaling={false} className={`text-[12px] font-bold ${certificationColors.text}`}>
                                     {certificationLevel}
                                 </Text>
                             </View>
@@ -125,14 +125,14 @@ const TopTabsWrapper = ({ title, tabs, params, onSubmit, criteriaTotalMarks = 0,
                     {hasTargetRating && !targetMet && (
                         <View className="mb-2.5 px-3 py-2 bg-orange-50 rounded-xl border border-orange-200">
                             <View className="flex-row items-center justify-between mb-0.5">
-                                <Text className="text-orange-800 text-[10px] font-semibold">
+                                <Text allowFontScaling={false} className="text-orange-800 text-[10px] font-semibold">
                                     Target Not Met
                                 </Text>
-                                <Text className="text-orange-700 text-[10px] font-bold">
+                                <Text allowFontScaling={false} className="text-orange-700 text-[10px] font-bold">
                                     +{pointsNeeded} pts needed
                                 </Text>
                             </View>
-                            <Text className="text-orange-600 text-[9px]">
+                            <Text allowFontScaling={false} className="text-orange-600 text-[9px]">
                                 Target: {mappedFormData.certifiedRatingScale} • {certifiedScaleRange[mappedFormData.certifiedRatingScale]?.[0]}-{certifiedScaleRange[mappedFormData.certifiedRatingScale]?.[1]} pts
                             </Text>
                         </View>
@@ -144,14 +144,14 @@ const TopTabsWrapper = ({ title, tabs, params, onSubmit, criteriaTotalMarks = 0,
                             <View className="flex-row items-center justify-between">
                                 <View className="flex-row items-center flex-1">
                                     <View className="w-4 h-4 bg-red-500 rounded-full items-center justify-center mr-2">
-                                        <Text className="text-white text-xs font-bold">!</Text>
+                                        <Text allowFontScaling={false} className="text-white text-xs font-bold">!</Text>
                                     </View>
-                                    <Text className="text-red-700 text-[10px] font-semibold">
+                                    <Text allowFontScaling={false} className="text-red-700 text-[10px] font-semibold">
                                         Cost Breakdown Required
                                     </Text>
                                 </View>
                             </View>
-                            <Text className="text-red-600 text-[9px] mt-1">
+                            <Text allowFontScaling={false} className="text-red-600 text-[9px] mt-1">
                                 Please add at least one cost item to proceed
                             </Text>
                         </View>
@@ -177,7 +177,7 @@ const TopTabsWrapper = ({ title, tabs, params, onSubmit, criteriaTotalMarks = 0,
                                     style={{ marginRight: 4 }}
                                 />
                             )}
-                            <Text className={`text-sm font-bold ${isSubmitDisabled ? 'text-gray-500' : submitLoading ? 'text-white opacity-90' : 'text-white'
+                            <Text allowFontScaling={false} className={`text-sm font-bold ${isSubmitDisabled ? 'text-gray-500' : submitLoading ? 'text-white opacity-90' : 'text-white'
                                 }`}>
                                 {submitLoading ? 'Submitting...' : 'Submit Assessment'}
                             </Text>

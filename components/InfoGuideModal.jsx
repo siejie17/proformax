@@ -47,10 +47,10 @@ const InfoGuideModal = ({ isVisible, info, onClose, title = 'Information', label
                                             <Ionicons name="information" size={18} color="white" />
                                         </View>
                                         <View>
-                                            <Text className="text-[11px] font-medium text-blue-500 uppercase tracking-widest">
+                                            <Text allowFontScaling={false} className="text-[11px] font-medium text-blue-500 uppercase tracking-widest">
                                                 {label}
                                             </Text>
-                                            <Text className="text-base font-semibold text-gray-900 leading-5">
+                                            <Text allowFontScaling={false} className="text-base font-semibold text-gray-900 leading-5">
                                                 {title}
                                             </Text>
                                         </View>

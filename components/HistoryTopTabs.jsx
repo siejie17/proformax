@@ -335,7 +335,7 @@ const HistoryTopTabs = ({ navigation, route }) => {
                                 }}
                             >
                                 <ActivityIndicator size="large" color="#FFFFFF" />
-                                <Text style={{ color: '#FFFFFF', marginTop: 12, fontWeight: '600' }}>
+                                <Text allowFontScaling={false} style={{ color: '#FFFFFF', marginTop: 12, fontWeight: '600' }}>
                                     Saving changes...
                                 </Text>
                             </View>

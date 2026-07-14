@@ -12,7 +12,7 @@ const CustomItemRow = ({ customItem, onDelete }) => (
             disabled
             style={{ transform: [{ scale: 0.82 }], marginRight: 10 }}
         />
-        <Text className="flex-1 text-[13px] leading-5 text-gray-600 font-medium">{customItem.description}</Text>
+        <Text allowFontScaling={false} className="flex-1 text-[13px] leading-5 text-gray-600 font-medium">{customItem.description}</Text>
         <IconButton onPress={onDelete} icon="trash-outline" color="#F87171" bg="bg-red-50" activeBg="active:bg-red-100" />
     </View>
 );

@@ -734,9 +734,9 @@ const GreenElementsScreen = ({
     const renderSelectionItem = useCallback((item) => {
         return (
             <View className="flex-row items-center justify-between px-3 py-2.5">
-                <Text className="flex-1 text-gray-700 font-medium text-sm">{item.description}</Text>
+                <Text allowFontScaling={false} className="flex-1 text-gray-700 font-medium text-sm">{item.description}</Text>
                 <View className="bg-blue-100 px-2.5 py-1 rounded-lg ml-2">
-                    <Text className="text-blue-700 font-bold text-xs">{item.marks} pts</Text>
+                    <Text allowFontScaling={false} className="text-blue-700 font-bold text-xs">{item.marks} pts</Text>
                 </View>
             </View>
         );
@@ -745,13 +745,13 @@ const GreenElementsScreen = ({
     // Custom render function for selected label
     const renderSelectedLabel = useCallback((selectedItem) => {
         if (!selectedItem) {
-            return <Text>Select an option...</Text>;
+            return <Text allowFontScaling={false}>Select an option...</Text>;
         }
         return (
             <View className="flex-row items-center justify-between flex-1">
-                <Text className="text-gray-900 font-semibold text-sm flex-1">{selectedItem.description}</Text>
+                <Text allowFontScaling={false} className="text-gray-900 font-semibold text-sm flex-1">{selectedItem.description}</Text>
                 <View className="bg-emerald-100 px-2.5 py-1 rounded-lg ml-2">
-                    <Text className="text-emerald-700 font-bold text-xs">{selectedItem.marks} pts</Text>
+                    <Text allowFontScaling={false} className="text-emerald-700 font-bold text-xs">{selectedItem.marks} pts</Text>
                 </View>
             </View>
         );
@@ -817,6 +817,7 @@ const GreenElementsScreen = ({
                                 activeOpacity={(hasSubitems || isUnchanged) ? 1 : 0.6}
                             >
                                 <Text
+                                    allowFontScaling={false}
                                     className={`text-[13.5px] leading-[20px] ${hasSubitems ? 'text-gray-800' : isChecked ? 'text-gray-500' : 'text-gray-700'
                                         }`}
                                     style={{
@@ -883,12 +884,13 @@ const GreenElementsScreen = ({
                                                     style={{ transform: [{ scale: 0.82 }], marginRight: 10 }}
                                                 />
                                                 <Text
+                                                    allowFontScaling={false}
                                                     className={`flex-1 pr-1 text-[13px] leading-5 ${isChecked ? 'text-emerald-700' : 'text-gray-600'}`}
                                                     style={{ fontWeight: isChecked ? '500' : '400' }}
                                                 >
                                                     {option?.description}
                                                 </Text>
-                                                <Text className={`text-[11px] font-semibold mr-2 ${isChecked ? 'text-emerald-500' : 'text-gray-300'}`}>
+                                                <Text allowFontScaling={false} className={`text-[11px] font-semibold mr-2 ${isChecked ? 'text-emerald-500' : 'text-gray-300'}`}>
                                                     {option.marks} pts
                                                 </Text>
                                                 <IconButton
@@ -991,7 +993,7 @@ const GreenElementsScreen = ({
                                                 marginBottom: 8,
                                             }}>
                                                 <View style={{ flex: 1, height: 1, backgroundColor: '#E5E7EB' }} />
-                                                <Text style={{ fontSize: 11, color: '#9CA3AF', fontWeight: '500' }}>
+                                                <Text allowFontScaling={false} style={{ fontSize: 11, color: '#9CA3AF', fontWeight: '500' }}>
                                                     SELECT ONE GROUP ONLY
                                                 </Text>
                                                 <View style={{ flex: 1, height: 1, backgroundColor: '#E5E7EB' }} />
@@ -1067,7 +1069,7 @@ const GreenElementsScreen = ({
                                                                     }} />
                                                                 )}
                                                             </View>
-                                                            <Text style={{
+                                                            <Text allowFontScaling={false} style={{
                                                                 fontSize: 13,
                                                                 fontWeight: '600',
                                                                 color: isActive ? '#4F46E5' : '#6B7280',
@@ -1231,7 +1233,7 @@ const GreenElementsScreen = ({
                         <View key={index} className="mb-3">
                             <View className="flex-row px-2 py-2 rounded-lg mb-2">
                                 <Ionicons name="leaf-sharp" size={15} color="#10B981" style={{ paddingTop: 2, paddingLeft: 2, marginRight: 6 }} />
-                                <Text className="text-gray-700 text-lg font-bold">
+                                <Text allowFontScaling={false} className="text-gray-700 text-lg font-bold">
                                     {subcriterion.name}
                                 </Text>
                             </View>
@@ -1256,17 +1258,17 @@ const GreenElementsScreen = ({
                         <Ionicons name="leaf-outline" size={40} color="#52B788" />
                     </View>
 
-                    <Text className="text-gray-900 text-xl font-bold mb-3 text-center">
+                    <Text allowFontScaling={false} className="text-gray-900 text-xl font-bold mb-3 text-center">
                         No Green Elements Available
                     </Text>
-                    <Text className="text-gray-600 text-base text-center leading-6 mb-6">
+                    <Text allowFontScaling={false} className="text-gray-600 text-base text-center leading-6 mb-6">
                         It looks like there are no green building elements to assess for this project configuration.
                     </Text>
 
                     {/* Action suggestions */}
                     <View className="bg-blue-50 p-4 rounded-xl w-full">
-                        <Text className="text-blue-800 text-sm font-medium mb-2">Suggestions:</Text>
-                        <Text className="text-blue-700 text-sm leading-5">
+                        <Text allowFontScaling={false} className="text-blue-800 text-sm font-medium mb-2">Suggestions:</Text>
+                        <Text allowFontScaling={false} className="text-blue-700 text-sm leading-5">
                             • Check your project settings{'\n'}
                             • Verify building type selection{'\n'}
                             • Contact support if this seems incorrect
@@ -1279,7 +1281,7 @@ const GreenElementsScreen = ({
                         <View className="bg-gray-100 px-6 py-2">
                             {/* Section Header */}
                             <View className="mb-1">
-                                <Text className="text-slate-800 font-bold text-base mb-2">Assessment Criteria</Text>
+                                <Text allowFontScaling={false} className="text-slate-800 font-bold text-base mb-2">Assessment Criteria</Text>
                                 <Dropdown
                                     style={{
                                         height: 52,
@@ -1354,6 +1356,7 @@ const GreenElementsScreen = ({
                                             >
                                                 {/* Name */}
                                                 <Text
+                                                    allowFontScaling={false}
                                                     style={{
                                                         flex: 1,
                                                         color: '#1E293B',
@@ -1378,6 +1381,7 @@ const GreenElementsScreen = ({
                                                     }}
                                                 >
                                                     <Text
+                                                        allowFontScaling={false}
                                                         style={{
                                                             color: '#475569',
                                                             fontSize: 11,
@@ -1398,12 +1402,13 @@ const GreenElementsScreen = ({
                                         return (
                                             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1 }}>
                                                 <Text
+                                                    allowFontScaling={false}
                                                     style={{ color: '#1E293B', fontSize: 13, fontWeight: '600', flexShrink: 1 }}
                                                     numberOfLines={1}
                                                 >
                                                     {item.name}
                                                 </Text>
-                                                <Text style={{ color: '#94A3B8', fontSize: 11, fontWeight: '500' }}>
+                                                <Text allowFontScaling={false} style={{ color: '#94A3B8', fontSize: 11, fontWeight: '500' }}>
                                                     {earned}/{total}
                                                 </Text>
                                             </View>
@@ -1425,17 +1430,17 @@ const GreenElementsScreen = ({
                                                 className="flex-1 items-center justify-center py-3 rounded-2xl bg-white"
                                                 style={{ borderWidth: 1, borderColor: '#E2E8F0' }}
                                             >
-                                                <Text style={{ fontSize: 11, color: '#94A3B8', fontWeight: '500', letterSpacing: 0.4, marginBottom: 4 }}>
+                                                <Text allowFontScaling={false} style={{ fontSize: 11, color: '#94A3B8', fontWeight: '500', letterSpacing: 0.4, marginBottom: 4 }}>
                                                     SCORED
                                                 </Text>
-                                                <Text style={{ fontSize: 28, fontWeight: '700', color: '#1E293B', lineHeight: 32 }}>
+                                                <Text allowFontScaling={false} style={{ fontSize: 28, fontWeight: '700', color: '#1E293B', lineHeight: 32 }}>
                                                     {earned}
                                                 </Text>
                                             </View>
 
                                             {/* Divider slash */}
                                             <View className="items-center justify-center" style={{ width: 20 }}>
-                                                <Text style={{ fontSize: 20, color: '#CBD5E1', fontWeight: '300' }}>/</Text>
+                                                <Text allowFontScaling={false} style={{ fontSize: 20, color: '#CBD5E1', fontWeight: '300' }}>/</Text>
                                             </View>
 
                                             {/* Total box */}
@@ -1443,10 +1448,10 @@ const GreenElementsScreen = ({
                                                 className="flex-1 items-center justify-center py-3 rounded-2xl bg-white"
                                                 style={{ borderWidth: 1, borderColor: '#E2E8F0' }}
                                             >
-                                                <Text style={{ fontSize: 11, color: '#94A3B8', fontWeight: '500', letterSpacing: 0.4, marginBottom: 4 }}>
+                                                <Text allowFontScaling={false} style={{ fontSize: 11, color: '#94A3B8', fontWeight: '500', letterSpacing: 0.4, marginBottom: 4 }}>
                                                     TOTAL
                                                 </Text>
-                                                <Text style={{ fontSize: 28, fontWeight: '700', color: '#1E293B', lineHeight: 32 }}>
+                                                <Text allowFontScaling={false} style={{ fontSize: 28, fontWeight: '700', color: '#1E293B', lineHeight: 32 }}>
                                                     {total}
                                                 </Text>
                                             </View>
@@ -1457,7 +1462,7 @@ const GreenElementsScreen = ({
                                                 style={{ flex: 2, borderWidth: 1, borderColor: '#E2E8F0', gap: 6 }}
                                             >
                                                 {/* Percentage */}
-                                                <Text style={{ fontSize: 15, fontWeight: '700', color: '#1E293B' }}>
+                                                <Text allowFontScaling={false} style={{ fontSize: 15, fontWeight: '700', color: '#1E293B' }}>
                                                     {pct}%
                                                 </Text>
 

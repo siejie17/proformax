@@ -19,28 +19,28 @@ const MessageModal = ({ isVisible, imgSource, title, description, subtitle, onCl
                         source={imgSource} 
                         className="h-[150px] w-[150px] mb-4" 
                     />
-                    <Text className="text-xl font-bold mb-3 text-center">{title}</Text>
+                    <Text allowFontScaling={false} className="text-xl font-bold mb-3 text-center">{title}</Text>
                     {subtitle ? (
                         <View className="mb-6 px-2">
-                            <Text className="text-gray-700 text-sm leading-5 text-justify font-medium tracking-wide">
+                            <Text allowFontScaling={false} className="text-gray-700 text-sm leading-5 text-justify font-medium tracking-wide">
                                 {subtitle}
                             </Text>
                         </View>
                     ) : null}
                     {description ? 
-                        <Text className="text-gray-600 text-[16px] mb-7 text-center">{description}</Text> : null}
+                        <Text allowFontScaling={false} className="text-gray-600 text-[16px] mb-7 text-center">{description}</Text> : null}
                     <TouchableOpacity 
                         onPress={onClose} 
                         className="bg-green-500 rounded-lg py-4 px-6 w-full items-center"
                     >
-                        <Text className="text-white text-center font-semibold">{buttonText}</Text>
+                        <Text allowFontScaling={false} className="text-white text-center font-semibold">{buttonText}</Text>
                     </TouchableOpacity>
                     {goBack && (
                         <TouchableOpacity 
                             onPress={() => setModalVisible(false)} 
                             className="bg-gray-300 rounded-lg py-4 px-6 w-full items-center mt-4"
                         >
-                            <Text className="text-slate-700 text-center font-semibold">{cancelButtonText}</Text>
+                            <Text allowFontScaling={false} className="text-slate-700 text-center font-semibold">{cancelButtonText}</Text>
                         </TouchableOpacity>
                     )}
                 </View>

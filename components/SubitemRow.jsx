@@ -15,6 +15,7 @@ const SubitemRow = ({ subitem, isChecked, onToggle }) => (
             style={{ transform: [{ scale: 0.82 }], marginRight: 10 }}
         />
         <Text
+            allowFontScaling={false}
             className={`flex-1 text-[13px] leading-5 ${isChecked ? 'text-emerald-700' : 'text-gray-600'}`}
             style={{ fontWeight: isChecked ? '500' : '400' }}
         >

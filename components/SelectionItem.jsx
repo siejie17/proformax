@@ -15,11 +15,11 @@ const SelectionItem = React.memo(({ item, selectedValue, onSelect }) => {
         >
             <View className="flex-row items-center justify-between">
                 <View className="flex-1 pr-3">
-                    <Text className={`text-base ${isSelected ? 'text-blue-600 font-semibold' : 'text-gray-800'}`}>
+                    <Text allowFontScaling={false} className={`text-base ${isSelected ? 'text-blue-600 font-semibold' : 'text-gray-800'}`}>
                         {label}
                     </Text>
                     {!!description && (
-                        <Text className="text-xs text-gray-500 mt-1">
+                        <Text allowFontScaling={false} className="text-xs text-gray-500 mt-1">
                             {description}
                         </Text>
                     )}

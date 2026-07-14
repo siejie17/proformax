@@ -13,7 +13,7 @@ const LoadingIndicator = () => {
                 </View>
 
                 {/* Loading Text */}
-                <Text className="text-gray-600 text-base font-medium">
+                <Text allowFontScaling={false} className="text-gray-600 text-base font-medium">
                     Loading...
                 </Text>
             </View>

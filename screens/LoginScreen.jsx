@@ -19,10 +19,14 @@ const LoginScreen = () => {
     const [loading, setLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
 
+    // Form-level error (network issues, server errors, invalid credentials)
+    // Kept separate from field-level errors so we don't imply we know
+    // *which* field is wrong when we don't (or shouldn't say).
+    const [generalError, setGeneralError] = useState('');
+
     const [isNotVerifiedYetModalVisible, setIsNotVerifiedYetModalVisible] = useState(false);
     const [isSentModalVisible, setIsSentModalVisible] = useState(false);
 
-    // Refs for the input fields
     const emailInputRef = useRef(null);
     const passwordInputRef = useRef(null);
 
@@ -37,25 +41,40 @@ const LoginScreen = () => {
     }, [navigation, route.params?.passwordResetEmailSent]);
 
     const dismissEverything = () => {
-        if (emailInputRef.current) {
-            emailInputRef.current.blur();
-        }
-
-        if (passwordInputRef.current) {
-            passwordInputRef.current.blur();
-        }
-
+        if (emailInputRef.current) emailInputRef.current.blur();
+        if (passwordInputRef.current) passwordInputRef.current.blur();
         Keyboard.dismiss();
     };
 
+    const clearErrors = () => {
+        setEmail(e => ({ ...e, error: '' }));
+        setPassword(p => ({ ...p, error: '' }));
+        setGeneralError('');
+    };
+
+    const applyFieldErrors = (errors) => {
+        // Laravel-style { email: [...], password: [...] } validation errors
+        let matched = false;
+        if (errors.email) {
+            setEmail(e => ({ ...e, error: errors.email.join(' ') }));
+            matched = true;
+        }
+        if (errors.password) {
+            setPassword(p => ({ ...p, error: errors.password.join(' ') }));
+            matched = true;
+        }
+        return matched;
+    };
+
     const _onLoginPressed = async () => {
-        // Reset errors
+        clearErrors();
+
         const emailError = email.value ? '' : 'Email cannot be empty';
         const passwordError = password.value ? '' : 'Password cannot be empty';
 
         if (emailError || passwordError) {
-            setEmail({ ...email, error: emailError });
-            setPassword({ ...password, error: passwordError });
+            setEmail(e => ({ ...e, error: emailError }));
+            setPassword(p => ({ ...p, error: passwordError }));
             return;
         }
 
@@ -64,7 +83,7 @@ const LoginScreen = () => {
         try {
             const res = await api.post('/login', {
                 email: email.value,
-                password: password.value
+                password: password.value,
             });
 
             if (res.data.user.email_verified_at) {
@@ -75,37 +94,43 @@ const LoginScreen = () => {
                 setIsNotVerifiedYetModalVisible(true);
             }
         } catch (err) {
-            // Try to extract field errors from response
-            const message = err.response?.data?.message || 'Network or server error';
+            // Clear password on any failure — don't make the user retype email too.
+            setPassword(p => ({ ...p, value: '' }));
 
-            await api.post('/logout');
-            delete api.defaults.headers.common['Authorization'];
-            let emailFieldError = '';
-            let passwordFieldError = '';
-
-            // If API returns validation errors
-            if (err.response?.data?.errors) {
-                const errors = err.response.data.errors;
-                if (errors.email) emailFieldError = errors.email.join(' ');
-                if (errors.password) passwordFieldError = errors.password.join(' ');
+            // No response at all => network/connectivity issue, not a field problem.
+            if (!err.response) {
+                setGeneralError('Unable to connect. Please check your internet connection and try again.');
+                return;
             }
 
-            // If error message mentions email
-            if (message.toLowerCase().includes('email')) {
-                emailFieldError = message;
-            }
-            // If error message mentions password
-            if (message.toLowerCase().includes('password')) {
-                passwordFieldError = message;
-            }
-            // If error is general, show on both fields
-            if (!emailFieldError && !passwordFieldError) {
-                emailFieldError = message;
-                passwordFieldError = message;
-            }
+            const status = err.response.status;
+            const data = err.response.data;
 
-            setEmail({ ...email, error: emailFieldError });
-            setPassword({ ...password, error: passwordFieldError });
+            switch (status) {
+                case 422: {
+                    // Structured validation errors from the API.
+                    const hadFieldErrors = data?.errors ? applyFieldErrors(data.errors) : false;
+                    if (!hadFieldErrors) {
+                        setGeneralError(data?.message || 'Please check your details and try again.');
+                    }
+                    break;
+                }
+                case 401:
+                case 403:
+                    // Deliberately generic — don't reveal whether the email or
+                    // password specifically was wrong.
+                    setGeneralError(data?.message || 'Incorrect email or password.');
+                    break;
+                case 429:
+                    setGeneralError('Too many login attempts. Please wait a moment and try again.');
+                    break;
+                default:
+                    if (status >= 500) {
+                        setGeneralError('Something went wrong on our end. Please try again shortly.');
+                    } else {
+                        setGeneralError(data?.message || 'Something went wrong. Please try again.');
+                    }
+            }
         } finally {
             setLoading(false);
         }
@@ -135,17 +160,27 @@ const LoginScreen = () => {
 
                         {/* Title */}
                         <View className="items-center mb-8">
-                            <Text className="text-3xl font-bold text-gray-900 text-center mb-2">
+                            <Text allowFontScaling={false} className="text-3xl font-bold text-gray-900 text-center mb-2">
                                 Welcome Back
                             </Text>
-                            <Text className="text-base text-gray-500 text-center">
+                            <Text allowFontScaling={false} className="text-base text-gray-500 text-center">
                                 Sign in to access your account
                             </Text>
                         </View>
 
                         <View className="px-2">
+                            {/* Form-level error banner */}
+                            {generalError ? (
+                                <View className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 mb-4">
+                                    <Text allowFontScaling={false} className="text-red-600 text-sm text-center">
+                                        {generalError}
+                                    </Text>
+                                </View>
+                            ) : null}
+
                             {/* Email Input */}
                             <TextInput
+                                allowFontScaling={false}
                                 label="Email Address"
                                 returnKeyType="next"
                                 value={email.value}
@@ -162,6 +197,7 @@ const LoginScreen = () => {
 
                             {/* Password Input */}
                             <TextInput
+                                allowFontScaling={false}
                                 label="Password"
                                 returnKeyType="done"
                                 value={password.value}
@@ -179,11 +215,10 @@ const LoginScreen = () => {
                                 required
                             />
 
-
                             {/* Forgot password */}
                             <View className="w-full items-end mb-8">
                                 <TouchableOpacity onPress={() => navigation.navigate("ForgotPassword")}>
-                                    <Text className="text-emerald-500 text-sm font-medium">
+                                    <Text allowFontScaling={false} className="text-emerald-500 text-sm font-medium">
                                         Forgot your password?
                                     </Text>
                                 </TouchableOpacity>
@@ -197,7 +232,7 @@ const LoginScreen = () => {
                             onPress={_onLoginPressed}
                             disabled={loading}
                         >
-                            <Text className="text-white text-center text-lg font-semibold">
+                            <Text allowFontScaling={false} className="text-white text-center text-lg font-semibold">
                                 {loading ? 'Signing in...' : 'Sign In'}
                             </Text>
                         </TouchableOpacity>

@@ -179,7 +179,7 @@ const HistoryScreen = ({ navigation }) => {
                         </TouchableOpacity>
 
                         <View className="px-5 pt-1.5">
-                            <Text className="text-gray-800 font-bold text-xl mb-1">Project History</Text>
+                            <Text allowFontScaling={false} className="text-gray-800 font-bold text-xl mb-1">Project History</Text>
                         </View>
                     </View>
 
@@ -192,6 +192,7 @@ const HistoryScreen = ({ navigation }) => {
                 <View className="bg-white rounded-2xl border border-gray-200 flex-row items-center px-4 shadow-sm mx-1">
                     <Ionicons name="search" size={20} color="#9CA3AF" />
                     <TextInput
+                        allowFontScaling={false}
                         className="flex-1 ml-3 text-gray-800 text-sm"
                         placeholder="Search projects by name..."
                         placeholderTextColor="#9CA3AF"
@@ -228,25 +229,25 @@ const HistoryScreen = ({ navigation }) => {
                             {/* Card Header */}
                             <View className="bg-gray-800 px-4 py-3.5 flex-row justify-between">
                                 <View className="flex-1 mr-3 justify-between">
-                                    <Text className="text-white font-bold text-base mb-1" numberOfLines={1}>
+                                    <Text allowFontScaling={false} className="text-white font-bold text-base mb-1" numberOfLines={1}>
                                         {item.name}
                                     </Text>
                                     <View className="flex-row items-center">
                                         <Ionicons name="time-outline" size={11} color="#9CA3AF" />
-                                        <Text className="text-gray-400 text-[10px] ml-1" numberOfLines={1}>
+                                        <Text allowFontScaling={false} className="text-gray-400 text-[10px] ml-1" numberOfLines={1}>
                                             {new Date(item.created_at).toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true })}
                                         </Text>
                                     </View>
                                 </View>
                                 <View className="justify-between items-end">
                                     <View className={`px-2.5 py-1 rounded-lg bg-blue-500`}>
-                                        <Text className={`text-[10px] font-bold text-white`}>
+                                        <Text allowFontScaling={false} className={`text-[10px] font-bold text-white`}>
                                             {item.building_type}
                                         </Text>
                                     </View>
                                     <View className="flex-row items-center">
                                         <Ionicons name="albums-outline" size={11} color="#9CA3AF" />
-                                        <Text className="text-gray-400 text-[10px] ml-1" numberOfLines={1}>
+                                        <Text allowFontScaling={false} className="text-gray-400 text-[10px] ml-1" numberOfLines={1}>
                                             {item.category}
                                         </Text>
                                     </View>
@@ -258,19 +259,19 @@ const HistoryScreen = ({ navigation }) => {
                                 {/* Structure Info */}
                                 <View className="flex-row gap-2 mb-3 border-gray-100">
                                     <View className="flex-1">
-                                        <Text className="text-gray-500 text-[10px] uppercase tracking-wide font-semibold mb-1">
+                                        <Text allowFontScaling={false} className="text-gray-500 text-[10px] uppercase tracking-wide font-semibold mb-1">
                                             Structure
                                         </Text>
-                                        <Text className="text-gray-700 text-xs" numberOfLines={2}>
+                                        <Text allowFontScaling={false} className="text-gray-700 text-xs" numberOfLines={2}>
                                             {item.structure}
                                         </Text>
                                     </View>
                                     {item.classification != null && (
                                         <View className="flex-1">
-                                            <Text className="text-gray-500 text-[10px] uppercase tracking-wide font-semibold mb-1">
+                                            <Text allowFontScaling={false} className="text-gray-500 text-[10px] uppercase tracking-wide font-semibold mb-1">
                                                 Classification
                                             </Text>
-                                            <Text className="text-gray-700 text-xs" numberOfLines={2}>
+                                            <Text allowFontScaling={false} className="text-gray-700 text-xs" numberOfLines={2}>
                                                 {item.classification}
                                             </Text>
                                         </View>
@@ -280,42 +281,42 @@ const HistoryScreen = ({ navigation }) => {
                                 {/* Info Grid */}
                                 <View className="flex-row flex-wrap gap-2 mb-3">
                                     <View className="bg-blue-50 rounded-lg px-3 py-2 flex-1 min-w-[45%]">
-                                        <Text className="text-blue-600 text-[9px] uppercase tracking-wide font-semibold mb-0.5">
+                                        <Text allowFontScaling={false} className="text-blue-600 text-[9px] uppercase tracking-wide font-semibold mb-0.5">
                                             Location
                                         </Text>
-                                        <Text className="text-gray-800 text-xs font-bold">
+                                        <Text allowFontScaling={false} className="text-gray-800 text-xs font-bold">
                                             {item.location}
                                         </Text>
                                     </View>
 
                                     <View className="bg-emerald-50 rounded-lg px-3 py-2 flex-1 min-w-[45%]">
-                                        <Text className="text-emerald-600 text-[9px] uppercase tracking-wide font-semibold mb-0.5">
+                                        <Text allowFontScaling={false} className="text-emerald-600 text-[9px] uppercase tracking-wide font-semibold mb-0.5">
                                             Size (m²)
                                         </Text>
-                                        <Text className="text-gray-800 text-xs font-bold">
+                                        <Text allowFontScaling={false} className="text-gray-800 text-xs font-bold">
                                             {parseFloat(item.size).toLocaleString('en-US', { maximumFractionDigits: 2 })}
                                         </Text>
                                     </View>
 
                                     <View className="bg-purple-50 rounded-lg px-3 py-2 flex-1 min-w-[45%]">
-                                        <Text className="text-purple-600 text-[9px] uppercase tracking-wide font-semibold mb-0.5">
+                                        <Text allowFontScaling={false} className="text-purple-600 text-[9px] uppercase tracking-wide font-semibold mb-0.5">
                                             Year
                                         </Text>
-                                        <Text className="text-gray-800 text-xs font-bold">
+                                        <Text allowFontScaling={false} className="text-gray-800 text-xs font-bold">
                                             {item.year}
                                         </Text>
                                     </View>
 
                                     <View className="bg-orange-50 rounded-lg px-3 py-2 flex-1 min-w-[45%]">
-                                        <Text className="text-orange-600 text-[9px] uppercase tracking-wide font-semibold mb-0.5">
+                                        <Text allowFontScaling={false} className="text-orange-600 text-[9px] uppercase tracking-wide font-semibold mb-0.5">
                                             GBI Score
                                         </Text>
                                         <View className="flex-row items-center justify-between">
-                                            <Text className="text-gray-800 text-xs font-bold">
+                                            <Text allowFontScaling={false} className="text-gray-800 text-xs font-bold">
                                                 {item.rating} pts
                                             </Text>
                                             <View className={`px-2 py-0.5 rounded ${achievedColors.badge}`}>
-                                                <Text className={`text-[9px] font-bold ${achievedColors.badgeText}`}>
+                                                <Text allowFontScaling={false} className={`text-[9px] font-bold ${achievedColors.badgeText}`}>
                                                     {achievedCert}
                                                 </Text>
                                             </View>
@@ -326,18 +327,18 @@ const HistoryScreen = ({ navigation }) => {
                                 {/* Budget Info */}
                                 <View className="flex-row gap-2 pt-3 border-t border-gray-100">
                                     <View className="flex-1">
-                                        <Text className="text-gray-500 text-[9px] uppercase tracking-wide font-semibold mb-1">
+                                        <Text allowFontScaling={false} className="text-gray-500 text-[9px] uppercase tracking-wide font-semibold mb-1">
                                             Budget
                                         </Text>
-                                        <Text className="text-gray-800 text-xs font-bold">
+                                        <Text allowFontScaling={false} className="text-gray-800 text-xs font-bold">
                                             {item.budget ? `RM ${parseFloat(item.budget).toLocaleString('en-US', { minimumFractionDigits: 2 })}` : 'N/A'}
                                         </Text>
                                     </View>
                                     <View className="flex-1">
-                                        <Text className="text-gray-500 text-[9px] uppercase tracking-wide font-semibold mb-1">
+                                        <Text allowFontScaling={false} className="text-gray-500 text-[9px] uppercase tracking-wide font-semibold mb-1">
                                             Estimated Cost
                                         </Text>
-                                        <Text className="text-gray-800 text-xs font-bold">
+                                        <Text allowFontScaling={false} className="text-gray-800 text-xs font-bold">
                                             RM {parseFloat(item.adjusted_cost).toLocaleString('en-US', { minimumFractionDigits: 2 })}
                                         </Text>
                                     </View>
@@ -346,7 +347,7 @@ const HistoryScreen = ({ navigation }) => {
 
                             {/* Card Footer */}
                             <View className="bg-gray-50 px-4 py-2.5 flex-row items-center justify-between border-t border-gray-100">
-                                <Text className="text-gray-500 text-[10px]">
+                                <Text allowFontScaling={false} className="text-gray-500 text-[10px]">
                                     Tap to view details
                                 </Text>
                                 <Ionicons name="chevron-forward" size={16} color="#9CA3AF" />
@@ -361,8 +362,8 @@ const HistoryScreen = ({ navigation }) => {
                         <View className="bg-gray-100 rounded-full p-6 mb-4">
                             <Ionicons name="search-outline" size={48} color="#9CA3AF" />
                         </View>
-                        <Text className="text-gray-600 font-semibold text-base mb-1">No Results Found</Text>
-                        <Text className="text-gray-400 text-sm text-center">
+                        <Text allowFontScaling={false} className="text-gray-600 font-semibold text-base mb-1">No Results Found</Text>
+                        <Text allowFontScaling={false} className="text-gray-400 text-sm text-center">
                             Try searching with different keywords
                         </Text>
                     </View>
@@ -374,8 +375,8 @@ const HistoryScreen = ({ navigation }) => {
                         <View className="bg-gray-100 rounded-full p-6 mb-4">
                             <Ionicons name="folder-open-outline" size={48} color="#9CA3AF" />
                         </View>
-                        <Text className="text-gray-600 font-semibold text-base mb-1">No Projects Yet</Text>
-                        <Text className="text-gray-400 text-sm text-center">
+                        <Text allowFontScaling={false} className="text-gray-600 font-semibold text-base mb-1">No Projects Yet</Text>
+                        <Text allowFontScaling={false} className="text-gray-400 text-sm text-center">
                             Your project history will appear here
                         </Text>
                     </View>
@@ -400,7 +401,7 @@ const HistoryScreen = ({ navigation }) => {
                                 size={16}
                                 color={currentPage === 1 ? '#9CA3AF' : '#FFFFFF'}
                             />
-                            <Text className={`font-semibold text-xs ml-1 ${currentPage === 1 ? 'text-gray-400' : 'text-white'
+                            <Text allowFontScaling={false} className={`font-semibold text-xs ml-1 ${currentPage === 1 ? 'text-gray-400' : 'text-white'
                                 }`}>
                                 Previous
                             </Text>
@@ -417,7 +418,7 @@ const HistoryScreen = ({ navigation }) => {
                                         }`}
                                     activeOpacity={0.7}
                                 >
-                                    <Text className={`font-bold text-xs ${currentPage === page ? 'text-white' : 'text-gray-600'
+                                    <Text allowFontScaling={false} className={`font-bold text-xs ${currentPage === page ? 'text-white' : 'text-gray-600'
                                         }`}>
                                         {page}
                                     </Text>
@@ -434,7 +435,7 @@ const HistoryScreen = ({ navigation }) => {
                                 }`}
                             activeOpacity={0.8}
                         >
-                            <Text className={`font-semibold text-xs mr-1 ${currentPage === totalPages ? 'text-gray-400' : 'text-white'
+                            <Text allowFontScaling={false} className={`font-semibold text-xs mr-1 ${currentPage === totalPages ? 'text-gray-400' : 'text-white'
                                 }`}>
                                 Next
                             </Text>
@@ -446,7 +447,7 @@ const HistoryScreen = ({ navigation }) => {
                         </TouchableOpacity>
                     </View>
 
-                    <Text className="text-center text-gray-500 text-[10px] mt-2">
+                    <Text allowFontScaling={false} className="text-center text-gray-500 text-[10px] mt-2">
                         Showing {startIndex + 1}-{Math.min(endIndex, filteredHistories.length)} of {filteredHistories.length}
                         {searchQuery && ` (filtered from ${histories.length} total)`}
                     </Text>

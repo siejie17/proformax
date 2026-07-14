@@ -65,13 +65,13 @@ const OnboardingScreen = () => {
 
                     {/* Content Section */}
                     <View className="items-center mb-8">
-                        <Text className="text-4xl font-bold text-gray-900 text-center mb-3">
+                        <Text allowFontScaling={false} className="text-4xl font-bold text-gray-900 text-center mb-3">
                             Assess Building
                         </Text>
-                        <Text className="text-4xl font-bold text-gray-900 text-center mb-4">
+                        <Text allowFontScaling={false} className="text-4xl font-bold text-gray-900 text-center mb-4">
                             Sustainability
                         </Text>
-                        <Text className="text-base text-gray-500 text-center px-4">
+                        <Text allowFontScaling={false} className="text-base text-gray-500 text-center px-4">
                             Evaluate green building compliance and optimize costs in just few minutes.
                         </Text>
                     </View>
@@ -83,7 +83,7 @@ const OnboardingScreen = () => {
                             activeOpacity={0.8}
                             onPress={() => navigation.navigate('Register')}
                         >
-                            <Text className="text-white text-center text-lg font-semibold">
+                            <Text allowFontScaling={false} className="text-white text-center text-lg font-semibold">
                                 Let's sign you up
                             </Text>
                         </TouchableOpacity>
@@ -93,18 +93,18 @@ const OnboardingScreen = () => {
                             activeOpacity={0.8}
                             onPress={() => navigation.navigate('Login')}
                         >
-                            <Text className="text-emerald-500 text-center text-lg font-semibold">
+                            <Text allowFontScaling={false} className="text-emerald-500 text-center text-lg font-semibold">
                                 I already have an account
                             </Text>
                         </TouchableOpacity>
 
                         {/* Footer Text */}
                         <View className="pt-4">
-                            <Text className="text-xs text-gray-400 text-center">
+                            <Text allowFontScaling={false} className="text-xs text-gray-400 text-center">
                                 By continuing, you agree to our{' '}
-                                <Text className="text-gray-500 underline">Terms & Conditions</Text>
+                                <Text allowFontScaling={false} className="text-gray-500 underline">Terms & Conditions</Text>
                                 {' '}and{' '}
-                                <Text className="text-gray-500 underline" onPress={() => Linking.openURL("https://myproformax.com/privacy-policy")}>Privacy Policy</Text>
+                                <Text allowFontScaling={false} className="text-gray-500 underline" onPress={() => Linking.openURL("https://myproformax.com/privacy-policy")}>Privacy Policy</Text>
                             </Text>
                         </View>
                     </View>

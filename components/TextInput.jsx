@@ -10,9 +10,9 @@ const TextInput = ({ errorText, description, right, required, label, ...props })
     return (
         <View style={styles.container}>
             {label ? (
-                <Text style={[styles.label, isFocused && styles.labelFocused]}>
+                <Text allowFontScaling={false} style={[styles.label, isFocused && styles.labelFocused]}>
                     {label}
-                    {required ? <Text style={styles.asterisk}> *</Text> : null}
+                    {required ? <Text allowFontScaling={false} style={styles.asterisk}> *</Text> : null}
                 </Text>
             ) : null}
             <Input
@@ -37,8 +37,8 @@ const TextInput = ({ errorText, description, right, required, label, ...props })
                 onBlur={() => setIsFocused(false)}
                 {...props}
             />
-            {description ? <Text style={styles.description}>{description}</Text> : null}
-            {errorText ? <Text style={styles.error}>{errorText}</Text> : null}
+            {description ? <Text allowFontScaling={false} style={styles.description}>{description}</Text> : null}
+            {errorText ? <Text allowFontScaling={false} style={styles.error}>{errorText}</Text> : null}
         </View>
     );
 };

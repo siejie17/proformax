@@ -6,8 +6,8 @@ const ProjectDetailsScreen = ({ selectedProject, certifiedScaleRange, marksData 
     return (
         <View className="flex-1 bg-gray-100">
             <View className="px-5 pt-2 pb-6 border-b border-slate-100">
-                <Text className="text-slate-800 font-bold text-lg mb-1">Project Details</Text>
-                <Text className="text-slate-800 text-xs">
+                <Text allowFontScaling={false} className="text-slate-800 font-bold text-lg mb-1">Project Details</Text>
+                <Text allowFontScaling={false} className="text-slate-800 text-xs">
                     Details from your submitted GBI assessment.
                 </Text>
             </View>

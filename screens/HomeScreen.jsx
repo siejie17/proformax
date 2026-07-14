@@ -1,5 +1,5 @@
 import { useCallback, useContext, useState } from 'react';
-import { View, Text, Image, TouchableOpacity, StatusBar, Dimensions, Animated } from 'react-native';
+import { View, Text, Image, TouchableOpacity, StatusBar, Dimensions, Animated, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
@@ -113,11 +113,11 @@ const HomeScreen = () => {
                         />
                     </View>
                     <View className="flex-1">
-                        <Text className={`text-lg font-semibold mb-1 ${gradient ? 'text-white' : 'text-gray-900'
+                        <Text allowFontScaling={false} className={`text-lg font-semibold mb-1 ${gradient ? 'text-white' : 'text-gray-900'
                             }`}>
                             {title}
                         </Text>
-                        <Text className={`text-sm ${gradient ? 'text-green-100' : 'text-gray-600'
+                        <Text allowFontScaling={false} className={`text-sm ${gradient ? 'text-green-100' : 'text-gray-600'
                             }`}>
                             {description}
                         </Text>
@@ -174,10 +174,10 @@ const HomeScreen = () => {
                                 />
                             </TouchableOpacity>
                             <View>
-                                <Text className="text-white text-lg font-semibold drop-shadow-lg">
+                                <Text allowFontScaling={false} className="text-white text-lg font-semibold drop-shadow-lg">
                                     Hello, {getDisplayName()}!
                                 </Text>
-                                <Text className="text-white/80 text-sm">
+                                <Text allowFontScaling={false} className="text-white/80 text-sm">
                                     Ready to assess your project?
                                 </Text>
                             </View>
@@ -201,10 +201,8 @@ const HomeScreen = () => {
                 </View>
             </View>
 
-            {/* Enhanced Content Section with ScrollView */}
             <View
                 className="flex-1 bg-gray-100"
-                style={{ paddingBottom: tabBarHeight + insets.bottom + 12 }}
             >
                 {/* Welcome Message */}
                 <Animated.View
@@ -220,10 +218,10 @@ const HomeScreen = () => {
                     }}
                 >
                     <View className="rounded-2xl px-1">
-                        <Text className="text-gray-900 text-2xl font-bold mb-3">
+                        <Text allowFontScaling={false} className="text-gray-900 text-2xl font-bold mb-3">
                             Welcome to ProFormaX
                         </Text>
-                        <Text className="text-gray-700 text-sm leading-5 text-justify">
+                        <Text allowFontScaling={false} className="text-gray-700 text-sm leading-5 text-justify">
                             Implementation of sustainable, green building practices can reduce your carbon footprint, lower operational costs, and create a healthier environment for everyone.
                             Self assess your new building for its green building and cost optimisation compliance now.
                         </Text>
@@ -232,7 +230,7 @@ const HomeScreen = () => {
 
                 {/* Quick Actions */}
                 <View className="px-6 pb-4">
-                    <Text className="text-gray-900 text-lg font-bold mb-4">📍 Quick Actions</Text>
+                    <Text allowFontScaling={false} className="text-gray-900 text-lg font-bold mb-4">📍 Quick Actions</Text>
 
                     <QuickActionButton
                         icon="leaf"

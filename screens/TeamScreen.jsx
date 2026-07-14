@@ -58,11 +58,11 @@ const TeamScreen = ({ navigation }) => {
 
                 {/* Member Info */}
                 <View className="flex-1">
-                    <Text className="text-gray-900 text-base font-semibold leading-6 mb-2">
+                    <Text allowFontScaling={false} className="text-gray-900 text-base font-semibold leading-6 mb-2">
                         {member.name}
                     </Text>
                     <View className="bg-green-50 rounded-lg px-3 py-1.5 self-start">
-                        <Text className="text-green-700 text-xs font-medium">
+                        <Text allowFontScaling={false} className="text-green-700 text-xs font-medium">
                             {member.role}
                         </Text>
                     </View>
@@ -84,7 +84,7 @@ const TeamScreen = ({ navigation }) => {
                     >
                         <Ionicons name="arrow-back" size={24} color="#374151" />
                     </TouchableOpacity>
-                    <Text className="text-gray-900 text-lg font-semibold ml-2">Our Team</Text>
+                    <Text allowFontScaling={false} className="text-gray-900 text-lg font-semibold ml-2">Our Team</Text>
                 </View>
             </View>
 
@@ -99,8 +99,8 @@ const TeamScreen = ({ navigation }) => {
                         <View className="w-16 h-16 bg-green-50 rounded-full items-center justify-center mb-3">
                             <FontAwesome5 name="users" size={28} color="#15803D" />
                         </View>
-                        <Text className="text-gray-900 text-xl font-bold mb-2">Meet Our Team</Text>
-                        <Text className="text-gray-600 text-center text-sm leading-6">
+                        <Text allowFontScaling={false} className="text-gray-900 text-xl font-bold mb-2">Meet Our Team</Text>
+                        <Text allowFontScaling={false} className="text-gray-600 text-center text-sm leading-6">
                             Dedicated professionals bringing expertise in construction, sustainability, and technology to make green building affordable.
                         </Text>
                     </View>
@@ -109,8 +109,8 @@ const TeamScreen = ({ navigation }) => {
                 {/* Team Members Section */}
                 <View className="px-5">
                     <View className="mb-3">
-                        <Text className="text-gray-900 text-lg font-bold">Team Members</Text>
-                        <Text className="text-gray-500 text-sm mt-1">
+                        <Text allowFontScaling={false} className="text-gray-900 text-lg font-bold">Team Members</Text>
+                        <Text allowFontScaling={false} className="text-gray-500 text-sm mt-1">
                             {teamMembers.length} expert{teamMembers.length !== 1 ? 's' : ''} working together
                         </Text>
                     </View>
@@ -123,7 +123,7 @@ const TeamScreen = ({ navigation }) => {
                 {/* Footer Note */}
                 <View className="px-5 pt-1">
                     <View className="bg-green-50 rounded-2xl px-4 py-3">
-                        <Text className="text-green-900 text-sm font-medium text-center leading-6">
+                        <Text allowFontScaling={false} className="text-green-900 text-sm font-medium text-center leading-6">
                             Together, we're building a sustainable future.
                         </Text>
                     </View>

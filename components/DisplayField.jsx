@@ -31,26 +31,26 @@ const DisplayField = memo(({ label, value, certifiedScaleRange = null }) => {
     return (
         <View className="mb-4">
             <View className="flex-row items-center px-4 mb-2">
-                <Text className="text-gray-700 text-sm font-medium">
+                <Text allowFontScaling={false} className="text-gray-700 text-sm font-medium">
                     {label}
                 </Text>
             </View>
             {isCertifiedRating && ratingLevel && colors ? (
                 <View className="bg-white mx-3 rounded-lg shadow-sm min-h-[48px] flex-row items-center justify-between">
                     <View className="flex-1 px-4 py-3">
-                        <Text className="text-sm font-semibold text-gray-900">
+                        <Text allowFontScaling={false} className="text-sm font-semibold text-gray-900">
                             {value}
                         </Text>
                     </View>
                     <View className={`${colors.badge} px-4 py-2 mr-5 rounded-xl border ${colors.border}`}>
-                        <Text className={`text-sm font-semibold ${colors.badgeText}`}>
+                        <Text allowFontScaling={false} className={`text-sm font-semibold ${colors.badgeText}`}>
                             {ratingLevel}
                         </Text>
                     </View>
                 </View>
             ) : (
                 <View className="bg-white mx-3 rounded-lg shadow-sm px-4 py-3 min-h-[48px] justify-center">
-                    <Text className={`text-sm ${value ? "text-gray-900" : "text-gray-400"}`}>
+                    <Text allowFontScaling={false} className={`text-sm ${value ? "text-gray-900" : "text-gray-400"}`}>
                         {value || '-'}
                     </Text>
                 </View>

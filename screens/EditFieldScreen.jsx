@@ -130,7 +130,7 @@ const EditFieldScreen = ({ navigation, route }) => {
                 </View>
 
                 <View className="px-6 pt-2 pb-6">
-                    <Text className="text-gray-900 text-2xl font-bold mb-2">{isPasswordField ? 'Update Password' : `Update Your ${title}`}</Text>
+                    <Text allowFontScaling={false} className="text-gray-900 text-2xl font-bold mb-2">{isPasswordField ? 'Update Password' : `Update Your ${title}`}</Text>
                 </View>
 
                 {/* Content */}
@@ -164,12 +164,12 @@ const EditFieldScreen = ({ navigation, route }) => {
                                 </View>
 
                                 {passwordError ? (
-                                    <Text className="text-red-500 text-sm mb-4 px-1">
+                                    <Text allowFontScaling={false} className="text-red-500 text-sm mb-4 px-1">
                                         {passwordError}
                                     </Text>
                                 ) : null}
 
-                                <Text className="text-xs text-gray-500 px-4">
+                                <Text allowFontScaling={false} className="text-xs text-gray-500 px-4">
                                     Password must be at least 8 characters long
                                 </Text>
                             </>
@@ -200,7 +200,7 @@ const EditFieldScreen = ({ navigation, route }) => {
                         className={`py-4 px-6 rounded-xl items-center ${isUpdating ? 'bg-gray-300' : 'bg-blue-600'
                             }`}
                     >
-                        <Text className={`text-lg font-semibold ${isUpdating ? 'text-gray-500' : 'text-white'
+                        <Text allowFontScaling={false} className={`text-lg font-semibold ${isUpdating ? 'text-gray-500' : 'text-white'
                             }`}>
                             {isUpdating ? 'Updating...' : 'Save Changes'}
                         </Text>

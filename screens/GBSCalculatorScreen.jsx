@@ -90,7 +90,10 @@ const GBSCalculatorScreen = ({ navigation }) => {
     const ratingScaleBottomSheetRef = useRef(null);
     const structureBottomSheetRef = useRef(null);
 
-    const snapPoints = useMemo(() => ['10%'], []);
+    // FIX #2: previously ['10%'] with snapToIndex(1) being called everywhere —
+    // index 1 didn't exist, so every sheet was effectively pinned near 10% height.
+    // Now there's a real low/high pair and callers open to index 1 (the tall one).
+    const snapPoints = useMemo(() => ['25%', '90%'], []);
 
     const filteredClassifications = useMemo(() => {
         if (!selectedCategory) {
@@ -503,10 +506,25 @@ const GBSCalculatorScreen = ({ navigation }) => {
                 ) : (
                     <>
                         <View className="px-4 py-3 border-b border-gray-200">
-                            <Text className="text-lg font-semibold text-gray-900 text-center">
+                            <Text
+                                allowFontScaling={false}
+                                className="text-lg font-semibold text-gray-900 text-center"
+                                maxFontSizeMultiplier={1.5}
+                            >
                                 Select {title}
                             </Text>
                         </View>
+                        {/*
+                          FIX #1: removed getItemLayout (was hardcoded to 60px/row).
+                          With larger accessibility font sizes, SelectionItem rows grow
+                          taller than 60px, so FlatList's scroll-offset math was wrong
+                          and the last items became unreachable / the list looked "stuck".
+                          Letting FlatList measure naturally fixes this at a small perf cost.
+
+                          Also disabled removeClippedSubviews — it has known bugs with
+                          dynamically-sized rows (large fonts) causing items to disappear
+                          or become unscrollable, especially on Android.
+                        */}
                         <FlatList
                             data={data}
                             keyExtractor={(item, index) => item?.name || item?.id?.toString() || item?.toString() || index.toString()}
@@ -519,22 +537,17 @@ const GBSCalculatorScreen = ({ navigation }) => {
                             )}
                             showsVerticalScrollIndicator={false}
                             bounces={true}
-                            removeClippedSubviews={true}
+                            removeClippedSubviews={false}
                             windowSize={10}
                             maxToRenderPerBatch={10}
                             updateCellsBatchingPeriod={50}
                             initialNumToRender={10}
-                            getItemLayout={(data, index) => ({
-                                length: 60, // Approximate item height
-                                offset: 60 * index,
-                                index,
-                            })}
                         />
                     </>
                 )}
             </BottomSheetView>
         </BottomSheet>
-    ), [handleSheetChanges]);
+    ), [handleSheetChanges, snapPoints, loading]);
 
     // helper function to format numbers with commas
     const formatWithThousandSeparator = (value) => {
@@ -759,250 +772,256 @@ const GBSCalculatorScreen = ({ navigation }) => {
     return (
         <SafeAreaView className="flex-1 bg-gray-100">
             <StatusBar barStyle="dark-content" backgroundColor="#F9FAFB" />
-            <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-                <GestureHandlerRootView className="flex-1">
-                    <View className="px-4 py-3 w-full flex-row items-center justify-between">
-                        <TouchableOpacity
-                            onPress={() => navigation.goBack()}
-                            className="size-10 rounded-2xl items-center justify-center"
-                        >
-                            <Ionicons name="arrow-back" size={24} color="#374151" />
-                        </TouchableOpacity>
-
-                        <View className="items-end">
-                            <AIButton onPress={() => setAIModalVisible(true)} />
-                        </View>
-                    </View>
-
-                    <View className="px-6 pt-2 pb-6">
-                        <Text className="text-gray-900 text-2xl font-bold mb-2">Green Building Scores Calculator</Text>
-                        <Text className="text-gray-600 text-sm leading-5">
-                            Estimate your project's performance against the standards for its green building and cost optimisation compliance.
-                        </Text>
-                    </View>
-
-                    <ScrollView
-                        ref={scrollRef}
-                        className="flex-1 px-4"
-                        showsVerticalScrollIndicator={false}
-                        keyboardShouldPersistTaps="handled"
-                        removeClippedSubviews={true}
-                        scrollEventThrottle={16}
-                        bounces={true}
+            {/*
+              FIX #3: previously the whole tree (including the ScrollView and the
+              BottomSheet's own gesture system) was wrapped in a
+              TouchableWithoutFeedback. That makes the outer touchable compete with
+              the ScrollView's pan responder / GestureHandlerRootView for who "owns"
+              a touch, which delays/dampens scroll gestures. Removed the wrapper and
+              moved keyboard-dismiss-on-scroll onto the ScrollView itself instead.
+            */}
+            <GestureHandlerRootView className="flex-1">
+                <View className="px-4 py-3 w-full flex-row items-center justify-between">
+                    <TouchableOpacity
+                        onPress={() => navigation.goBack()}
+                        className="size-10 rounded-2xl items-center justify-center"
                     >
-                        <View className="mb-4">
-                            <FormInputField
-                                label="Project Name"
-                                value={projectName}
-                                placeholder="Enter Project Name"
-                                onChangeText={setProjectName}
-                                error={errors.projectName}
-                            />
+                        <Ionicons name="arrow-back" size={24} color="#374151" />
+                    </TouchableOpacity>
 
-                            <FormInputField
-                                label="Building Type"
-                                value={selectedBuildingType}
-                                placeholder="Select Building Type"
-                                showChevron={true}
-                                disabled={activeSheet && activeSheet !== 'buildingType'}
-                                onPress={handleBuildingTypePress}
-                                error={errors.buildingType}
-                            />
-
-                            <FormInputField
-                                label="Building Category"
-                                value={selectedCategory}
-                                placeholder={selectedBuildingType ? "Select Building Category" : "Please Select Building Type First"}
-                                showChevron={true}
-                                disabled={!selectedBuildingType || (activeSheet && activeSheet !== 'category')}
-                                onPress={handleCategoryPress}
-                                onDisabledPress={handleDisabledCategoryPress}
-                                error={errors.category}
-                            />
-
-                            {classifications.length > 0 && (
-                                <>
-                                    <FormInputField
-                                        label="Building Classification"
-                                        value={selectedClassification}
-                                        placeholder={filteredClassifications.length > 0 ? "Select Building Classification" : "No classification available for this category"}
-                                        showChevron={true}
-                                        disabled={filteredClassifications.length === 0 || (activeSheet && activeSheet !== 'classification')}
-                                        onPress={handleClassificationPress}
-                                        error={errors.classification}
-                                    />
-
-                                    <FormInputField
-                                        label="Existence of Common Management"
-                                        value={selectedManagementOption}
-                                        placeholder="Select Management Option"
-                                        showChevron={true}
-                                        disabled={!selectedClassification || (activeSheet && activeSheet !== 'managementOption')}
-                                        onPress={handleManagementOptionPress}
-                                        onDisabledPress={handleDisabledManagementOptionPress}
-                                        error={errors.managementOption}
-                                    />
-                                </>
-                            )}
-
-                            <FormInputField
-                                label="Project/Building Size (m²)"
-                                value={formatWithThousandSeparator(buildingSizeDisplay)}
-                                placeholder="Enter Project/Building Size"
-                                onChangeText={(text) => handleNumericInput(text, setBuildingSize, setBuildingSizeDisplay, 'buildingSize')}
-                                onFocus={closeActiveBottomSheet}
-                                keyboardType="decimal-pad"
-                                inputMode="decimal"
-                                error={errors.buildingSize}
-                            />
-
-                            <FormInputField
-                                label="Project/Building Budget (in RM)"
-                                value={projectBudgetDisplay === "" ? "" : formatCurrency(projectBudgetDisplay)}
-                                placeholder="Enter budget or leave empty"
-                                onChangeText={handleCurrencyInput}
-                                onFocus={handleBudgetFocus}
-                                onBlur={handleBudgetBlur}
-                                keyboardType="numeric"
-                                inputMode="numeric"
-                                error={errors.projectBudget}
-                                required={false}
-                            />
-
-                            <FormInputField
-                                label="Year of Proposed Project/Building"
-                                value={selectedYear}
-                                placeholder="Select Year of Proposed Project"
-                                showChevron={true}
-                                disabled={activeSheet && activeSheet !== 'year'}
-                                onPress={handleYearPress}
-                                error={errors.year}
-                            />
-
-                            <FormInputField
-                                label="State"
-                                value={selectedState}
-                                placeholder="Select State"
-                                showChevron={true}
-                                disabled={activeSheet && activeSheet !== 'state'}
-                                onPress={handleStatePress}
-                                error={errors.state}
-                            />
-
-                            {selectedState && regions.length !== 0 && (
-                                <FormInputField
-                                    label="Region"
-                                    value={selectedRegion}
-                                    placeholder="Select Region"
-                                    showChevron={true}
-                                    disabled={activeSheet && activeSheet !== 'region'}
-                                    onPress={handleRegionPress}
-                                    error={errors.region}
-                                />
-                            )}
-
-                            <FormInputField
-                                label="Structure"
-                                value={selectedStructure}
-                                placeholder={!selectedBuildingType || !selectedState ? "Please Select Building Type and State First" : "Select Structure"}
-                                showChevron={true}
-                                disabled={!selectedBuildingType || !selectedState || (activeSheet && activeSheet !== 'structure')}
-                                onPress={handleStructurePress}
-                                onDisabledPress={handleDisabledStructurePress}
-                                error={errors.structure}
-                            />
-
-                            <FormInputField
-                                label="Target Certified Rating Scale"
-                                value={selectedCertifiedRatingScale ?? ''}
-                                placeholder={!selectedBuildingType ? "Please Select Building Type First" : "Select Target Certified Rating Scale"}
-                                showChevron={true}
-                                disabled={!selectedBuildingType || (activeSheet && activeSheet !== 'ratingScale')}
-                                onPress={handleCertificationPress}
-                                onDisabledPress={handleDisabledRatingPress}
-                                error={errors.certifiedRatingScale}
-                            />
-                        </View>
-                    </ScrollView>
-
-                    {/* Next Button */}
-                    <View className="px-6 py-4">
-                        <TouchableOpacity
-                            className="bg-green-600 rounded-full py-4 items-center"
-                            activeOpacity={0.8}
-                            onPress={handleFormSubmit}
-                        >
-                            <Text className="text-white text-base font-semibold">Submit</Text>
-                        </TouchableOpacity>
+                    <View className="items-end">
+                        <AIButton onPress={() => setAIModalVisible(true)} />
                     </View>
+                </View>
 
-                    <ChatbotModal isVisible={aiModalVisible} onClose={() => setAIModalVisible(false)} />
+                <View className="px-6 pt-2 pb-6">
+                    <Text allowFontScaling={false} className="text-gray-900 text-2xl font-bold mb-2">Green Building Scores Calculator</Text>
+                    <Text allowFontScaling={false} className="text-gray-600 text-sm leading-5">
+                        Estimate your project's performance against the standards for its green building and cost optimisation compliance.
+                    </Text>
+                </View>
 
-                    {renderBottomSheet(
-                        buildingTypeBottomSheetRef,
-                        buildingTypes,
-                        selectedBuildingType,
-                        handleBuildingTypeSelect,
-                        "Building Type"
-                    )}
-                    {renderBottomSheet(
-                        categoryBottomSheetRef,
-                        categories,
-                        selectedCategory,
-                        handleCategorySelect,
-                        "Building Category"
-                    )}
-                    {renderBottomSheet(
-                        classificationBottomSheetRef,
-                        filteredClassifications,
-                        selectedClassification,
-                        handleClassificationSelect,
-                        "Building Classification"
-                    )}
-                    {renderBottomSheet(
-                        managementOptionBottomSheetRef,
-                        managementOptions,
-                        selectedManagementOption,
-                        handleManagementOptionSelect,
-                        "Management Option"
-                    )}
-                    {renderBottomSheet(
-                        yearBottomSheetRef,
-                        yearList.map((year) => year.toString()),
-                        selectedYear,
-                        handleYearSelect,
-                        "Year of Proposed Project/Building"
-                    )}
-                    {renderBottomSheet(
-                        stateBottomSheetRef,
-                        states,
-                        selectedState,
-                        handleStateSelect,
-                        "State"
-                    )}
-                    {renderBottomSheet(
-                        regionBottomSheetRef,
-                        regions,
-                        selectedRegion,
-                        handleRegionSelect,
-                        "Region"
-                    )}
-                    {renderBottomSheet(
-                        structureBottomSheetRef,
-                        structures,
-                        selectedStructure,
-                        handleStructureSelect,
-                        "Structure"
-                    )}
-                    {renderBottomSheet(
-                        ratingScaleBottomSheetRef,
-                        Object.keys(ratingScales || {}),
-                        selectedCertifiedRatingScale,
-                        handleCertificationSelect,
-                        "Target Certified Rating Scale"
-                    )}
-                </GestureHandlerRootView>
-            </TouchableWithoutFeedback>
+                <ScrollView
+                    ref={scrollRef}
+                    className="flex-1 px-4"
+                    showsVerticalScrollIndicator={false}
+                    keyboardShouldPersistTaps="handled"
+                    onScrollBeginDrag={Keyboard.dismiss}
+                    scrollEventThrottle={16}
+                    bounces={true}
+                >
+                    <View className="mb-4">
+                        <FormInputField
+                            label="Project Name"
+                            value={projectName}
+                            placeholder="Enter Project Name"
+                            onChangeText={setProjectName}
+                            error={errors.projectName}
+                        />
+
+                        <FormInputField
+                            label="Building Type"
+                            value={selectedBuildingType}
+                            placeholder="Select Building Type"
+                            showChevron={true}
+                            disabled={activeSheet && activeSheet !== 'buildingType'}
+                            onPress={handleBuildingTypePress}
+                            error={errors.buildingType}
+                        />
+
+                        <FormInputField
+                            label="Building Category"
+                            value={selectedCategory}
+                            placeholder={selectedBuildingType ? "Select Building Category" : "Please Select Building Type First"}
+                            showChevron={true}
+                            disabled={!selectedBuildingType || (activeSheet && activeSheet !== 'category')}
+                            onPress={handleCategoryPress}
+                            onDisabledPress={handleDisabledCategoryPress}
+                            error={errors.category}
+                        />
+
+                        {classifications.length > 0 && (
+                            <>
+                                <FormInputField
+                                    label="Building Classification"
+                                    value={selectedClassification}
+                                    placeholder={filteredClassifications.length > 0 ? "Select Building Classification" : "No classification available for this category"}
+                                    showChevron={true}
+                                    disabled={filteredClassifications.length === 0 || (activeSheet && activeSheet !== 'classification')}
+                                    onPress={handleClassificationPress}
+                                    error={errors.classification}
+                                />
+
+                                <FormInputField
+                                    label="Existence of Common Management"
+                                    value={selectedManagementOption}
+                                    placeholder="Select Management Option"
+                                    showChevron={true}
+                                    disabled={!selectedClassification || (activeSheet && activeSheet !== 'managementOption')}
+                                    onPress={handleManagementOptionPress}
+                                    onDisabledPress={handleDisabledManagementOptionPress}
+                                    error={errors.managementOption}
+                                />
+                            </>
+                        )}
+
+                        <FormInputField
+                            label="Project/Building Size (m²)"
+                            value={formatWithThousandSeparator(buildingSizeDisplay)}
+                            placeholder="Enter Project/Building Size"
+                            onChangeText={(text) => handleNumericInput(text, setBuildingSize, setBuildingSizeDisplay, 'buildingSize')}
+                            onFocus={closeActiveBottomSheet}
+                            keyboardType="decimal-pad"
+                            inputMode="decimal"
+                            error={errors.buildingSize}
+                        />
+
+                        <FormInputField
+                            label="Project/Building Budget (in RM)"
+                            value={projectBudgetDisplay === "" ? "" : formatCurrency(projectBudgetDisplay)}
+                            placeholder="Enter budget or leave empty"
+                            onChangeText={handleCurrencyInput}
+                            onFocus={handleBudgetFocus}
+                            onBlur={handleBudgetBlur}
+                            keyboardType="numeric"
+                            inputMode="numeric"
+                            error={errors.projectBudget}
+                            required={false}
+                        />
+
+                        <FormInputField
+                            label="Year of Proposed Project/Building"
+                            value={selectedYear}
+                            placeholder="Select Year of Proposed Project"
+                            showChevron={true}
+                            disabled={activeSheet && activeSheet !== 'year'}
+                            onPress={handleYearPress}
+                            error={errors.year}
+                        />
+
+                        <FormInputField
+                            label="State"
+                            value={selectedState}
+                            placeholder="Select State"
+                            showChevron={true}
+                            disabled={activeSheet && activeSheet !== 'state'}
+                            onPress={handleStatePress}
+                            error={errors.state}
+                        />
+
+                        {selectedState && regions.length !== 0 && (
+                            <FormInputField
+                                label="Region"
+                                value={selectedRegion}
+                                placeholder="Select Region"
+                                showChevron={true}
+                                disabled={activeSheet && activeSheet !== 'region'}
+                                onPress={handleRegionPress}
+                                error={errors.region}
+                            />
+                        )}
+
+                        <FormInputField
+                            label="Structure"
+                            value={selectedStructure}
+                            placeholder={!selectedBuildingType || !selectedState ? "Please Select Building Type and State First" : "Select Structure"}
+                            showChevron={true}
+                            disabled={!selectedBuildingType || !selectedState || (activeSheet && activeSheet !== 'structure')}
+                            onPress={handleStructurePress}
+                            onDisabledPress={handleDisabledStructurePress}
+                            error={errors.structure}
+                        />
+
+                        <FormInputField
+                            label="Target Certified Rating Scale"
+                            value={selectedCertifiedRatingScale ?? ''}
+                            placeholder={!selectedBuildingType ? "Please Select Building Type First" : "Select Target Certified Rating Scale"}
+                            showChevron={true}
+                            disabled={!selectedBuildingType || (activeSheet && activeSheet !== 'ratingScale')}
+                            onPress={handleCertificationPress}
+                            onDisabledPress={handleDisabledRatingPress}
+                            error={errors.certifiedRatingScale}
+                        />
+                    </View>
+                </ScrollView>
+
+                {/* Next Button */}
+                <View className="px-6 py-4">
+                    <TouchableOpacity
+                        className="bg-green-600 rounded-full py-4 items-center"
+                        activeOpacity={0.8}
+                        onPress={handleFormSubmit}
+                    >
+                        <Text allowFontScaling={false} className="text-white text-base font-semibold">Submit</Text>
+                    </TouchableOpacity>
+                </View>
+
+                <ChatbotModal isVisible={aiModalVisible} onClose={() => setAIModalVisible(false)} />
+
+                {renderBottomSheet(
+                    buildingTypeBottomSheetRef,
+                    buildingTypes,
+                    selectedBuildingType,
+                    handleBuildingTypeSelect,
+                    "Building Type"
+                )}
+                {renderBottomSheet(
+                    categoryBottomSheetRef,
+                    categories,
+                    selectedCategory,
+                    handleCategorySelect,
+                    "Building Category"
+                )}
+                {renderBottomSheet(
+                    classificationBottomSheetRef,
+                    filteredClassifications,
+                    selectedClassification,
+                    handleClassificationSelect,
+                    "Building Classification"
+                )}
+                {renderBottomSheet(
+                    managementOptionBottomSheetRef,
+                    managementOptions,
+                    selectedManagementOption,
+                    handleManagementOptionSelect,
+                    "Management Option"
+                )}
+                {renderBottomSheet(
+                    yearBottomSheetRef,
+                    yearList.map((year) => year.toString()),
+                    selectedYear,
+                    handleYearSelect,
+                    "Year of Proposed Project/Building"
+                )}
+                {renderBottomSheet(
+                    stateBottomSheetRef,
+                    states,
+                    selectedState,
+                    handleStateSelect,
+                    "State"
+                )}
+                {renderBottomSheet(
+                    regionBottomSheetRef,
+                    regions,
+                    selectedRegion,
+                    handleRegionSelect,
+                    "Region"
+                )}
+                {renderBottomSheet(
+                    structureBottomSheetRef,
+                    structures,
+                    selectedStructure,
+                    handleStructureSelect,
+                    "Structure"
+                )}
+                {renderBottomSheet(
+                    ratingScaleBottomSheetRef,
+                    Object.keys(ratingScales || {}),
+                    selectedCertifiedRatingScale,
+                    handleCertificationSelect,
+                    "Target Certified Rating Scale"
+                )}
+            </GestureHandlerRootView>
         </SafeAreaView>
     )
 }

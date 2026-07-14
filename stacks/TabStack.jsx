@@ -1,4 +1,4 @@
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, Text } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
@@ -29,7 +29,7 @@ const TabStack = () => {
 
                         return (
                             <View style={styles.iconContainer}>
-                                <Ionicons name={iconName} size={size} color={color} />
+                                <Ionicons allowFontScaling={false} name={iconName} size={size} color={color} />
                                 {focused && <View style={styles.indicator} />}
                             </View>
                         );
@@ -46,14 +46,42 @@ const TabStack = () => {
                     name="Home"
                     component={HomeScreen}
                     options={{
-                        tabBarLabel: 'Home'
+                        tabBarLabel: ({ color }) => (
+                            <Text
+                                allowFontScaling={false}
+                                style={{
+                                    fontSize: 11,
+                                    fontWeight: '500',
+                                    color,
+                                    marginBottom: 4,
+                                    marginTop: 2,
+                                    letterSpacing: 0.2,
+                                }}
+                            >
+                                Home
+                            </Text>
+                        ),
                     }}
                 />
                 <Tab.Screen
                     name="Profile"
                     component={ProfileScreen}
                     options={{
-                        tabBarLabel: 'Profile'
+                        tabBarLabel: ({ color }) => (
+                            <Text
+                                allowFontScaling={false}
+                                style={{
+                                    fontSize: 11,
+                                    fontWeight: '500',
+                                    color,
+                                    marginBottom: 4,
+                                    marginTop: 2,
+                                    letterSpacing: 0.2,
+                                }}
+                            >
+                                Profile
+                            </Text>
+                        ),
                     }}
                 />
             </Tab.Navigator>

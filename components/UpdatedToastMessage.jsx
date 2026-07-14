@@ -28,7 +28,7 @@ const UpdatedToastMessage = ({ visible, toastMessage }) => {
             style={{ opacity }}
             className="absolute bottom-12 self-center mx-8 bg-gray-900/95 px-3 py-3 rounded-2xl z-50 shadow-lg border border-gray-800"
         >
-            <Text className="text-white text-center text-sm font-medium tracking-wide">
+            <Text allowFontScaling={false} className="text-white text-center text-sm font-medium tracking-wide">
                 {toastMessage}
             </Text>
         </Animated.View>

@@ -78,6 +78,7 @@ const AnimatedDropdown = ({
                 className="flex-row items-center justify-between py-3.5 px-0.5"
             >
                 <Text
+                    allowFontScaling={false}
                     numberOfLines={1}
                     className={`flex-1 text-base tracking-[0.1px] mr-3 ${selected ? 'text-[#111111] font-normal' : 'text-[#C2C2C2] font-light'}`}
                 >
@@ -123,6 +124,7 @@ const AnimatedDropdown = ({
                                     style={styles.option}
                                 >
                                     <Text
+                                        allowFontScaling={false}
                                         style={[styles.optionText, isSelected && styles.optionTextSelected]}
                                         numberOfLines={2}
                                     >

@@ -6,11 +6,11 @@ const FormInputField = memo(({ label, value, placeholder, onChangeText, showChev
     return (
         <View className="mb-4">
             <View className="flex-row items-center px-4 mb-2">
-                <Text className="text-gray-700 text-sm font-medium">
+                <Text allowFontScaling={false} className="text-gray-700 text-sm font-medium">
                     {label}
                 </Text>
                 {required && (
-                    <Text className="text-red-500 text-sm ml-1">*</Text>
+                    <Text allowFontScaling={false} className="text-red-500 text-sm ml-1">*</Text>
                 )}
             </View>
             <View className="bg-white mx-3 rounded-lg shadow-sm">
@@ -21,6 +21,7 @@ const FormInputField = memo(({ label, value, placeholder, onChangeText, showChev
                         activeOpacity={disabled ? 1 : 0.7}
                     >
                         <Text
+                            allowFontScaling={false}
                             className={`text-base ${value ? "text-gray-900" : "text-gray-400"
                                 }`}
                         >
@@ -35,12 +36,13 @@ const FormInputField = memo(({ label, value, placeholder, onChangeText, showChev
                         onFocus={onFocus}
                         placeholder={placeholder}
                         className="p-4 text-gray-900 text-base min-h-[52px]"
+                        allowFontScaling={false}
                         placeholderTextColor="#9CA3AF"
                         {...props}
                     />
                 )}
             </View>
-            {error && <Text className="text-red-500 text-sm mt-1 px-4">{error}</Text>}
+            {error && <Text allowFontScaling={false} className="text-red-500 text-sm mt-1 px-4">{error}</Text>}
         </View>
     )
 });

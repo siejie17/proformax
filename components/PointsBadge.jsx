@@ -5,7 +5,7 @@ const PointsBadge = ({ points, active }) => (
         className={`px-2 py-1 rounded-md min-w-[40px] items-center justify-center ${active ? 'bg-emerald-500' : 'bg-gray-100'
             }`}
     >
-        <Text className={`text-[10px] font-semibold tracking-wide ${active ? 'text-white' : 'text-gray-400'}`}>
+        <Text allowFontScaling={false} className={`text-[10px] font-semibold tracking-wide ${active ? 'text-white' : 'text-gray-400'}`}>
             {points} pts
         </Text>
     </View>

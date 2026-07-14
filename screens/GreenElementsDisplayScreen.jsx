@@ -1295,9 +1295,9 @@ const GreenElementsDisplayScreen = ({
     const renderSelectionItem = useCallback((item) => {
         return (
             <View className="flex-row items-center justify-between px-3 py-2.5">
-                <Text className="flex-1 text-gray-700 font-medium text-sm">{item.description}</Text>
+                <Text allowFontScaling={false} className="flex-1 text-gray-700 font-medium text-sm">{item.description}</Text>
                 <View className="bg-blue-100 px-2.5 py-1 rounded-lg ml-2">
-                    <Text className="text-blue-700 font-bold text-xs">{item.marks} pts</Text>
+                    <Text allowFontScaling={false} className="text-blue-700 font-bold text-xs">{item.marks} pts</Text>
                 </View>
             </View>
         );
@@ -1306,13 +1306,13 @@ const GreenElementsDisplayScreen = ({
     // Custom render function for selected label
     const renderSelectedLabel = useCallback((selectedItem) => {
         if (!selectedItem) {
-            return <Text>Select an option...</Text>;
+            return <Text allowFontScaling={false}>Select an option...</Text>;
         }
         return (
             <View className="flex-row items-center justify-between flex-1">
-                <Text className="text-gray-900 font-semibold text-sm flex-1">{selectedItem.description}</Text>
+                <Text allowFontScaling={false} className="text-gray-900 font-semibold text-sm flex-1">{selectedItem.description}</Text>
                 <View className="bg-emerald-100 px-2.5 py-1 rounded-lg ml-2">
-                    <Text className="text-emerald-700 font-bold text-xs">{selectedItem.marks} pts</Text>
+                    <Text allowFontScaling={false} className="text-emerald-700 font-bold text-xs">{selectedItem.marks} pts</Text>
                 </View>
             </View>
         );
@@ -1327,9 +1327,9 @@ const GreenElementsDisplayScreen = ({
                     ) : (
                         <Ionicons name="close-circle" size={18} color="#DC2626" />
                     )}
-                    <Text className="text-[11px] font-semibold text-slate-500 ml-2">PREDICTED</Text>
+                    <Text allowFontScaling={false} className="text-[11px] font-semibold text-slate-500 ml-2">PREDICTED</Text>
                 </View>
-                <Text className={`text-xs font-semibold ${predictedChecked ? 'text-emerald-600' : 'text-red-600'}`}>
+                <Text allowFontScaling={false} className={`text-xs font-semibold ${predictedChecked ? 'text-emerald-600' : 'text-red-600'}`}>
                     {predictedChecked ? 'Checked' : 'Unchecked'}
                 </Text>
             </View>
@@ -1345,9 +1345,9 @@ const GreenElementsDisplayScreen = ({
                         size={18}
                         color={(isUnchanged || actualChecked) ? '#10B981' : '#94A3B8'}
                     />
-                    <Text className="text-[11px] font-semibold text-slate-500 ml-2">ACTUAL</Text>
+                    <Text allowFontScaling={false} className="text-[11px] font-semibold text-slate-500 ml-2">ACTUAL</Text>
                 </View>
-                <Text className={`text-xs font-semibold ${(isUnchanged || actualChecked) ? 'text-emerald-600' : 'text-slate-400'}`}>
+                <Text allowFontScaling={false} className={`text-xs font-semibold ${(isUnchanged || actualChecked) ? 'text-emerald-600' : 'text-slate-400'}`}>
                     {(isUnchanged || actualChecked) ? 'Checked' : 'Unchecked'}
                 </Text>
             </TouchableOpacity>
@@ -1357,7 +1357,7 @@ const GreenElementsDisplayScreen = ({
     const renderActualMarksIndicator = useCallback((points, active = false, showIndicator = true) => (
         <View className="flex-row items-center gap-1">
             {showIndicator ? (
-                <Text className={`text-[10px] font-semibold uppercase ${active ? 'text-emerald-600' : 'text-slate-400'}`}>
+                <Text allowFontScaling={false} className={`text-[10px] font-semibold uppercase ${active ? 'text-emerald-600' : 'text-slate-400'}`}>
                     Actual
                 </Text>
             ) : null}
@@ -1425,6 +1425,7 @@ const GreenElementsDisplayScreen = ({
                         <View className="flex-row items-center">
                             <View className="flex-1 mr-3">
                                 <Text
+                                    allowFontScaling={false}
                                     className={`text-[13.5px] leading-[20px] ${hasSubitems ? 'text-gray-800' : isItemChecked ? 'text-gray-500' : 'text-gray-700'
                                         }`}
                                     style={{
@@ -1501,12 +1502,13 @@ const GreenElementsDisplayScreen = ({
                                             >
                                                 <View className="flex-row items-center">
                                                     <Text
+                                                        allowFontScaling={false}
                                                         className="flex-1 text-[13px] leading-5 text-gray-600"
                                                         style={{ fontWeight: isChecked ? '500' : '400' }}
                                                     >
                                                         {option?.description}
                                                     </Text>
-                                                    <Text className="text-xs font-semibold text-gray-500">
+                                                    <Text allowFontScaling={false} className="text-xs font-semibold text-gray-500">
                                                         {option.marks} pts
                                                     </Text>
                                                     <IconButton
@@ -1551,7 +1553,7 @@ const GreenElementsDisplayScreen = ({
                                                     gap: 6,
                                                     marginBottom: 8,
                                                 }}>
-                                                    <Text style={{ fontSize: 11, color: '#9CA3AF', fontWeight: '500' }}>
+                                                    <Text allowFontScaling={false} style={{ fontSize: 11, color: '#9CA3AF', fontWeight: '500' }}>
                                                         PREDICTED :
                                                     </Text>
                                                     <View style={{
@@ -1565,7 +1567,7 @@ const GreenElementsDisplayScreen = ({
                                                         flex: 1,
                                                     }}>
                                                         <Ionicons name="bookmark-outline" size={12} color="#818CF8" />
-                                                        <Text style={{
+                                                        <Text allowFontScaling={false} style={{
                                                             fontSize: 12,
                                                             color: '#4F46E5',
                                                             fontWeight: '500',
@@ -1573,7 +1575,7 @@ const GreenElementsDisplayScreen = ({
                                                         }} numberOfLines={1}>
                                                             {predictedSelection?.description || 'None / Not Applicable'}
                                                         </Text>
-                                                        <Text style={{
+                                                        <Text allowFontScaling={false} style={{
                                                             fontSize: 11,
                                                             color: '#818CF8',
                                                             fontWeight: '600',
@@ -1585,7 +1587,7 @@ const GreenElementsDisplayScreen = ({
 
                                                 <View className="flex-row items-center justify-between mb-2">
                                                     {/* Left side: Actual answer label */}
-                                                    <Text className="text-xs font-semibold text-[#9CA3AF]">
+                                                    <Text allowFontScaling={false} className="text-xs font-semibold text-[#9CA3AF]">
                                                         ACTUAL :
                                                     </Text>
 
@@ -1667,7 +1669,7 @@ const GreenElementsDisplayScreen = ({
                                                 marginBottom: 8,
                                             }}>
                                                 <View style={{ flex: 1, height: 1, backgroundColor: '#E5E7EB' }} />
-                                                <Text style={{ fontSize: 11, color: '#9CA3AF', fontWeight: '500' }}>
+                                                <Text allowFontScaling={false} style={{ fontSize: 11, color: '#9CA3AF', fontWeight: '500' }}>
                                                     SELECT ONE GROUP ONLY
                                                 </Text>
                                                 <View style={{ flex: 1, height: 1, backgroundColor: '#E5E7EB' }} />
@@ -1744,7 +1746,7 @@ const GreenElementsDisplayScreen = ({
                                                                     }} />
                                                                 )}
                                                             </View>
-                                                            <Text style={{
+                                                            <Text allowFontScaling={false} style={{
                                                                 fontSize: 13,
                                                                 fontWeight: '600',
                                                                 color: isActive ? '#4F46E5' : '#6B7280',
@@ -1763,7 +1765,7 @@ const GreenElementsDisplayScreen = ({
                                                                     gap: 6,
                                                                     marginBottom: 8,
                                                                 }}>
-                                                                    <Text style={{ fontSize: 11, color: '#9CA3AF', fontWeight: '500' }}>
+                                                                    <Text allowFontScaling={false} style={{ fontSize: 11, color: '#9CA3AF', fontWeight: '500' }}>
                                                                         PREDICTED :
                                                                     </Text>
                                                                     <View style={{
@@ -1777,7 +1779,7 @@ const GreenElementsDisplayScreen = ({
                                                                         flex: 1,
                                                                     }}>
                                                                         <Ionicons name="bookmark-outline" size={12} color="#818CF8" />
-                                                                        <Text style={{
+                                                                        <Text allowFontScaling={false} style={{
                                                                             fontSize: 12,
                                                                             color: '#4F46E5',
                                                                             fontWeight: '500',
@@ -1785,7 +1787,7 @@ const GreenElementsDisplayScreen = ({
                                                                         }} numberOfLines={1}>
                                                                             {predictedSelection?.description || 'No selected'}
                                                                         </Text>
-                                                                        <Text style={{
+                                                                        <Text allowFontScaling={false} style={{
                                                                             fontSize: 11,
                                                                             color: '#818CF8',
                                                                             fontWeight: '600',
@@ -1799,7 +1801,7 @@ const GreenElementsDisplayScreen = ({
 
                                                         <View className="flex-row items-center justify-between mb-2">
                                                             {/* Left side: Actual answer label */}
-                                                            <Text className="text-xs font-semibold text-[#9CA3AF]">
+                                                            <Text allowFontScaling={false} className="text-xs font-semibold text-[#9CA3AF]">
                                                                 ACTUAL :
                                                             </Text>
 
@@ -1912,6 +1914,7 @@ const GreenElementsDisplayScreen = ({
                                     <View>
                                         <View className="flex-row items-start justify-between gap-3">
                                             <Text
+                                                allowFontScaling={false}
                                                 className="flex-1 text-sm leading-5 text-gray-700"
                                                 style={{
                                                     fontWeight: isSubitemChecked ? '600' : '400',
@@ -1938,7 +1941,7 @@ const GreenElementsDisplayScreen = ({
                         {/* Custom Inputs - Display Only Mode */}
                         {((customInputsList && customInputsList.length > 0) || (actualInputsList && actualInputsList.length > 0) || (customItems[item.id]?.length > 0)) && (
                             <View className="mt-2">
-                                <Text className="text-xs font-semibold text-gray-500 mb-2 px-2">CUSTOM ENTRIES</Text>
+                                <Text allowFontScaling={false} className="text-xs font-semibold text-gray-500 mb-2 px-2">CUSTOM ENTRIES</Text>
                                 {customInputsList.map((customInput, index) => {
                                     const customAuditKey = getCustomEntryAuditKey(item.id, customInput, index);
                                     const actualCustomChecked = !!actualAnswers.customEntries[customAuditKey];
@@ -1958,7 +1961,7 @@ const GreenElementsDisplayScreen = ({
                                         >
                                             <View>
                                                 <View className="flex-row items-start justify-between gap-3">
-                                                    <Text className="flex-1 text-sm leading-5 text-gray-700 font-medium">
+                                                    <Text allowFontScaling={false} className="flex-1 text-sm leading-5 text-gray-700 font-medium">
                                                         {customInput}
                                                     </Text>
                                                     <View className="shrink-0 pt-0.5">
@@ -1994,7 +1997,7 @@ const GreenElementsDisplayScreen = ({
                                         >
                                             <View>
                                                 <View className="flex-row items-start justify-between gap-3">
-                                                    <Text className="flex-1 text-sm leading-5 text-gray-700 font-medium">
+                                                    <Text allowFontScaling={false} className="flex-1 text-sm leading-5 text-gray-700 font-medium">
                                                         {actualInput}
                                                     </Text>
                                                     <View className="shrink-0 pt-0.5">
@@ -2026,7 +2029,7 @@ const GreenElementsDisplayScreen = ({
                                             }}
                                         >
                                             <View className="flex-row items-start justify-between mb-2">
-                                                <Text className="text-sm leading-5 text-gray-700 font-medium flex-1">
+                                                <Text allowFontScaling={false} className="text-sm leading-5 text-gray-700 font-medium flex-1">
                                                     {customItem.description}
                                                 </Text>
                                                 <TouchableOpacity
@@ -2042,9 +2045,9 @@ const GreenElementsDisplayScreen = ({
                                                 <View className="flex-1 flex-row items-center justify-between rounded-xl bg-white border border-slate-200 px-3 py-2.5">
                                                     <View className="flex-row items-center">
                                                         <Ionicons name="close-circle" size={18} color="#DC2626" />
-                                                        <Text className="text-[11px] font-semibold text-slate-500 ml-2">PREDICTED</Text>
+                                                        <Text allowFontScaling={false} className="text-[11px] font-semibold text-slate-500 ml-2">PREDICTED</Text>
                                                     </View>
-                                                    <Text className="text-xs font-semibold text-red-600">
+                                                    <Text allowFontScaling={false} className="text-xs font-semibold text-red-600">
                                                         Unchecked
                                                     </Text>
                                                 </View>
@@ -2052,9 +2055,9 @@ const GreenElementsDisplayScreen = ({
                                                 <View className="flex-1 flex-row items-center justify-between rounded-xl bg-emerald-50 border border-emerald-300 px-3 py-2.5">
                                                     <View className="flex-row items-center">
                                                         <Ionicons name="checkmark-circle" size={18} color="#16A34A" />
-                                                        <Text className="text-[11px] font-semibold text-slate-500 ml-2">ACTUAL</Text>
+                                                        <Text allowFontScaling={false} className="text-[11px] font-semibold text-slate-500 ml-2">ACTUAL</Text>
                                                     </View>
-                                                    <Text className="text-xs font-semibold text-emerald-600">
+                                                    <Text allowFontScaling={false} className="text-xs font-semibold text-emerald-600">
                                                         Checked
                                                     </Text>
                                                 </View>
@@ -2109,7 +2112,7 @@ const GreenElementsDisplayScreen = ({
                         <View key={index} className="mb-3">
                             <View className="flex-row px-2 py-2 rounded-lg mb-2">
                                 <Ionicons name="leaf-sharp" size={15} color="#10B981" style={{ paddingTop: 2, paddingLeft: 2, marginRight: 6 }} />
-                                <Text className="text-gray-700 text-lg font-bold">
+                                <Text allowFontScaling={false} className="text-gray-700 text-lg font-bold">
                                     {subcriterion.name}
                                 </Text>
                             </View>
@@ -2134,17 +2137,17 @@ const GreenElementsDisplayScreen = ({
                         <Ionicons name="leaf-outline" size={40} color="#52B788" />
                     </View>
 
-                    <Text className="text-gray-900 text-xl font-bold mb-3 text-center">
+                    <Text allowFontScaling={false} className="text-gray-900 text-xl font-bold mb-3 text-center">
                         No Green Elements Available
                     </Text>
-                    <Text className="text-gray-600 text-base text-center leading-6 mb-6">
+                    <Text allowFontScaling={false} className="text-gray-600 text-base text-center leading-6 mb-6">
                         It looks like there are no green building elements to display for this project.
                     </Text>
 
                     {/* Info message */}
                     <View className="bg-blue-50 p-4 rounded-xl w-full">
-                        <Text className="text-blue-800 text-sm font-medium mb-2">ℹ️ Information:</Text>
-                        <Text className="text-blue-700 text-sm leading-5">
+                        <Text allowFontScaling={false} className="text-blue-800 text-sm font-medium mb-2">ℹ️ Information:</Text>
+                        <Text allowFontScaling={false} className="text-blue-700 text-sm leading-5">
                             Review the predicted answers, toggle the actual checkboxes, and submit the pending additions or deletions.
                         </Text>
                     </View>
@@ -2155,7 +2158,7 @@ const GreenElementsDisplayScreen = ({
                         <View className="bg-gray-100 px-6 py-2">
                             {/* Section Header */}
                             <View className="mb-1">
-                                <Text className="text-slate-800 font-bold text-base mb-2">Assessment Criteria</Text>
+                                <Text allowFontScaling={false} className="text-slate-800 font-bold text-base mb-2">Assessment Criteria</Text>
                                 <Dropdown
                                     style={{
                                         height: 52,
@@ -2238,6 +2241,7 @@ const GreenElementsDisplayScreen = ({
                                                         fontWeight: '600',
                                                         flexShrink: 1,
                                                     }}
+                                                    allowFontScaling={false}
                                                     numberOfLines={1}
                                                 >
                                                     {item.name}
@@ -2261,11 +2265,13 @@ const GreenElementsDisplayScreen = ({
                                                             fontWeight: '700',
                                                             letterSpacing: 0.3,
                                                         }}
+                                                        allowFontScaling={false}
                                                     >
                                                         {actualEarned}/{total}
                                                     </Text>
                                                 </View>
                                                 <Text
+                                                    allowFontScaling={false}
                                                     className="text-xs font-semibold text-center"
                                                 >
                                                     pts
@@ -2281,12 +2287,13 @@ const GreenElementsDisplayScreen = ({
                                         return (
                                             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1 }}>
                                                 <Text
+                                                    allowFontScaling={false}
                                                     style={{ color: '#1E293B', fontSize: 13, fontWeight: '600', flexShrink: 1 }}
                                                     numberOfLines={1}
                                                 >
                                                     {item.name}
                                                 </Text>
-                                                <Text style={{ color: '#94A3B8', fontSize: 11, fontWeight: '500' }}>
+                                                <Text allowFontScaling={false} style={{ color: '#94A3B8', fontSize: 11, fontWeight: '500' }}>
                                                     {earned}/{actualEarned}/{total}
                                                 </Text>
                                             </View>
@@ -2314,30 +2321,30 @@ const GreenElementsDisplayScreen = ({
                                     }}>
                                         {/* Header */}
                                         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                                            <Text style={{ fontSize: 12, color: '#64748B', fontWeight: '500' }}>Score summary</Text>
+                                            <Text allowFontScaling={false} style={{ fontSize: 12, color: '#64748B', fontWeight: '500' }}>Score summary</Text>
                                         </View>
 
                                         {/* Predicted row */}
                                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                                             <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: '#B4B2A9' }} />
-                                            <Text style={{ fontSize: 12, color: '#64748B', width: 60 }}>Predicted</Text>
+                                            <Text allowFontScaling={false} style={{ fontSize: 12, color: '#64748B', width: 60 }}>Predicted</Text>
                                             <View style={{ flex: 1, height: 4, borderRadius: 2, backgroundColor: '#F1F5F9', overflow: 'hidden' }}>
                                                 <View style={{ width: `${pct}%`, height: '100%', borderRadius: 2, backgroundColor: '#B4B2A9' }} />
                                             </View>
                                             <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 3, width: 64, justifyContent: 'flex-end' }}>
-                                                <Text style={{ fontSize: 16, fontWeight: '500', color: '#1E293B', lineHeight: 20 }}>{earned} / {total}</Text>
+                                                <Text allowFontScaling={false} style={{ fontSize: 16, fontWeight: '500', color: '#1E293B', lineHeight: 20 }}>{earned} / {total}</Text>
                                             </View>
                                         </View>
 
                                         {/* Actual row */}
                                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                                             <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: '#1D9E75' }} />
-                                            <Text style={{ fontSize: 12, color: '#64748B', width: 60 }}>Actual</Text>
+                                            <Text allowFontScaling={false} style={{ fontSize: 12, color: '#64748B', width: 60 }}>Actual</Text>
                                             <View style={{ flex: 1, height: 4, borderRadius: 2, backgroundColor: '#E1F5EE', overflow: 'hidden' }}>
                                                 <View style={{ width: `${actualPct}%`, height: '100%', borderRadius: 2, backgroundColor: '#1D9E75' }} />
                                             </View>
                                             <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 3, width: 64, justifyContent: 'flex-end' }}>
-                                                <Text style={{ fontSize: 16, fontWeight: '500', color: '#0F6E56', lineHeight: 20 }}>{actualEarned} / {total}</Text>
+                                                <Text allowFontScaling={false} style={{ fontSize: 16, fontWeight: '500', color: '#0F6E56', lineHeight: 20 }}>{actualEarned} / {total}</Text>
                                             </View>
                                         </View>
                                     </View>
@@ -2376,19 +2383,19 @@ const GreenElementsDisplayScreen = ({
                                     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
                                 }}>
                                     <View style={{ gap: 2 }}>
-                                        <Text style={{ fontSize: 11, color: '#94A3B8' }}>Predicted</Text>
+                                        <Text allowFontScaling={false} style={{ fontSize: 11, color: '#94A3B8' }}>Predicted</Text>
                                         <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 3 }}>
-                                            <Text style={{ fontSize: 18, fontWeight: '500', color: '#1E293B', lineHeight: 22 }}>
+                                            <Text allowFontScaling={false} style={{ fontSize: 18, fontWeight: '500', color: '#1E293B', lineHeight: 22 }}>
                                                 {overallScoreSummary.predicted}
                                             </Text>
-                                            <Text style={{ fontSize: 11, color: '#94A3B8' }}>/ {overallScoreSummary.total}</Text>
+                                            <Text allowFontScaling={false} style={{ fontSize: 11, color: '#94A3B8' }}>/ {overallScoreSummary.total}</Text>
                                         </View>
                                     </View>
                                     <View style={{
                                         backgroundColor: predictedCertificationPalette.badgeBackgroundColor,
                                         borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2,
                                     }}>
-                                        <Text style={{ fontSize: 10, fontWeight: '500', color: predictedCertificationPalette.badgeTextColor }}>
+                                        <Text allowFontScaling={false} style={{ fontSize: 10, fontWeight: '500', color: predictedCertificationPalette.badgeTextColor }}>
                                             {predictedCertificationLevel}
                                         </Text>
                                     </View>
@@ -2405,12 +2412,12 @@ const GreenElementsDisplayScreen = ({
                                     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
                                 }}>
                                     <View style={{ gap: 2 }}>
-                                        <Text style={{ fontSize: 11, color: '#1D9E75' }}>Actual</Text>
+                                        <Text allowFontScaling={false} style={{ fontSize: 11, color: '#1D9E75' }}>Actual</Text>
                                         <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 3 }}>
-                                            <Text style={{ fontSize: 18, fontWeight: '500', color: '#0F6E56', lineHeight: 22 }}>
+                                            <Text allowFontScaling={false} style={{ fontSize: 18, fontWeight: '500', color: '#0F6E56', lineHeight: 22 }}>
                                                 {overallScoreSummary.actual}
                                             </Text>
-                                            <Text style={{ fontSize: 11, color: '#1D9E75' }}>/ {overallScoreSummary.total}</Text>
+                                            <Text allowFontScaling={false} style={{ fontSize: 11, color: '#1D9E75' }}>/ {overallScoreSummary.total}</Text>
                                         </View>
                                     </View>
                                     <View style={{ alignItems: 'flex-end', gap: 4 }}>
@@ -2418,7 +2425,7 @@ const GreenElementsDisplayScreen = ({
                                             backgroundColor: actualCertificationPalette.badgeBackgroundColor,
                                             borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2,
                                         }}>
-                                            <Text style={{ fontSize: 10, fontWeight: '500', color: actualCertificationPalette.badgeTextColor }}>
+                                            <Text allowFontScaling={false} style={{ fontSize: 10, fontWeight: '500', color: actualCertificationPalette.badgeTextColor }}>
                                                 {actualCertificationLevel}
                                             </Text>
                                         </View>
@@ -2433,7 +2440,7 @@ const GreenElementsDisplayScreen = ({
                                                     size={8}
                                                     color={overallScoreSummary.actual > overallScoreSummary.predicted ? '#0F6E56' : '#993C1D'}
                                                 />
-                                                <Text style={{
+                                                <Text allowFontScaling={false} style={{
                                                     fontSize: 10, fontWeight: '500',
                                                     color: overallScoreSummary.actual > overallScoreSummary.predicted ? '#0F6E56' : '#993C1D',
                                                 }}>
@@ -2453,7 +2460,7 @@ const GreenElementsDisplayScreen = ({
                                 activeOpacity={0.8}
                                 className={`rounded-2xl px-4 py-3 ${hasAuditChanges ? 'bg-slate-900' : 'bg-slate-300'}`}
                             >
-                                <Text className="text-center text-sm font-semibold text-white">
+                                <Text allowFontScaling={false} className="text-center text-sm font-semibold text-white">
                                     {hasAuditChanges ? `Submit Changes (${auditChanges.length})` : 'No changes to submit'}
                                 </Text>
                             </TouchableOpacity>

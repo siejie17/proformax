@@ -43,7 +43,7 @@ const TabBar = ({ state, descriptors, navigation, onTabPress }) => {
                         accessibilityLabel={options.tabBarAccessibilityLabel}
                         className={`flex-1 items-center justify-center py-3 rounded-xl relative ${isFocused ? 'bg-black' : 'bg-white'}`}
                     >
-                        <Text className={`text-xs font-bold ${isFocused ? 'text-white' : 'text-slate-500'}`}>
+                        <Text allowFontScaling={false} className={`text-xs font-bold ${isFocused ? 'text-white' : 'text-slate-500'}`}>
                             {label}
                         </Text>
                         {isFocused && <View className="absolute bottom-0 h-3 rounded-sm bg-blue-600" />}

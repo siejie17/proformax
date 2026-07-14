@@ -82,7 +82,7 @@ const ChatbotModal = ({ isVisible, onClose }) => {
 
             const errorMessage = {
                 id: (Date.now() + 1).toString(),
-                text: 'Sorry, I encountered an error. Please try again.',
+                text: error?.userMessage || 'Sorry, I encountered an error. Please try again.',
                 sender: 'bot',
                 timestamp: new Date(),
             };
@@ -128,6 +128,7 @@ const ChatbotModal = ({ isVisible, onClose }) => {
                     >
                         {isUser ? (
                             <Text
+                                allowFontScaling={false}
                                 className="text-[15px] leading-5 text-white"
                             >
                                 {item.text}
@@ -144,7 +145,7 @@ const ChatbotModal = ({ isVisible, onClose }) => {
                     </View>
 
                     {/* Timestamp */}
-                    <Text className={`text-[11px] text-gray-400 mt-1 px-1`}>
+                    <Text allowFontScaling={false} className={`text-[11px] text-gray-400 mt-1 px-1`}>
                         {item.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </Text>
                 </View>
@@ -188,18 +189,18 @@ const ChatbotModal = ({ isVisible, onClose }) => {
                     >
                         <View className="flex-row items-center gap-3">
                             <View className="w-9 h-9 rounded-full bg-emerald-50 items-center justify-center">
-                                <MaterialIcons name="chat-bubble-outline" size={20} color="#10b981" />
+                                <MaterialIcons allowFontScaling={false} name="chat-bubble-outline" size={20} color="#10b981" />
                             </View>
                             <View>
-                                <Text className="text-lg font-semibold text-gray-900">AI Assistant</Text>
-                                <Text className="text-xs text-gray-500">Online</Text>
+                                <Text allowFontScaling={false} className="text-lg font-semibold text-gray-900">AI Assistant</Text>
+                                <Text allowFontScaling={false} className="text-xs text-gray-500">Online</Text>
                             </View>
                         </View>
                         <TouchableOpacity
                             onPress={onClose}
                             className="w-9 h-9 rounded-full bg-gray-50 items-center justify-center active:bg-gray-100"
                         >
-                            <MaterialIcons name="close" size={20} color="#6b7280" />
+                            <MaterialIcons allowFontScaling={false} name="close" size={20} color="#6b7280" />
                         </TouchableOpacity>
                     </View>
 
@@ -222,7 +223,7 @@ const ChatbotModal = ({ isVisible, onClose }) => {
                                     <View className="flex-row items-center px-4 pb-3">
                                         <View className="mr-3">
                                             <View className="w-8 h-8 rounded-full bg-emerald-50 items-center justify-center">
-                                                <MaterialIcons name="more-horiz" size={18} color="#10b981" />
+                                                <MaterialIcons allowFontScaling={false} name="more-horiz" size={18} color="#10b981" />
                                             </View>
                                         </View>
                                         <View className="bg-white border border-gray-100 rounded-2xl rounded-tl-sm px-4 py-3">
@@ -244,6 +245,7 @@ const ChatbotModal = ({ isVisible, onClose }) => {
                             <View className="flex-1 bg-gray-50 rounded-3xl px-4 py-2 border border-gray-200">
                                 <TextInput
                                     className="text-[12px] text-gray-800 max-h-20"
+                                    allowFontScaling={false}
                                     placeholder="Message..."
                                     placeholderTextColor="#9ca3af"
                                     value={inputText}
@@ -272,6 +274,7 @@ const ChatbotModal = ({ isVisible, onClose }) => {
                                     <ActivityIndicator size="small" color="#9ca3af" />
                                 ) : (
                                     <MaterialIcons
+                                        allowFontScaling={false}
                                         name="arrow-upward"
                                         size={24}
                                         color={inputText.trim() === '' ? '#9ca3af' : 'white'}
@@ -281,7 +284,7 @@ const ChatbotModal = ({ isVisible, onClose }) => {
                         </View>
 
                         <View className="py-4">
-                            <Text className="text-xs text-gray-400 text-center">
+                            <Text allowFontScaling={false} className="text-xs text-gray-400 text-center">
                                 Powered by Google Gemini AI
                             </Text>
                         </View>

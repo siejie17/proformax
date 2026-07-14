@@ -124,10 +124,10 @@ const AddCostModal = ({ visible, onClose, onAdd, parentPath, parentDescription }
                     <View className="bg-white rounded-3xl w-full max-w-md shadow-2xl overflow-hidden">
                         {/* Header */}
                         <View className="bg-gray-50 px-6 py-4 border-b border-gray-200">
-                            <Text className="text-gray-800 font-bold text-lg">
+                            <Text allowFontScaling={false} className="text-gray-800 font-bold text-lg">
                                 {parentPath ? 'Add Inner Cost' : 'Add New Cost Section'}
                             </Text>
-                            <Text className="text-gray-500 text-xs mt-1">
+                            <Text allowFontScaling={false} className="text-gray-500 text-xs mt-1">
                                 {parentPath ? 'Add a new cost item to this section' : 'Create a new section and add your first cost item'}
                             </Text>
                         </View>
@@ -136,26 +136,27 @@ const AddCostModal = ({ visible, onClose, onAdd, parentPath, parentDescription }
                             {/* Section Indicator or Input */}
                             {parentPath ? (
                                 <View className="mb-5">
-                                    <Text className="text-slate-600 font-semibold text-xs mb-2 uppercase tracking-wide">
+                                    <Text allowFontScaling={false} className="text-slate-600 font-semibold text-xs mb-2 uppercase tracking-wide">
                                         Parent Section
                                     </Text>
                                     <View className="bg-blue-50 border-2 border-blue-200 rounded-xl px-4 py-3 flex-row items-center">
                                         <View className="bg-blue-500 w-8 h-8 rounded-lg items-center justify-center mr-3">
-                                            <Ionicons name="folder-open" size={16} color="#FFFFFF" />
+                                            <Ionicons allowFontScaling={false} name="folder-open" size={16} color="#FFFFFF" />
                                         </View>
-                                        <Text className="text-blue-700 font-bold text-sm">
+                                        <Text allowFontScaling={false} className="text-blue-700 font-bold text-sm">
                                             {parentDescription || parentPath.split('.')[0]}
                                         </Text>
                                     </View>
                                 </View>
                             ) : (
                                 <View className="mb-5">
-                                    <Text className="text-slate-700 font-semibold text-xs mb-2 uppercase tracking-wide">
+                                    <Text allowFontScaling={false} className="text-slate-700 font-semibold text-xs mb-2 uppercase tracking-wide">
                                         Section Name
                                     </Text>
                                     <TextInput
                                         className={`bg-slate-50 border-2 rounded-xl px-4 py-3 text-sm text-slate-800 ${errors.sectionName ? 'border-red-300' : 'border-slate-200'
                                             }`}
+                                        allowFontScaling={false}
                                         placeholder="e.g., Foundation, Structural Works, etc."
                                         placeholderTextColor="#94A3B8"
                                         value={sectionName}
@@ -168,8 +169,8 @@ const AddCostModal = ({ visible, onClose, onAdd, parentPath, parentDescription }
                                     />
                                     {errors.sectionName ? (
                                         <View className="flex-row items-center mt-1.5 px-1">
-                                            <Ionicons name="alert-circle" size={12} color="#EF4444" />
-                                            <Text className="text-red-500 text-[10px] ml-1 font-medium">
+                                            <Ionicons allowFontScaling={false} name="alert-circle" size={12} color="#EF4444" />
+                                            <Text allowFontScaling={false} className="text-red-500 text-[10px] ml-1 font-medium">
                                                 {errors.sectionName}
                                             </Text>
                                         </View>
@@ -179,12 +180,13 @@ const AddCostModal = ({ visible, onClose, onAdd, parentPath, parentDescription }
 
                             {/* Description Input */}
                             <View className="mb-4">
-                                <Text className="text-slate-700 font-semibold text-xs mb-2 uppercase tracking-wide">
+                                <Text allowFontScaling={false} className="text-slate-700 font-semibold text-xs mb-2 uppercase tracking-wide">
                                     Description
                                 </Text>
                                 <TextInput
                                     className={`bg-slate-50 border-2 rounded-xl px-4 py-3 text-sm text-slate-800 ${errors.description ? 'border-red-300' : 'border-slate-200'
                                         }`}
+                                    allowFontScaling={false}
                                     placeholder="Enter cost description..."
                                     placeholderTextColor="#94A3B8"
                                     value={description}
@@ -200,8 +202,8 @@ const AddCostModal = ({ visible, onClose, onAdd, parentPath, parentDescription }
                                 />
                                 {errors.description ? (
                                     <View className="flex-row items-center mt-1.5 px-1">
-                                        <Ionicons name="alert-circle" size={12} color="#EF4444" />
-                                        <Text className="text-red-500 text-[10px] ml-1 font-medium">
+                                        <Ionicons allowFontScaling={false} name="alert-circle" size={12} color="#EF4444" />
+                                        <Text allowFontScaling={false} className="text-red-500 text-[10px] ml-1 font-medium">
                                             {errors.description}
                                         </Text>
                                     </View>
@@ -210,14 +212,15 @@ const AddCostModal = ({ visible, onClose, onAdd, parentPath, parentDescription }
 
                             {/* Cost Input */}
                             <View className="mb-2">
-                                <Text className="text-slate-700 font-semibold text-xs mb-2 uppercase tracking-wide">
+                                <Text allowFontScaling={false} className="text-slate-700 font-semibold text-xs mb-2 uppercase tracking-wide">
                                     Cost Amount
                                 </Text>
                                 <View className={`flex-row items-center bg-slate-50 border-2 rounded-xl px-4 py-3 ${errors.cost ? 'border-red-300' : 'border-slate-200'
                                     }`}>
-                                    <Text className="text-slate-500 font-bold text-sm mr-2">RM</Text>
+                                    <Text allowFontScaling={false} className="text-slate-500 font-bold text-sm mr-2">RM</Text>
                                     <TextInput
                                         className="flex-1 text-sm text-slate-800 font-semibold"
+                                        allowFontScaling={false}
                                         placeholder="0.00"
                                         placeholderTextColor="#94A3B8"
                                         value={formatCurrency(costCents)}
@@ -229,8 +232,8 @@ const AddCostModal = ({ visible, onClose, onAdd, parentPath, parentDescription }
                                 </View>
                                 {errors.cost ? (
                                     <View className="flex-row items-center mt-1.5 px-1">
-                                        <Ionicons name="alert-circle" size={12} color="#EF4444" />
-                                        <Text className="text-red-500 text-[10px] ml-1 font-medium">
+                                        <Ionicons allowFontScaling={false} name="alert-circle" size={12} color="#EF4444" />
+                                        <Text allowFontScaling={false} className="text-red-500 text-[10px] ml-1 font-medium">
                                             {errors.cost}
                                         </Text>
                                     </View>
@@ -245,8 +248,8 @@ const AddCostModal = ({ visible, onClose, onAdd, parentPath, parentDescription }
                                 className="bg-blue-500 rounded-xl py-3.5 flex-row items-center justify-center shadow-md active:bg-blue-600"
                                 activeOpacity={0.8}
                             >
-                                <Ionicons name="checkmark-circle" size={18} color="#FFFFFF" />
-                                <Text className="text-white font-bold text-sm ml-2">Add Cost Item</Text>
+                                <Ionicons allowFontScaling={false} name="checkmark-circle" size={18} color="#FFFFFF" />
+                                <Text allowFontScaling={false} className="text-white font-bold text-sm ml-2">Add Cost Item</Text>
                             </TouchableOpacity>
 
                             <TouchableOpacity
@@ -254,7 +257,7 @@ const AddCostModal = ({ visible, onClose, onAdd, parentPath, parentDescription }
                                 className="bg-slate-100 rounded-xl py-3.5 items-center active:bg-slate-200"
                                 activeOpacity={0.8}
                             >
-                                <Text className="text-slate-700 font-semibold text-sm">Cancel</Text>
+                                <Text allowFontScaling={false} className="text-slate-700 font-semibold text-sm">Cancel</Text>
                             </TouchableOpacity>
                         </View>
                     </View>

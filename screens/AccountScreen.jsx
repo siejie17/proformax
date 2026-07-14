@@ -182,7 +182,7 @@ const AccountScreen = ({ navigation, route }) => {
                     <TouchableOpacity className="p-1" onPress={() => navigation.goBack()}>
                         <Ionicons name="arrow-back" size={24} color="#000" />
                     </TouchableOpacity>
-                    <Text className="text-[17px] font-semibold text-black">Account</Text>
+                    <Text allowFontScaling={false} className="text-[17px] font-semibold text-black">Account</Text>
                     <View className="pl-8" />
                 </View>
 
@@ -204,7 +204,7 @@ const AccountScreen = ({ navigation, route }) => {
 
                     {/* Personal Information */}
                     <View className="pb-3">
-                        <Text className="m-2 ml-3 text-[13px] font-medium uppercase text-[#A69F9F]">Personal Information</Text>
+                        <Text allowFontScaling={false} className="m-2 ml-3 text-[13px] font-medium uppercase text-[#A69F9F]">Personal Information</Text>
 
                         <View className="rounded-xl shadow shadow-gray-500 mt-1">
                             <View className="pl-2 bg-white border-t border-[#F0F0F0] rounded-t-[12px]">
@@ -212,9 +212,9 @@ const AccountScreen = ({ navigation, route }) => {
                                     className="flex-row items-center justify-between py-3 px-4 min-h-[44px]"
                                     onPress={() => navigateToEditField('first_name', userData.first_name, 'First Name')}
                                 >
-                                    <Text className="text-[16px] font-semibold text-black tracking-wide">First Name</Text>
+                                    <Text allowFontScaling={false} className="text-[16px] font-semibold text-black tracking-wide">First Name</Text>
                                     <View className="flex-row items-center gap-1.5">
-                                        <Text className="text-[14px] text-gray-500">{userData.first_name}</Text>
+                                        <Text allowFontScaling={false} className="text-[14px] text-gray-500">{userData.first_name}</Text>
                                         <Ionicons name="chevron-forward" size={20} color="#C7C7CC" />
                                     </View>
                                 </TouchableOpacity>
@@ -225,9 +225,9 @@ const AccountScreen = ({ navigation, route }) => {
                                     className="flex-row items-center justify-between py-3 px-4 min-h-[44px]"
                                     onPress={() => navigateToEditField('last_name', userData.last_name, 'Last Name')}
                                 >
-                                    <Text className="text-[16px] font-semibold text-black tracking-wide">Last Name</Text>
+                                    <Text allowFontScaling={false} className="text-[16px] font-semibold text-black tracking-wide">Last Name</Text>
                                     <View className="flex-row items-center gap-1.5">
-                                        <Text className="text-[14px] text-gray-500">{userData.last_name}</Text>
+                                        <Text allowFontScaling={false} className="text-[14px] text-gray-500">{userData.last_name}</Text>
                                         <Ionicons name="chevron-forward" size={20} color="#C7C7CC" />
                                     </View>
                                 </TouchableOpacity>
@@ -236,16 +236,16 @@ const AccountScreen = ({ navigation, route }) => {
                     </View>
 
                     <View className="pb-3">
-                        <Text className="m-2 ml-3 text-[13px] font-medium uppercase text-[#A69F9F]">Login Information</Text>
+                        <Text allowFontScaling={false} className="m-2 ml-3 text-[13px] font-medium uppercase text-[#A69F9F]">Login Information</Text>
 
                         <View className="rounded-xl shadow shadow-gray-500 mt-1">
                             <View className="pl-2 bg-white border-t border-[#F0F0F0] rounded-t-[12px]">
                                 <View
                                     className="flex-row items-center justify-between py-3 px-4 min-h-[44px]"
                                 >
-                                    <Text className="text-[16px] font-semibold text-black tracking-wide">Email Address</Text>
+                                    <Text allowFontScaling={false} className="text-[16px] font-semibold text-black tracking-wide">Email Address</Text>
                                     <View className="flex-row items-center gap-1.5">
-                                        <Text className="text-[14px] text-gray-500">{userData.email}</Text>
+                                        <Text allowFontScaling={false} className="text-[14px] text-gray-500">{userData.email}</Text>
                                         <MaterialIcons name="verified" size={20} color="green" />
                                     </View>
                                 </View>
@@ -256,7 +256,7 @@ const AccountScreen = ({ navigation, route }) => {
                                     className="flex-row items-center justify-between py-3 px-4 min-h-[44px]"
                                     onPress={() => navigateToEditField('password', '', 'Password')}
                                 >
-                                    <Text className="text-[16px] font-semibold text-black tracking-wide">Update Password</Text>
+                                    <Text allowFontScaling={false} className="text-[16px] font-semibold text-black tracking-wide">Update Password</Text>
                                     <Ionicons name="chevron-forward" size={20} color="#C7C7CC" />
                                 </TouchableOpacity>
                             </View>
@@ -278,7 +278,7 @@ const AccountScreen = ({ navigation, route }) => {
                     enableOverDrag={false}
                 >
                     <BottomSheetView className="flex-1 items-center px-6 pb-6">
-                        <Text className="text-lg font-semibold text-[#000000] mb-6 mt-2 text-center">Profile Picture</Text>
+                        <Text allowFontScaling={false} className="text-lg font-semibold text-[#000000] mb-6 mt-2 text-center">Profile Picture</Text>
 
                         <View className="items-center mb-8">
                             <Image
@@ -288,7 +288,7 @@ const AccountScreen = ({ navigation, route }) => {
                         </View>
 
                         <TouchableOpacity className="w-full bg-[#007AFF] rounded-xl p-4 items-center shadow-black shadow-md" onPress={imagePicking}>
-                            <Text className="text-white font-semibold text-base">Choose New Photo</Text>
+                            <Text allowFontScaling={false} className="text-white font-semibold text-base">Choose New Photo</Text>
                         </TouchableOpacity>
                     </BottomSheetView>
                 </BottomSheet>
@@ -298,10 +298,10 @@ const AccountScreen = ({ navigation, route }) => {
                     <View className="absolute inset-0 bg-black/50 items-center justify-center z-50">
                         <View className="bg-white rounded-2xl p-6 mx-4 items-center shadow-lg">
                             <ActivityIndicator size="large" color="#007AFF" className="mb-4" />
-                            <Text className="text-gray-800 text-base font-medium text-center">
+                            <Text allowFontScaling={false} className="text-gray-800 text-base font-medium text-center">
                                 Uploading Image...
                             </Text>
-                            <Text className="text-gray-500 text-sm text-center mt-2">
+                            <Text allowFontScaling={false} className="text-gray-500 text-sm text-center mt-2">
                                 Please wait while we update your profile picture
                             </Text>
                         </View>

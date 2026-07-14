@@ -138,14 +138,14 @@ const ProfileScreen = () => {
     return (
         <SafeAreaView className="flex-1 bg-gray-100 px-1">
             <View className="items-center py-4">
-                <Text numberOfLines={1} className="text-[19px] font-semibold">
+                <Text allowFontScaling={false} numberOfLines={1} className="text-[19px] font-semibold">
                     Profile
                 </Text>
             </View>
 
             <ScrollView className="flex-1 px-4">
                 <View className="pb-3">
-                    <Text className="m-2 ml-3 text-[13px] font-medium uppercase text-[#A69F9F]">Account</Text>
+                    <Text allowFontScaling={false} className="m-2 ml-3 text-[13px] font-medium uppercase text-[#A69F9F]">Account</Text>
 
                     <View className="rounded-xl shadow shadow-gray-500">
                         <View className="p-3 bg-white rounded-xl">
@@ -161,8 +161,8 @@ const ProfileScreen = () => {
                                 />
 
                                 <View className="mr-auto">
-                                    <Text className="text-[16px] font-semibold text-[#292929]">{currentUser?.first_name} {currentUser?.last_name}</Text>
-                                    <Text className="text-[14px] mt-1 text-[#858585] font-normal">{currentUser?.email}</Text>
+                                    <Text allowFontScaling={false} className="text-[16px] font-semibold text-[#292929]">{currentUser?.first_name} {currentUser?.last_name}</Text>
+                                    <Text allowFontScaling={false} className="text-[14px] mt-1 text-[#858585] font-normal">{currentUser?.email}</Text>
                                 </View>
 
                                 <Ionicons name="chevron-forward" size={22} color="#BCBCBC" />
@@ -172,14 +172,14 @@ const ProfileScreen = () => {
                 </View>
 
                 <View className="py-3 pt-2">
-                    <Text className="m-2 ml-3 text-[13px] font-medium uppercase text-[#A69F9F]">Navigation</Text>
+                    <Text allowFontScaling={false} className="m-2 ml-3 text-[13px] font-medium uppercase text-[#A69F9F]">Navigation</Text>
 
                     <View className="pl-4 bg-white border border-[#F0F0F0] rounded-xl shadow shadow-gray-500">
                         <TouchableOpacity
                             onPress={() => navigation.navigate('History')}
                             style={styles.row}
                         >
-                            <Text className="text-[16px] font-semibold text-black">History</Text>
+                            <Text allowFontScaling={false} className="text-[16px] font-semibold text-black">History</Text>
 
                             <View className="flex-grow flex-shrink basis-0" />
 
@@ -189,12 +189,12 @@ const ProfileScreen = () => {
                 </View>
 
                 <View className="py-3 pt-2">
-                    <Text className="m-2 ml-3 text-[13px] font-medium uppercase text-[#A69F9F]">Preferences</Text>
+                    <Text allowFontScaling={false} className="m-2 ml-3 text-[13px] font-medium uppercase text-[#A69F9F]">Preferences</Text>
 
                     <View className="rounded-xl shadow shadow-gray-500">
                         <View className="pl-4 bg-white border-t border-[#F0F0F0] rounded-t-[12px]">
                             <View className="h-[44px] w-full flex-row justify-start items-center pr-3">
-                                <Text className="text-[16px] font-semibold text-black tracking-wide">Push Notifications</Text>
+                                <Text allowFontScaling={false} className="text-[16px] font-semibold text-black tracking-wide">Push Notifications</Text>
 
                                 <View className="flex-grow flex-shrink basis-0" />
 
@@ -212,7 +212,7 @@ const ProfileScreen = () => {
 
                         <View className="pl-4 bg-white border-t border-[#F0F0F0] rounded-b-[12px]">
                             <View className="h-[44px] w-full flex-row justify-start items-center pr-3">
-                                <Text className="text-[16px] font-semibold text-black tracking-wide">Email Notifications</Text>
+                                <Text allowFontScaling={false} className="text-[16px] font-semibold text-black tracking-wide">Email Notifications</Text>
 
                                 <View className="flex-grow flex-shrink basis-0" />
 
@@ -231,7 +231,7 @@ const ProfileScreen = () => {
                 </View>
 
                 <View className="py-3 pt-2">
-                    <Text className="m-2 ml-3 text-[13px] font-medium uppercase text-[#A69F9F]">More</Text>
+                    <Text allowFontScaling={false} className="m-2 ml-3 text-[13px] font-medium uppercase text-[#A69F9F]">More</Text>
 
                     <View className="rounded-[12px] shadow shadow-gray-500">
                         <View className="pl-4 bg-white border-t border-[#F0F0F0] rounded-t-[12px]">
@@ -239,7 +239,7 @@ const ProfileScreen = () => {
                                 onPress={() => navigation.navigate('About')}
                                 style={styles.row}
                             >
-                                <Text className="text-[16px] font-semibold text-black">About Us</Text>
+                                <Text allowFontScaling={false} className="text-[16px] font-semibold text-black">About Us</Text>
 
                                 <View className="flex-grow flex-shrink basis-0" />
 
@@ -252,7 +252,7 @@ const ProfileScreen = () => {
                                 onPress={() => navigation.navigate('Team')}
                                 style={styles.row}
                             >
-                                <Text className="text-[16px] font-semibold text-black">Our Team</Text>
+                                <Text allowFontScaling={false} className="text-[16px] font-semibold text-black">Our Team</Text>
 
                                 <View className="flex-grow flex-shrink basis-0" />
 
@@ -270,13 +270,13 @@ const ProfileScreen = () => {
                                 disabled={isLoading}
                                 className="h-[20px] w-full items-center justify-start pr-3 flex-row"
                             >
-                                <Text className="text-[16px] font-semibold text-[#DC2626] tracking-wide text-center w-full">Log Out</Text>
+                                <Text allowFontScaling={false} className="text-[16px] font-semibold text-[#DC2626] tracking-wide text-center w-full">Log Out</Text>
                             </TouchableOpacity>
                         </View>
                     </View>
                 </View>
 
-                <Text className="mt-6 text-[13px] text-center font-medium text-[#A69F9F]">Developed by FCSIT & FBE UNIMAS</Text>
+                <Text allowFontScaling={false} className="mt-6 text-[13px] text-center font-medium text-[#A69F9F]">Developed by FCSIT & FBE UNIMAS</Text>
             </ScrollView>
         </SafeAreaView>
     )
